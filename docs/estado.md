@@ -18,8 +18,8 @@ repositories:
 sprints:
   - id: D01
     repository: hurioscan
-    planning_status: BORRADOR
-    execution_status: PLANIFICADO
+    planning_status: LISTO
+    execution_status: LISTO
     depends_on: []
     parallelizable_with: [F00, B01]
   - id: F00
@@ -129,6 +129,33 @@ sprints:
 ## Siguiente fase habilitada
 - **F00 está habilitado** (`Planificación: LISTO`, `Ejecución: LISTO`): su RFC está aprobado y sus dos fuentes materiales —`docs/frontend/experiencia.md` y los RNF— también, tras detectarse que se había habilitado con ambas en `propuesto`. Para todo lo demás, el siguiente paso sigue siendo la aprobación de `AGENTS.md` y de la línea base documental; con eso, B01 y F01 quedan habilitados y las dos líneas —backend y frontend— pueden avanzar en paralelo.
 
+## Delegación
+
+### Delegación — 2026-08-18 (BORRADOR, sin firmar)
+
+- Alcance autorizado: **[F00, D01]** — lista cerrada y literal
+- Se detiene al: completar los dos, o al vencimiento, lo que ocurra primero
+- Vencimiento: 2026-08-19T08:00 (hora de Perú)
+- Rol delegado: Coordinación + Arquitectura de la sesión que la ejerce
+- Límite Git autorizado: hasta `develop` — la rama `main` queda prohibida sin excepción
+- Ante un bloqueo fuera del perímetro: detener solo el sprint afectado y continuar con el otro
+- Decisiones explícitamente NO delegadas:
+  - aprobar la línea base documental (los 15 RF, contratos, modelo, errores, permisos, ADR)
+  - habilitar cualquier sprint fuera de F00 y D01, incluido B01
+  - el formato de documento de identidad (¿carné de extranjería además del DNI?)
+  - el límite de 15 MB por hoja
+  - el motor de OCR de producción
+- Aprobado por: **pendiente — requiere la confirmación de Kevin antes de tener efecto**
+- Fecha de aprobación: pendiente
+- Estado: **BORRADOR** — no vigente
+
+### Bitácora de la delegación
+
+Vacía. Se completa durante la ejecución, una fila por decisión que el usuario no vio antes de irse.
+
+| # | Sprint | Qué se decidió | Alternativas descartadas | Por qué | Reversible | Dónde quedó |
+|---|---|---|---|---|---|---|
+
 ## Chats de rol activos
 
 Índice de qué sesión trabaja en qué. Lo mantiene el Coordinador: se agrega una fila al despachar un chat y se actualiza al recibir su handoff. No sustituye al handoff versionado de cada sprint — es el mapa de quién está haciendo qué.
@@ -140,7 +167,7 @@ sprints:
 
 > Worktrees previstos al despachar: `../hurioscan-F00` en `sprint/F00` y `../hurioscan-B01` en `sprint/B01`, ambos desde `develop`. Ver "Aislamiento del trabajo paralelo" en `AGENTS.md`.
 | implementation | backend | (sin despachar) | B01 | ninguna | — | PLANIFICADO | — |
-| devops | — | (cerrado — se reabrirá con D01 aprobado) | D01 | aprobación de su RFC | CERRADO | PLANIFICADO | — |
+| devops | — | (por reabrir) | D01 | ninguna | CERRADO | LISTO | — |
 | qa | — | (sin despachar) | ninguno | ningún sprint en EN_VALIDACION | — | — | — |
 
 **Regla de despacho con dos líneas en paralelo:** antes de abrir un chat, el Coordinador verifica que su sprint no comparta rutas escribibles con el sprint activo de la otra línea, según la separación declarada en `AGENTS.md`. Si aparece un archivo compartido que la separación no previó, esa línea base resultó incorrecta: se pausa y se corrige `AGENTS.md` antes de continuar, en vez de dejar que dos agentes se pisen.
