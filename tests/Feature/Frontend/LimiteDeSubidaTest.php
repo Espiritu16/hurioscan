@@ -55,7 +55,30 @@ class LimiteDeSubidaTest extends TestCase
         $componente->assertSee('folio-16.jpg');
         // El mensaje es el del producto, en español, no el del framework.
         $componente->assertSee('Pesa más de 15 MB');
-        $componente->assertDontSee('may not be greater than');
+        $componente->assertDontSee($this->fraseDelFramework());
+    }
+
+    /**
+     * La frase con la que el framework rechaza por tamaño, comprobando de paso
+     * que sigue siendo la suya.
+     *
+     * Escribirla a mano no basta: la versión anterior decía «may not be
+     * greater than», y una guarda que busca una redacción que ya no existe no
+     * puede fallar nunca — parece que cubre algo y no cubre nada. Aquí se
+     * verifica contra la traducción real, así que si Laravel la cambia falla
+     * esta comprobación, en vez de volverse vacua en silencio.
+     */
+    private function fraseDelFramework(): string
+    {
+        $frase = 'must not be greater than';
+
+        $this->assertStringContainsString(
+            $frase,
+            trans('validation.max.file', ['attribute' => 'archivo', 'max' => 51200], 'en'),
+            'cambió la redacción del framework: actualiza la frase o esta guarda deja de servir',
+        );
+
+        return $frase;
     }
 
     /** Un lote mixto conserva todas las válidas y explica cada rechazo. */
@@ -70,7 +93,8 @@ class LimiteDeSubidaTest extends TestCase
                 $this->archivo('c.jpg', 13),
             ]);
 
-        // Cuatro válidas —incluida la de 13 MB— y dos rechazos con su motivo.
+        // De los cinco archivos: tres válidas —incluida la de 13 MB— y dos
+        // rechazos, cada uno con su motivo.
         $componente->assertCount('hojas', 3);
         $componente->assertCount('rechazos', 2);
         $componente->assertSee('Pesa más de 15 MB');
