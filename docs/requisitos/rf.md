@@ -135,7 +135,7 @@ Todos los RF de este documento están en estado `propuesto` hasta que el usuario
 
 ## RF-015 — Autocompletado de los datos del paciente a partir del DNI
 - Descripción: al registrar un paciente, el operador ingresa el DNI y el sistema consulta un proveedor externo de identidad para traer nombres y apellidos ya escritos, en vez de que el operador los tipee. El operador revisa lo traído, puede corregirlo y recién entonces guarda.
-- Criterio de aceptación: ingresado un DNI de 8 dígitos existente, el formulario se completa con apellido paterno, apellido materno y nombres, y el operador puede modificar cualquiera antes de guardar. Si el DNI no existe en el proveedor, si el proveedor no responde, si la credencial es inválida o si se agotaron los créditos, **el registro manual sigue disponible con todos los campos editables** y el motivo se muestra al operador; en ningún caso se bloquea el alta. El paciente guardado registra si sus datos vinieron del proveedor o se cargaron a mano.
+- Criterio de aceptación: ingresado un DNI de 8 dígitos, si ese paciente ya está registrado el sistema lo informa y ofrece abrir su folder, sin consultar al proveedor. Si no lo está, el formulario se completa con apellido paterno, apellido materno y nombres, y el operador puede modificar cualquiera antes de guardar. Si el DNI no existe en el proveedor, si el proveedor no responde, si la credencial es inválida o si se agotaron los créditos, **el registro manual sigue disponible con todos los campos editables** y el motivo se muestra al operador; en ningún caso se bloquea el alta. El paciente guardado registra si sus datos vinieron del proveedor o se cargaron a mano.
 - Motivación: un apellido mal tipeado en el archivo clínico produce un paciente que después no aparece al buscarlo. Traer el dato de la fuente oficial elimina esa clase de error y acelera la carga de cada folder.
 - Prioridad: media
 - Estado: propuesto
@@ -149,6 +149,7 @@ Todos los RF de este documento están en estado `propuesto` hasta que el usuario
 | No se consulta dos veces lo mismo | Los datos traídos se guardan en la ficha del paciente. El sistema no vuelve a consultar al proveedor para mostrar un paciente ya registrado, y funciona sin conexión una vez registrado. |
 | La consulta no es un requisito para registrar | Un paciente sin DNI legible, un recién nacido o un folder antiguo se registran a mano. |
 | Queda constancia del origen | Cada paciente registra si sus datos vinieron del proveedor o de carga manual, para poder auditar discrepancias después. |
+| Primero se busca en el archivo propio | Antes de consultar al proveedor, el sistema verifica si ese DNI ya está registrado. Si lo está, avisa y ofrece abrir su folder en vez de dejar que el operador llene un formulario que va a ser rechazado — y de paso no gasta una consulta del proveedor en un paciente que ya se conoce. En una campaña masiva topar con folders ya digitalizados es lo habitual, no la excepción. |
 
 ---
 
