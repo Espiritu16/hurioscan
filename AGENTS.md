@@ -59,14 +59,17 @@
 - No puede: desplegar a producción, alterar infraestructura externa real, rotar secretos, ni ejecutar operaciones destructivas sin autorización explícita del usuario
 
 ## Política de ramas
-- protegida: `main`
-- integración: ninguna, se integra directo a la protegida vía PR
-- trabajo: `sprint/<id>`, `feature/<nombre>`, `fix/<nombre>`
-- Entrega de Implementación: PR desde la rama de trabajo hacia `main`
-- Gate antes de integrar: QA APROBADO sobre ese `final_sha` cuando el sprint requiere QA; el Coordinador integra y cierra
+- protegida: `main` — solo recibe integraciones desde `develop`; representa lo que se muestra y se entrega
+- integración: `develop` — donde se acumula el trabajo de los sprints antes de llegar a `main`
+- trabajo: `sprint/<id>`, `feature/<nombre>`, `fix/<nombre>`, `docs/<nombre>` — siempre nacen de `develop` y vuelven a `develop`
+- Entrega de Implementación: PR desde la rama de trabajo hacia `develop`
+- Integración a `main`: PR desde `develop`, decidido por el Coordinador al cerrar un sprint o antes de una entrega del curso; nunca un commit directo
+- Gate antes de integrar a `develop`: QA APROBADO sobre ese `final_sha` cuando el sprint requiere QA
+- Gate antes de integrar a `main`: la suite completa en verde sobre `develop` — `main` nunca recibe algo que no haya pasado por `develop` primero
 
 ## CI por rama
-- `main`: previsto en S01 — GitHub Actions ejecutando `./vendor/bin/pint --test`, `php artisan test` y `pnpm build` en cada PR
+- `develop`: previsto en S01 — GitHub Actions ejecutando `./vendor/bin/pint --test`, `php artisan test` y `pnpm build` en cada PR
+- `main`: previsto en S01 — los checks anteriores más la suite completa de Feature tests sobre PostgreSQL, en cada PR desde `develop`
 
 ## Convención de commits
 <!-- Este bloque debe ser autocontenible. No citar exclusivamente una ruta
@@ -78,8 +81,8 @@
 - Referenciar el sprint en el cuerpo: `Sprint: <id-sprint>`
 - Un commit = un cambio lógico coherente
 - Sin emojis, sin línea `Co-Authored-By`
-- Prohibido: commit directo a `main`; todo pasa por PR
-- Prohibido: `--force` push a `main` sin autorización explícita
+- Prohibido: commit directo a `main` y a `develop`; todo pasa por PR
+- Prohibido: `--force` push a `main` o `develop` sin autorización explícita
 
 ## Comandos de verificación
 - Lint: `./vendor/bin/pint --test` — ejecutado 2026-08-18, resultado `passed`
