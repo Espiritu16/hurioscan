@@ -237,6 +237,33 @@ Decisiones tomadas mientras Kevin no estaba disponible, consolidadas a su regres
 | 2 | D01 | Aceptar como cumplido el criterio del rojo provocado con la evidencia del paso Tests, dejando Lint y Build por inferencia estructural | Provocar además un fallo de lint y uno de build | Los tres pasos comparten shell, sin `continue-on-error` ni `if:`; el costo de dos corridas más no aportaba certeza proporcional | Sí — se puede provocar en cualquier momento | `docs/handoffs/D01.md` § Observaciones |
 | 3 | F06 | Adoptar `pacientes.detalle` como nombre canónico de `/pacientes/{id}` | Dejarlo sin nombre hasta que backend lo declarara | Faltaba en la lista canónica y sigue exactamente el patrón de `sesiones.detalle` y `documentos.detalle`; ratificado por Arquitectura | Sí — es solo un nombre de ruta | `docs/frontend/integracion.md` |
 
+## Cierre de la línea frontend — 2026-08-19
+
+La cadena `F00`→`F07` está construida, integrada en `develop` y validada. **Ningún sprint pasa a `COMPLETADO`**, y no por un trámite pendiente: el roadmap declara que un sprint de frontend terminado contra su doble llega hasta `EN_VALIDACION`, y que cerrarlo exige el punto de integración con su sprint `B` —reemplazar el doble por el servicio real y verificar el flujo completo—. Esos puntos no existen porque la línea backend no ha empezado.
+
+### Qué queda entregado
+
+Dieciséis vistas servidas en su URL con nombres de ruta canónicos, sobre once componentes compartidos. Los siete sprints con veredicto favorable de QA, validados en navegador real sobre las páginas montadas. La costura entre líneas fijada y ejercida: cuatro interfaces de dominio con sus firmas, sus dobles activables solo por configuración, y la excepción base de errores.
+
+**Ese último punto es el valor menos visible y el más importante para lo que viene:** los contratos que B01–B07 deben implementar no están solo escritos, están *ejercidos*. Las firmas se usaron de verdad contra dobles, y ese uso ya destapó una operación que faltaba declarar (`GET /sesiones/{id}/hojas`) y una respuesta cuya forma divergía del contrato. El backend recibe interfaces probadas, no supuestas.
+
+### Nueve defectos, un solo patrón
+
+Ninguno era visible desde la suite de pruebas. En orden de aparición: el desborde de `<x-tabla>` que solo se manifestaba dentro de un contenedor flex real; la ausencia del layout de página, que `Livewire::test()` nunca ejerce; el método invocado desde producción que solo existía en el doble; la forma de respuesta en la que doble y componente coincidían entre sí pero no con el contrato; el manifiesto de assets ausente en el runner; la prueba que dependía de que no hubiera rutas montadas; quince controles sin destino; el error 500 con traza ante identificadores no numéricos; y el rechazo por tamaño que nunca ocurría y se llevaba el lote entero.
+
+El patrón común está en «Lección de método» más abajo. Los remedios que quedaron en el repositorio: `PaginaRealTest` (sirve los quince componentes como páginas reales), `AccionesConDestinoTest` (ninguna acción sin destino), `PerdidaSilenciosaTest` (el aviso por discrepancia), `LimiteDeSubidaTest` (el criterio de las capas, sostenido por el CI), y la comprobación por reflexión entre cada doble y su interfaz.
+
+### Lo que hereda la línea backend
+
+- **B01:** la deuda de que la aplicación verifique sus propios límites de subida al arrancar y falle de forma visible.
+- **B03:** la validación de tipo y tamaño debe ser efectiva del lado del servidor. Hoy la hace el doble y el atributo `accept` del input es solo ayuda del navegador — que la interfaz se comporte bien no demuestra nada sobre seguridad. Hereda también el `wire:key` duplicado que produce el doble entre lotes, que desaparecerá al asignar identificadores reales.
+- **Todos los `B`:** las firmas de `docs/contratos/servicios-aplicacion.md` se implementan, no se redefinen. Un cambio de firma es un cambio de contrato y vuelve a Arquitectura.
+- **Al habilitarse B01 vencen AUT-01, AUT-02 y AUT-03**, y `routes/web.php`, las interfaces y `config/livewire.php` vuelven a los dueños que declara `AGENTS.md`.
+
+### Lo único que falta del lado frontend
+
+La validación de la unidad del aviso por pérdida silenciosa, despachada a QA sobre `develop @ 8c15081`. Incluye un caso que ninguna prueba automática puede cubrir —seleccionar más de veinte archivos reales en un navegador— porque el dato de cuántos eligió la persona solo existe en el cliente.
+
 ## Lección de método — cobertura ficticia, 2026-08-19
 
 En dos días aparecieron **tres casos del mismo patrón**, y la repetición es lo que lo convierte en lección y no en anécdota:

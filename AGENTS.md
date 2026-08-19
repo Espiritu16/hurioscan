@@ -13,7 +13,7 @@
 - Gestor de paquetes/build: Composer 2.10.2 para PHP; pnpm 11.22.0 + Vite 8.2.1 para assets (verificado)
 - Persistencia/motor: PostgreSQL 18.3 (verificado instalado: `psql --version`; conexión de la app se configura en B01)
 - Estado global / roadmap: `docs/roadmap.md` y `docs/estado.md`
-- Handoffs de sprint: `docs/handoffs/<sprint-id>.md` (previsto: se crea el primero en B01 o F00, el que arranque antes)
+- Handoffs de sprint: `docs/handoffs/<sprint-id>.md` — existen los de D01 y los siete de la cadena de frontend
 
 ## Vigencia de gobernanza
 - Estado de gobernanza: APROBADO
