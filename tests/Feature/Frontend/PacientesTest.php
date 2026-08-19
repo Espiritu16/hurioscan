@@ -114,8 +114,18 @@ class PacientesTest extends TestCase
             ->assertSee('Guardar paciente');
 
         // El motivo técnico no se expone al operador.
-        $componente->assertDontSee('token');
-        $componente->assertDontSee('crédito');
+        //
+        // Antes esto buscaba las palabras «token» y «crédito», que solo
+        // existen en comentarios de PHP: ningún camino de código podía
+        // emitirlas, así que la guarda no podía fallar. La fuga realista es
+        // otra —el mensaje de la excepción llegando a la vista— y esa no la
+        // veía nadie. Se afirma sobre la forma: el aviso es exactamente uno de
+        // los dos textos diseñados, así que cualquier mensaje interno que se
+        // filtre rompe la igualdad.
+        $this->assertSame(
+            'No se pudo consultar el documento ahora. Escribe los datos a mano.',
+            $componente->get('avisoConsulta'),
+        );
     }
 
     public function test_una_historia_clinica_duplicada_se_explica_sin_perder_lo_escrito(): void

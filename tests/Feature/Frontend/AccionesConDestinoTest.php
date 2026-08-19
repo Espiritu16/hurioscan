@@ -80,9 +80,17 @@ class AccionesConDestinoTest extends TestCase
     #[DataProvider('paginasDeLaAplicacion')]
     public function test_ninguna_accion_de_la_pagina_queda_sin_destino(string $nombre, array $parametros): void
     {
-        if (! Route::has($nombre)) {
-            $this->markTestSkipped("la ruta {$nombre} todavía no está montada");
-        }
+        // Antes esto era un `markTestSkipped`, escrito cuando las rutas aún no
+        // existían para no romper el CI. Cumplió su función y quedó, pero
+        // saltarse la prueba cuando la ruta falta apaga la guarda justo en el
+        // caso que debe delatar: si alguien borra una ruta, la página se
+        // vuelve inalcanzable y esto pasaría en verde. Un `skip` sirve para lo
+        // que todavía no existe; para lo que ya existe y podría desaparecer,
+        // la ausencia tiene que fallar.
+        $this->assertTrue(
+            Route::has($nombre),
+            "la ruta {$nombre} no está montada: la página quedó inalcanzable",
+        );
 
         $html = $this->get(route($nombre, $parametros))->assertOk()->getContent();
 
@@ -122,13 +130,16 @@ class AccionesConDestinoTest extends TestCase
         $this->assertStringContainsString('Registrar paciente nuevo', $html);
         $this->assertStringContainsString('Iniciar digitalización', $html);
 
-        if (Route::has('pacientes.alta')) {
-            $this->assertStringContainsString(route('pacientes.alta'), $html);
-        }
+        // Mismo motivo que arriba: condicionar la aserción a que la ruta
+        // exista reproduce QA-F-01 en verde. El botón tampoco delata nada,
+        // porque al faltar la ruta degrada a deshabilitado —su diseño
+        // correcto— y eso cuenta como destino válido. Cada pieza está bien;
+        // juntas dejaban pasar justo el defecto que esta prueba impide.
+        $this->assertTrue(Route::has('pacientes.alta'), 'la ruta de alta desapareció');
+        $this->assertStringContainsString(route('pacientes.alta'), $html);
 
-        if (Route::has('sesiones.apertura')) {
-            $this->assertStringContainsString(route('sesiones.apertura', ['pacienteId' => 1]), $html);
-        }
+        $this->assertTrue(Route::has('sesiones.apertura'), 'la ruta de apertura desapareció');
+        $this->assertStringContainsString(route('sesiones.apertura', ['pacienteId' => 1]), $html);
     }
 
     /** El rol `consulta` no debe ver acciones de registro ni de captura. */
