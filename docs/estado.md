@@ -6,7 +6,7 @@ active_phase: cadena F00→F07
 active_status: EN_VALIDACION
 last_completed_phase: D01
 bootstrap_status: COMPLETO
-planning_horizon_status: PARCIAL — línea frontend LISTO; línea backend BLOQUEADA
+planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; backend habilitado desde B01
 current_rfc_batch: [D01, F00, B01, F01, B02, F02, B03, F03, B04, F05, B05, F06, B06, F07, B07]
 planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014, RF-015]
 updated_at: 2026-08-19
@@ -30,8 +30,8 @@ sprints:
     parallelizable_with: [B01]
   - id: B01
     repository: hurioscan
-    planning_status: BORRADOR
-    execution_status: PLANIFICADO
+    planning_status: LISTO
+    execution_status: LISTO
     depends_on: []
     parallelizable_with: [F00]
   - id: F01
@@ -139,7 +139,7 @@ Al corregir esos dos aparecieron cuatro más, todos de la misma familia. La list
 **El patrón, que es la conclusión que vale conservar:** los seis eran invisibles desde adentro de la suite porque la pieza no se estaba ejerciendo como se usa de verdad, o porque la prueba se apoyaba en una condición del entorno en vez de fabricarla. Los dos remedios que quedaron en el repositorio son `tests/Feature/Frontend/PaginaRealTest.php`, que sirve los quince componentes como páginas reales con ruta y layout, y la comprobación por reflexión de `servicios-aplicacion.md`. Al despachar QA conviene decirlo explícitamente: **validar sobre vistas montadas, no sobre componentes en aislamiento.**
 
 ## Bloqueantes
-- **Persistencia y ADR sin aprobar (deliberado):** `docs/persistencia/modelo.md` y `docs/decisiones/` siguen en `propuesto`. La línea backend completa (B01–B07) queda `BORRADOR`/`PLANIFICADO` hasta que Kevin los apruebe. Ninguna delegación vigente permite habilitarlos.
+- ~~**Persistencia y ADR sin aprobar**~~ → **APROBADOS por Kevin el 2026-08-19.** El modelo de persistencia con sus nueve migraciones y los cinco ADR quedaron firmes; **B01 pasa a `LISTO`** y la línea backend arranca. Los sprints B02–B07 siguen con su RFC en `BORRADOR`: cada uno se habilita al aprobarse el suyo, derivado de los RF ya aprobados.
 - Decisiones abiertas registradas, ninguna bloquea lo aprobado pero sí la implementación del sprint que las consume:
   - formato de documento de identidad: si el establecimiento registra carné de extranjería además de DNI, el formato de 8 dígitos no alcanza. El proveedor elegido ofrece consulta de carné de extranjería como servicio aparte, pero se declaró fuera del horizonte: un paciente extranjero se registra a mano (B02);
   - activación de la cuenta de JSON.pe: los 100 créditos gratuitos vencen a los 30 días y el proyecto dura 12 semanas, así que la cuenta real se activa cerca de la demostración final, no ahora (B02);
@@ -150,6 +150,19 @@ Al corregir esos dos aparecieron cuatro más, todos de la misma familia. La list
 - **Línea frontend en cadena:** F00 (en curso) y F01, F02, F03, F05, F06, F07 (`Planificación: LISTO`), ejecutados secuencialmente en `sprint/F00` por la sesión FRONTEND. Cada sprint cierra con su commit y su handoff antes de pasar al siguiente; la cadena termina en `EN_VALIDACION` y QA la valida después.
 - **D01:** `COMPLETADO` e integrado. Todo PR hacia `develop` ejecuta ahora lint, tests y build automáticamente.
 - **Backend:** bloqueado hasta que Kevin apruebe `docs/persistencia/modelo.md` y los ADR.
+
+## Aprobación de la línea base de backend — 2026-08-19
+
+Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerrada la línea base documental completa del proyecto y **la línea backend deja de estar bloqueada**.
+
+**Dos puntos de producto que se aprobaron explícitamente y conviene no redescubrir:**
+
+1. **Un usuario tiene un solo rol.** La matriz de permisos contemplaba varios, pero el schema admite uno. Habilitar varios exige una tabla `usuario_rol` y reabre el modelo. Si en el establecimiento alguien resulta ser operador y administrador a la vez, es un cambio de schema, no de configuración.
+2. **El panel de avance necesita `total_folders_acervo`,** un dato que el sistema no puede averiguar. Sin él muestra el avance absoluto sin porcentaje, que es el comportamiento ya validado en F07.
+
+**Estado de las autorizaciones temporales.** AUT-01, AUT-02 y AUT-03 se declararon vigentes «hasta habilitarse B01». Ese momento llegó: **las tres vencen al despacharse B01**, y `routes/web.php`, las interfaces de `app/Dominios/*/Contratos/` y `config/livewire.php` vuelven a los dueños que declara `AGENTS.md`. Se conservan escritas más abajo como registro de por qué existieron.
+
+**Qué hereda B01 al arrancar**, ya registrado en su contexto: la deuda de verificar los propios límites de subida al arrancar y fallar de forma visible; la deuda de fondo de QA-F-04 —que un aviso del motor pueda romper una respuesta JSON en cualquier punto—; y la idea de que `composer dev` delegue en el script de arranque, que es ruta suya.
 
 ## Autorizaciones vigentes
 

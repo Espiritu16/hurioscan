@@ -1,6 +1,6 @@
 # ADR-0002: el motor de OCR vive detrás de una interfaz propia
-- Estado: propuesta
-- Aprobado por (Arquitectura): pendiente — fecha: pendiente
+- Estado: **aprobada**
+- Aprobado por (Arquitectura): sesión Coordinación+Arquitectura, con aprobación de Kevin — fecha: 2026-08-19
 - Contexto: qué motor de OCR usar todavía no está decidido: depende de un benchmark comparativo que el equipo ejecuta en las primeras semanas. Sobre texto médico manuscrito los motores clásicos rondan el 50–70 % de precisión y los modelos de visión-lenguaje el 82–95 %, pero esos números provienen de literatura general, no de documentos peruanos reales. Esperar la decisión bloquearía todo el desarrollo.
 - Decisión: el dominio depende de la interfaz `App\Compartido\Ocr\MotorOcr`, nunca de un motor concreto. Cada motor es una implementación seleccionable con la variable `OCR_MOTOR`. Se incluye una implementación `nulo` que devuelve texto vacío, usada en desarrollo y en tests.
 - Consecuencias: hay una capa de indirección más que si se llamara a Tesseract directamente, y la interfaz obliga a un denominador común entre motores muy distintos —por eso `confianza` admite null: no todos la reportan. A cambio, cambiar de motor es cambiar una variable de entorno y agregar una clase; el benchmark deja de ser un bloqueante y pasa a ser una decisión reversible. El campo `motor_ocr` de cada documento permite además comparar la precisión real de los motores con documentos propios.
