@@ -1,7 +1,7 @@
 # Modelo de persistencia — HuriosCan
 
 Motor: PostgreSQL 18.3. ORM: Eloquent (Laravel 13). Mecanismo de migraciones: nativo de Laravel (`database/migrations/`).
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Kevin (usuario) y Arquitectura, 2026-08-19.
 
 ## Convenciones
 
@@ -74,16 +74,16 @@ Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
 
 | ID lógico | Orden/depende de | Cambio de schema | Datos/backfill | Reversibilidad | Artefacto esperado | Estado/fuente |
 |---|---|---|---|---|---|---|
-| MIG-001 | primera | agregar `rol`, `activo` y `deleted_at` a la tabla `users` del scaffold, renombrada a `usuarios` | no aplica — proyecto nuevo | rollback de tabla sin datos productivos | migración nativa de Laravel; ruta pendiente hasta generarla | derivado de RF-011; propuesto |
-| MIG-002 | tras MIG-001 | crear `pacientes` con constraints e índices, incluido el único parcial de `dni`, y los campos `origen_datos` y `datos_consultados_en` | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-001; propuesto |
-| MIG-003 | tras MIG-002 | crear `sesiones_digitalizacion` con FK, CHECK de estado y el índice único parcial de sesión abierta | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-002; propuesto |
-| MIG-004 | tras MIG-003 | crear `documentos` con FK, CHECK de tipo y estado, columna `version` con default 1, e índices de línea de tiempo | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-003, RF-005; propuesto |
-| MIG-005 | tras MIG-004 | agregar la columna generada `busqueda` (tsvector, configuración `spanish`) y su índice GIN | no aplica | rollback de columna e índice | migración nativa con SQL crudo — Laravel no expone columnas generadas tsvector en su API fluida | derivado de RF-007, RNF-001; propuesto |
-| MIG-006 | tras MIG-001 | crear `configuracion_establecimiento` e insertar la fila única | seeder con el nombre del establecimiento | rollback de tabla vacía | migración nativa + seeder; ruta pendiente | derivado de RF-010; propuesto |
-| MIG-007 | tras MIG-004 | crear `auditorias` sin FK hacia `usuarios`, con índices | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | política de documentacion-estructura; propuesto |
-| MIG-008 | tras MIG-001 | crear `log_errores` con índices | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | política de documentacion-estructura; propuesto |
-| MIG-009 | tras MIG-007 | crear el rol de base de datos de la aplicación y revocar `UPDATE`/`DELETE` sobre `auditorias` | no aplica | revertir los `GRANT` | migración nativa con SQL crudo | derivado de RNF-006; propuesto |
+| MIG-001 | primera | agregar `rol`, `activo` y `deleted_at` a la tabla `users` del scaffold, renombrada a `usuarios` | no aplica — proyecto nuevo | rollback de tabla sin datos productivos | migración nativa de Laravel; ruta pendiente hasta generarla | derivado de RF-011; aprobado |
+| MIG-002 | tras MIG-001 | crear `pacientes` con constraints e índices, incluido el único parcial de `dni`, y los campos `origen_datos` y `datos_consultados_en` | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-001; aprobado |
+| MIG-003 | tras MIG-002 | crear `sesiones_digitalizacion` con FK, CHECK de estado y el índice único parcial de sesión abierta | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-002; aprobado |
+| MIG-004 | tras MIG-003 | crear `documentos` con FK, CHECK de tipo y estado, columna `version` con default 1, e índices de línea de tiempo | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-003, RF-005; aprobado |
+| MIG-005 | tras MIG-004 | agregar la columna generada `busqueda` (tsvector, configuración `spanish`) y su índice GIN | no aplica | rollback de columna e índice | migración nativa con SQL crudo — Laravel no expone columnas generadas tsvector en su API fluida | derivado de RF-007, RNF-001; aprobado |
+| MIG-006 | tras MIG-001 | crear `configuracion_establecimiento` e insertar la fila única | seeder con el nombre del establecimiento | rollback de tabla vacía | migración nativa + seeder; ruta pendiente | derivado de RF-010; aprobado |
+| MIG-007 | tras MIG-004 | crear `auditorias` sin FK hacia `usuarios`, con índices | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | política de documentacion-estructura; aprobado |
+| MIG-008 | tras MIG-001 | crear `log_errores` con índices | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | política de documentacion-estructura; aprobado |
+| MIG-009 | tras MIG-007 | crear el rol de base de datos de la aplicación y revocar `UPDATE`/`DELETE` sobre `auditorias` | no aplica | revertir los `GRANT` | migración nativa con SQL crudo | derivado de RNF-006; aprobado |
 
 MIG-009 es la que hace verificable la inmutabilidad de `Auditoria`: sin ella, la restricción sería solo una convención que cualquier línea de código puede romper.
 
-Aprobado por (Arquitectura): pendiente — fecha: pendiente
+Aprobado por (Arquitectura): sesión Coordinación+Arquitectura, con aprobación de Kevin — fecha: 2026-08-19
