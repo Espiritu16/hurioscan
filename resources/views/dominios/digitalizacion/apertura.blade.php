@@ -5,7 +5,13 @@
         <div role="status" class="flex flex-col gap-2 rounded-md bg-advertencia-suave px-3 py-2 text-sm text-advertencia">
             <p>{{ $aviso }}</p>
             <div>
-                <x-boton variante="secundario">Retomar la sesión {{ $sesionExistenteId }}</x-boton>
+                <x-boton
+                    variante="secundario"
+                    ruta="sesiones.detalle"
+                    :parametros="['sesionId' => $sesionExistenteId]"
+                >
+                    Retomar la sesión {{ $sesionExistenteId }}
+                </x-boton>
             </div>
         </div>
     @elseif ($estado === 'abierta')

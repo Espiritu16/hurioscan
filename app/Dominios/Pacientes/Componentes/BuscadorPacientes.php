@@ -27,8 +27,15 @@ class BuscadorPacientes extends Component
 
     public array $meta = [];
 
-    /** Rol del actor; en producción lo resuelve la sesión, no la vista. */
-    public string $rol = 'operador';
+    /**
+     * Rol del actor; en producción lo resuelve la sesión, no la vista.
+     *
+     * El default es **sin rol**, no uno concreto: mientras la sesión no
+     * aporte uno, no se ofrece ninguna acción reservada. Un default con
+     * privilegios mostraría la acción de registrar a quien no la tiene
+     * (RNF-013), aunque el backend la rechazara después.
+     */
+    public string $rol = '';
 
     public function mount(ServicioPacientes $pacientes): void
     {

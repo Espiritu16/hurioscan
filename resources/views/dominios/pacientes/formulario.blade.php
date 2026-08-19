@@ -29,7 +29,7 @@
                     {{ $pacienteExistente['apellidos'] }}, {{ $pacienteExistente['nombres'] }}
                     · H.C. <span class="font-mono">{{ $pacienteExistente['numeroHistoria'] }}</span>
                 </p>
-                <div><x-boton variante="secundario">Abrir su folder</x-boton></div>
+                <div><x-boton ruta="pacientes.detalle" :parametros="['pacienteId' => $pacienteExistente['id']]" variante="secundario">Abrir su folder</x-boton></div>
             </div>
         @elseif ($estadoConsulta === 'precargado')
             <p role="status" class="rounded-md bg-exito-suave px-3 py-2 text-sm text-exito">{{ $avisoConsulta }}</p>

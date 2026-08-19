@@ -41,6 +41,12 @@ class SesionesPendientes extends Component
         return $estadoSesion === 'EN_REVISION' ? 'revisión' : 'captura';
     }
 
+    /** El nombre de ruta que corresponde a ese mismo destino. */
+    public function rutaDe(string $estadoSesion): string
+    {
+        return $estadoSesion === 'EN_REVISION' ? 'sesiones.revision' : 'sesiones.detalle';
+    }
+
     public function render()
     {
         return view('dominios.digitalizacion.pendientes');

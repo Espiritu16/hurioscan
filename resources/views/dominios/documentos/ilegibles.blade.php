@@ -13,7 +13,7 @@
             titulo="No hay hojas ilegibles"
             descripcion="Cuando una hoja se marque como ilegible aparecerá aquí para reescanearla."
         >
-            <x-boton variante="secundario">Ir a sesiones pendientes</x-boton>
+            <x-boton ruta="sesiones.pendientes" variante="secundario">Ir a sesiones pendientes</x-boton>
         </x-estado-vacio>
     @else
         <x-tabla>

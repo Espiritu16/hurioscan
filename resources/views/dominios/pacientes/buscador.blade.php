@@ -8,7 +8,7 @@
             class="sm:max-w-md"
         />
         @if ($this->puedeRegistrar)
-            <x-boton class="sm:ms-auto">Registrar paciente nuevo</x-boton>
+            <x-boton ruta="pacientes.alta" class="sm:ms-auto">Registrar paciente nuevo</x-boton>
         @endif
     </div>
 
@@ -22,7 +22,7 @@
             descripcion="Revisa el número de historia o los apellidos. Si el paciente no existe todavía, puedes registrarlo."
         >
             @if ($this->puedeRegistrar)
-                <x-boton variante="secundario">Registrar paciente nuevo</x-boton>
+                <x-boton ruta="pacientes.alta" variante="secundario">Registrar paciente nuevo</x-boton>
             @endif
         </x-estado-vacio>
     @else
@@ -41,9 +41,25 @@
                     <td class="px-3 py-2 font-mono">{{ $paciente['dni'] ?? '—' }}</td>
                     <td class="px-3 py-2 font-mono">{{ $paciente['totalDocumentos'] }}</td>
                     <td class="px-3 py-2">
-                        <x-boton variante="terciario">
-                            {{ $this->puedeRegistrar ? 'Iniciar digitalización' : 'Ver línea de tiempo' }}
-                        </x-boton>
+                        {{-- El operador continúa a la captura; los demás roles
+                             llegan a la línea de tiempo (experiencia.md). --}}
+                        @if ($this->puedeRegistrar)
+                            <x-boton
+                                variante="terciario"
+                                ruta="sesiones.apertura"
+                                :parametros="['pacienteId' => $paciente['id']]"
+                            >
+                                Iniciar digitalización
+                            </x-boton>
+                        @else
+                            <x-boton
+                                variante="terciario"
+                                ruta="pacientes.detalle"
+                                :parametros="['pacienteId' => $paciente['id']]"
+                            >
+                                Ver línea de tiempo
+                            </x-boton>
+                        @endif
                     </td>
                 </tr>
             @endforeach
