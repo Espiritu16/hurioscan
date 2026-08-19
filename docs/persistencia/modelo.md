@@ -21,9 +21,10 @@ Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
 - Plan/migraciones relacionadas: MIG-001
 
 ## Entidad: Paciente (tabla: `pacientes`) — deriva de RF-001, RF-002
-- Campos: `id` (PK, bigint), `numero_historia` (varchar 30, NOT NULL, UNIQUE — cadena de texto, no número: admite ceros iniciales y separadores), `dni` (varchar 12, nullable, UNIQUE cuando no es null — puede faltar en folders antiguos), `apellidos` (varchar 120, NOT NULL), `nombres` (varchar 120, NOT NULL), `fecha_nacimiento` (date, nullable), `created_at` / `updated_at` (timestamptz), `deleted_at` (timestamptz, nullable — soft-delete: tiene FK entrantes y valor clínico permanente)
+- Campos: `id` (PK, bigint), `numero_historia` (varchar 30, NOT NULL, UNIQUE — cadena de texto, no número: admite ceros iniciales y separadores), `dni` (varchar 12, nullable, UNIQUE cuando no es null — puede faltar en folders antiguos), `apellidos` (varchar 120, NOT NULL), `nombres` (varchar 120, NOT NULL), `fecha_nacimiento` (date, nullable), `origen_datos` (varchar 12, NOT NULL, default `manual`, CHECK IN `manual`, `proveedor` — de dónde salieron los nombres y apellidos, para poder auditar discrepancias entre el archivo físico y la fuente de identidad), `datos_consultados_en` (timestamptz, nullable — cuándo se consultó al proveedor; null si la carga fue manual), `created_at` / `updated_at` (timestamptz), `deleted_at` (timestamptz, nullable — soft-delete: tiene FK entrantes y valor clínico permanente)
 - Relaciones: 1:N con `SesionDigitalizacion`; 1:N con `Documento`
 - Índices: `numero_historia` (unique), `dni` (unique parcial `WHERE dni IS NOT NULL`), índice de texto sobre `apellidos || ' ' || nombres` para la búsqueda por nombre de RF-001
+- **Datos deliberadamente no almacenados**: el proveedor de identidad puede devolver dirección y ubigeo. No se guardan ni se solicitan: ningún requisito del sistema los necesita y almacenar datos personales que nadie usa es recolección innecesaria bajo la Ley N.º 29733. Ver `docs/integraciones/json-pe.md`.
 - Plan/migraciones relacionadas: MIG-002
 
 ## Entidad: SesionDigitalizacion (tabla: `sesiones_digitalizacion`) — deriva de RF-002, RF-006, RF-013
@@ -74,7 +75,7 @@ Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
 | ID lógico | Orden/depende de | Cambio de schema | Datos/backfill | Reversibilidad | Artefacto esperado | Estado/fuente |
 |---|---|---|---|---|---|---|
 | MIG-001 | primera | agregar `rol`, `activo` y `deleted_at` a la tabla `users` del scaffold, renombrada a `usuarios` | no aplica — proyecto nuevo | rollback de tabla sin datos productivos | migración nativa de Laravel; ruta pendiente hasta generarla | derivado de RF-011; propuesto |
-| MIG-002 | tras MIG-001 | crear `pacientes` con constraints e índices, incluido el único parcial de `dni` | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-001; propuesto |
+| MIG-002 | tras MIG-001 | crear `pacientes` con constraints e índices, incluido el único parcial de `dni`, y los campos `origen_datos` y `datos_consultados_en` | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-001; propuesto |
 | MIG-003 | tras MIG-002 | crear `sesiones_digitalizacion` con FK, CHECK de estado y el índice único parcial de sesión abierta | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-002; propuesto |
 | MIG-004 | tras MIG-003 | crear `documentos` con FK, CHECK de tipo y estado, columna `version` con default 1, e índices de línea de tiempo | no aplica | rollback de tabla vacía | migración nativa; ruta pendiente | derivado de RF-003, RF-005; propuesto |
 | MIG-005 | tras MIG-004 | agregar la columna generada `busqueda` (tsvector, configuración `spanish`) y su índice GIN | no aplica | rollback de columna e índice | migración nativa con SQL crudo — Laravel no expone columnas generadas tsvector en su API fluida | derivado de RF-007, RNF-001; propuesto |

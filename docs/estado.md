@@ -8,7 +8,7 @@ last_completed_phase: null
 bootstrap_status: COMPLETO
 planning_horizon_status: BLOQUEADA
 current_rfc_batch: [S01, S02, S03, S04, S05, S06, S07]
-planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014]
+planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014, RF-015]
 updated_at: 2026-08-18
 repositories:
   - name: hurioscan
@@ -73,7 +73,8 @@ sprints:
 - Todos los documentos de línea base están en `propuesto`. Requieren aprobación del usuario real (requisitos, glosario, experiencia) y de Arquitectura (contratos, persistencia, errores, permisos, integración, ADR).
 - Los siete RFC están en `propuesto`; ninguno puede pasar a `Planificación: LISTO` hasta que sus fuentes estén aprobadas.
 - Decisiones abiertas registradas, ninguna bloquea la aprobación de los documentos pero sí la implementación del sprint que las consume:
-  - formato de documento de identidad: si el establecimiento registra carné de extranjería además de DNI, el formato de 8 dígitos no alcanza (S02);
+  - formato de documento de identidad: si el establecimiento registra carné de extranjería además de DNI, el formato de 8 dígitos no alcanza. El proveedor elegido ofrece consulta de carné de extranjería como servicio aparte, pero se declaró fuera del horizonte: un paciente extranjero se registra a mano (S02);
+  - activación de la cuenta de JSON.pe: los 100 créditos gratuitos vencen a los 30 días y el proyecto dura 12 semanas, así que la cuenta real se activa cerca de la demostración final, no ahora (S02);
   - límite de 15 MB por hoja: confirmar contra los equipos reales del establecimiento (S03);
   - motor de OCR de producción: lo decide el benchmark (S04).
 
