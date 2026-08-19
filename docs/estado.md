@@ -3,7 +3,7 @@ project: HuriosCan
 source_status: CANONICA
 baseline: documentación inicial completa, sin aprobar
 active_phase: F00
-active_status: LISTO
+active_status: EN_PROGRESO
 last_completed_phase: null
 bootstrap_status: COMPLETO
 planning_horizon_status: BLOQUEADA
@@ -19,13 +19,13 @@ sprints:
   - id: D01
     repository: hurioscan
     planning_status: LISTO
-    execution_status: LISTO
+    execution_status: EN_PROGRESO
     depends_on: []
     parallelizable_with: [F00, B01]
   - id: F00
     repository: hurioscan
     planning_status: LISTO
-    execution_status: LISTO
+    execution_status: EN_PROGRESO
     depends_on: []
     parallelizable_with: [B01]
   - id: B01
@@ -115,6 +115,7 @@ sprints:
 - Estructura domain-first materializada en `app/Dominios/` y `app/Compartido/Ocr/`.
 - Documentación inicial completa escrita: requisitos, permisos, glosario, contratos de los cuatro dominios, modelo de persistencia con plan de migraciones, taxonomía de errores, experiencia e integración de interfaz, integración del motor de OCR y cinco ADR.
 - Roadmap de quince sprints —siete de backend, siete de frontend y uno de DevOps— con matriz de cobertura de todos los RF y RNF del horizonte, paralelismo declarado por pares y puntos de integración explícitos.
+- 2026-08-18: despachados en paralelo F00 (chat FRONTEND) y D01 (chat DEVOP) desde `develop @ bb7ae5b`; chat QA abierto en espera. Decisión de alcance aprobada por Kevin: F00 tokeniza **solo el tema claro** del diseño; el tema oscuro queda fuera del horizonte y requeriría trabajo planificado aparte. Fuente de la paleta: `docs/frontend/diseno/hurioscan-claude-design.html` (ningún ADR contiene colores; se corrigió la referencia del README de diseño).
 
 ## Bloqueantes
 - ~~`AGENTS.md` está en `BORRADOR`~~ → **APROBADO por Kevin el 2026-08-18**.
@@ -127,7 +128,7 @@ sprints:
   - motor de OCR de producción: lo decide el benchmark (B04).
 
 ## Siguiente fase habilitada
-- **F00 está habilitado** (`Planificación: LISTO`, `Ejecución: LISTO`): su RFC está aprobado y sus dos fuentes materiales —`docs/frontend/experiencia.md` y los RNF— también, tras detectarse que se había habilitado con ambas en `propuesto`. Para todo lo demás, el siguiente paso sigue siendo la aprobación de `AGENTS.md` y de la línea base documental; con eso, B01 y F01 quedan habilitados y las dos líneas —backend y frontend— pueden avanzar en paralelo.
+- **F00 y D01 están en ejecución** (`EN_PROGRESO`, despachados el 2026-08-18). Para todo lo demás, el siguiente paso sigue siendo la aprobación de la línea base documental (los 15 RF, contratos, persistencia, errores, permisos, ADR); con eso, B01 y F01 quedan habilitados y las dos líneas —backend y frontend— pueden avanzar en paralelo.
 
 ## Delegación
 
@@ -162,13 +163,13 @@ Vacía. Se completa durante la ejecución, una fila por decisión que el usuario
 
 | Rol | Línea | Sesión (chat principal) | Sprint activo | Depende de | Estado del chat | Estado del sprint | Último handoff |
 |---|---|---|---|---|---|---|---|
-| coordinacion | — | este chat | — | — | ABIERTO | — | — |
-| implementation | frontend | (sin despachar) | F00 | ninguna | — | LISTO | — |
-
-> Worktrees previstos al despachar: `../hurioscan-F00` en `sprint/F00` y `../hurioscan-B01` en `sprint/B01`, ambos desde `develop`. Ver "Aislamiento del trabajo paralelo" en `AGENTS.md`.
+| coordinacion | — | COORDINADOR (este chat) | — | — | ABIERTO | — | — |
+| implementation | frontend | FRONTEND | F00 | ninguna | ABIERTO | EN_PROGRESO | `docs/handoffs/F00.md` (lo crea el chat) |
 | implementation | backend | (sin despachar) | B01 | ninguna | — | PLANIFICADO | — |
-| devops | — | (por reabrir) | D01 | ninguna | CERRADO | LISTO | — |
-| qa | — | (sin despachar) | ninguno | ningún sprint en EN_VALIDACION | — | — | — |
+| devops | — | DEVOP | D01 | ninguna | ABIERTO | EN_PROGRESO | evidencia vía reporte; la registra el Coordinador |
+| qa | — | QA | ninguno (en espera) | ningún sprint en EN_VALIDACION | ABIERTO | — | — |
+
+> Worktrees activos: `../hurioscan-F00` en `sprint/F00` y `../hurioscan-D01` en `sprint/D01`, ambos desde `develop @ bb7ae5b`. Ver "Aislamiento del trabajo paralelo" en `AGENTS.md`. Los cuatro chats se comunican por mensajería directa entre sesiones (SendMessage); el Coordinador es COORDINADOR.
 
 **Regla de despacho con dos líneas en paralelo:** antes de abrir un chat, el Coordinador verifica que su sprint no comparta rutas escribibles con el sprint activo de la otra línea, según la separación declarada en `AGENTS.md`. Si aparece un archivo compartido que la separación no previó, esa línea base resultó incorrecta: se pausa y se corrige `AGENTS.md` antes de continuar, en vez de dejar que dos agentes se pisen.
 
