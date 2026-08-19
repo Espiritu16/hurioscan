@@ -61,7 +61,7 @@ sprints:
   - id: F03
     repository: hurioscan
     planning_status: LISTO
-    execution_status: EN_VALIDACION
+    execution_status: EN_PROGRESO
     depends_on: [F00, F01]
     parallelizable_with: [B03, B04]
   - id: B04
@@ -208,6 +208,38 @@ Decisiones tomadas mientras Kevin no estaba disponible, consolidadas a su regres
 | 1 | D01 | Verificar la corrida real del flujo de `main` con un PR borrador temporal hacia `main`, cerrado sin fusionar | Esperar a un PR `develop`→`main` real; confiar solo en `workflow_dispatch` | `workflow_dispatch` no funciona hasta que el archivo está en la rama por defecto, y el criterio de cierre exigía una corrida real | Sí — el PR se cerró sin fusionar y no dejó rastro en `main` | `docs/handoffs/D01.md`; PR #20 |
 | 2 | D01 | Aceptar como cumplido el criterio del rojo provocado con la evidencia del paso Tests, dejando Lint y Build por inferencia estructural | Provocar además un fallo de lint y uno de build | Los tres pasos comparten shell, sin `continue-on-error` ni `if:`; el costo de dos corridas más no aportaba certeza proporcional | Sí — se puede provocar en cualquier momento | `docs/handoffs/D01.md` § Observaciones |
 | 3 | F06 | Adoptar `pacientes.detalle` como nombre canónico de `/pacientes/{id}` | Dejarlo sin nombre hasta que backend lo declarara | Faltaba en la lista canónica y sigue exactamente el patrón de `sesiones.detalle` y `documentos.detalle`; ratificado por Arquitectura | Sí — es solo un nombre de ruta | `docs/frontend/integracion.md` |
+
+## Veredicto QA de la cadena `F` — 2026-08-19
+
+Sobre `hurioscan@9576f68`. Detalle por sprint en cada `docs/handoffs/F0*.md`.
+
+| Sprint | Veredicto |
+|---|---|
+| F00 | APROBADO con observación |
+| F01, F02, F05, F06, F07 | APROBADO |
+| **F03** | **RECHAZADO** — vuelve a `EN_PROGRESO` |
+
+**Ningún APROBADO cierra su sprint.** Son veredictos sobre interfaz contra dobles; el paso a `COMPLETADO` exige el punto de integración con el sprint `B` correspondiente, que no existe.
+
+### QA-F-03 — el defecto que rechaza F03
+
+El rechazo de una hoja por tamaño nunca ocurre, y en su lugar se pierde el lote entero sin mostrar ningún motivo. Detalle completo en `docs/handoffs/F03.md`. Lo esencial: **hay tres límites descoordinados y ninguna capa está configurada para respetar el que declara el producto** — producto 15 MB, Livewire 12 MB por su valor por defecto, y `upload_max_filesize` de PHP 2 MB en la máquina de validación. El defecto no depende de qué número se elija; depende de que nadie configuró la plataforma.
+
+Corregirlo abarca configuración de aplicación (`config/livewire.php`, que no existe) y de entorno (PHP, y el servidor web cuando exista), así que **cruza la frontera de rutas escribibles de `AGENTS.md` y necesita una decisión de gobernanza antes de despacharse.**
+
+### Decisión de Arquitectura sobre la observación de F00
+
+QA midió las dieciséis páginas en los cuatro anchos y solo `/componentes` desborda, unos 12 px en 360. QA no la absolvió por su cuenta y derivó la llamada, correctamente, porque RNF-004 dice literalmente «aplica a todas las vistas».
+
+**Resuelto como observación, no como no conformidad.** El catálogo de componentes es una vitrina de desarrollo: su ruta solo se registra bajo entorno local, nunca se sirve, y F00-UT-05 no le pide comportamiento responsive. «Todas las vistas» de RNF-004 se entiende referido a las vistas del producto. Queda anotado en el handoff de F00: si alguna vez el catálogo se expusiera fuera de local, dejaría de ser observación.
+
+### Riesgo que hereda B03
+
+La validación de tipo y tamaño hoy la hace el doble, y el atributo `accept` del input es solo ayuda del navegador, no un control. Cuando B03 implemente el servicio real, el rechazo por formato y por tamaño tiene que ser efectivo del lado del servidor: **que hoy se vea correcto no lo demuestra.**
+
+### Observación sobre la prueba de acciones con destino
+
+QA mutó `AccionesConDestinoTest` en una copia desechable y confirmó que sí atrapa el defecto original. Anotó un matiz que conviene conocer: el barrido descarta los controles que llevan `wire:loading`, así que un botón inerte que además lo usara quedaría fuera de vigilancia sin avisar. Hoy no ocurre, pero `wire:loading.attr="disabled"` es un idioma habitual de Livewire. No es defecto del producto; es una arista de la red que conviene cerrar cuando se toque ese test.
 
 ## Validación QA de la cadena `F` — parcial, 2026-08-19
 
