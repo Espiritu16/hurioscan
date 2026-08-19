@@ -17,6 +17,7 @@
 
 ## Vigencia de gobernanza
 - Estado de gobernanza: BORRADOR
+- Última revisión material: separación del rol `implementation` en dos líneas paralelas (backend y frontend) con rutas escribibles disjuntas, para permitir chats de rol simultáneos.
 - Aprobado por: pendiente
 - Fecha de aprobación: pendiente
 
@@ -33,10 +34,26 @@
 - No puede: implementar código, autoaprobar al usuario, sustituir la aprobación de Arquitectura, emitir el veredicto QA ni ejecutar trabajo DevOps
 
 ### implementation
-- Puede escribir código y pruebas: `app/Dominios/`, `app/Compartido/`, `app/Http/Middleware/`, `app/Providers/`, `routes/`, `resources/views/`, `resources/css/`, `resources/js/`, `tests/`
-- Puede escribir bootstrap/configuración cuando el RFC lo autoriza: `composer.json`, `composer.lock`, `package.json`, `pnpm-lock.yaml`, `config/`, `bootstrap/`, `vite.config.js`, `.env.example` (sin secretos), `database/migrations/`, `database/seeders/`, `database/factories/`
+
+El rol se ejerce en **dos líneas que trabajan en paralelo en chats distintos** — sprints `B` (backend) y sprints `F` (frontend). Sus rutas escribibles son disjuntas a propósito: es lo que permite despachar dos agentes a la vez sin que se pisen.
+
+#### implementation · línea backend (sprints `B`)
+- Puede escribir código y pruebas: `app/Dominios/*/` **excepto** la subcarpeta `Componentes/` de cada dominio, `app/Compartido/`, `app/Http/Middleware/`, `app/Providers/`, `tests/Feature/`, `tests/Unit/`
+- Puede escribir bootstrap/configuración cuando el RFC lo autoriza: `composer.json`, `composer.lock`, `config/`, `bootstrap/`, `.env.example` (sin secretos), `database/migrations/`, `database/seeders/`, `database/factories/`
+- **Es dueña de `routes/web.php`**: declara las rutas con su nombre. La línea frontend las consume por nombre y no las edita.
+- No puede escribir: `resources/views/`, `resources/css/`, `resources/js/`, `app/Dominios/*/Componentes/`
+
+#### implementation · línea frontend (sprints `F`)
+- Puede escribir código y pruebas: `app/Dominios/*/Componentes/` (componentes Livewire), `resources/views/`, `resources/css/`, `resources/js/`, `app/Compartido/Dobles/` (dobles de desarrollo), `tests/Feature/Frontend/`
+- Puede escribir bootstrap/configuración cuando el RFC lo autoriza: `package.json`, `pnpm-lock.yaml`, `vite.config.js`, `tailwind.config.js`
+- **Consume las rutas por su nombre**, nunca por su URL literal ni editando `routes/web.php`. Si necesita una ruta que no existe, la pide al Coordinador; no la agrega por su cuenta.
+- No puede escribir: `app/Dominios/*/` fuera de `Componentes/`, `database/`, `app/Compartido/` fuera de `Dobles/`
+
+#### Reglas comunes a ambas líneas
 - Puede actualizar únicamente este handoff: `docs/handoffs/<sprint-id>.md` correspondiente a su propio sprint; nunca `docs/estado.md` ni handoffs ajenos
-- No puede modificar sin autorización: `docs/contratos/`, `docs/persistencia/modelo.md`, `docs/errores/`, `docs/requisitos/actores-permisos.md`, `docs/decisiones/`
+- No puede modificar sin autorización: `docs/contratos/`, `docs/persistencia/modelo.md`, `docs/errores/`, `docs/requisitos/actores-permisos.md`, `docs/decisiones/`, `docs/roadmap.md`
+- **Zona compartida — `routes/web.php`:** la escribe solo backend. Si un sprint de frontend necesita una ruta antes de que su backend exista, el Coordinador la declara apuntando a un componente provisional; nunca dos chats editan ese archivo a la vez.
+- **Los dobles de desarrollo viven en `app/Compartido/Dobles/` y se activan solo por configuración.** Ningún doble se referencia desde código de producción, y el punto de integración de cada par `B`/`F` verifica que el build real no cae de vuelta a ellos.
 
 ### qa
 - Puede leer: todo el repositorio
@@ -66,6 +83,25 @@
 - Integración a `main`: PR desde `develop`, decidido por el Coordinador al cerrar un sprint o antes de una entrega del curso; nunca un commit directo
 - Gate antes de integrar a `develop`: QA APROBADO sobre ese `final_sha` cuando el sprint requiere QA
 - Gate antes de integrar a `main`: la suite completa en verde sobre `develop` — `main` nunca recibe algo que no haya pasado por `develop` primero
+
+## Aislamiento del trabajo paralelo
+
+Este repositorio es **fullstack**: backend y frontend viven en el mismo árbol. Dos chats de rol trabajando a la vez necesitan por eso dos capas de protección, y ninguna sustituye a la otra.
+
+**Capa 1 — worktree por sprint.** Cada sprint que se ejecuta en paralelo con otro usa su propio worktree de Git en la rama `sprint/<id>`, creado desde el mismo `base_sha`. Un chat de rol por worktree. Ningún chat toca el checkout principal ni el worktree de otro sprint. La ruta queda registrada en `worktree_path` del handoff.
+
+```bash
+git worktree add ../hurioscan-F00 -b sprint/F00 develop
+git worktree add ../hurioscan-B01 -b sprint/B01 develop
+```
+
+Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescriben.
+
+**Capa 2 — rutas escribibles disjuntas.** El worktree evita que se pisen mientras escriben, pero **no evita el conflicto al fusionar**: dos ramas que editan el mismo archivo chocan igual en el merge. Por eso las dos líneas de `implementation` tienen rutas declaradas y separadas más arriba, y `routes/web.php` tiene un dueño único.
+
+**Antes de despachar dos chats en paralelo**, el Coordinador verifica que los sprints no compartan rutas escribibles según esa separación. Si al materializar el trabajo aparece un archivo compartido que la separación no previó, la línea base resultó incorrecta: se pausa, se corrige `AGENTS.md` y se vuelve a aprobar, en vez de resolver conflictos de merge a mano cada vez.
+
+**Por qué no se separó en dos repositorios.** Sería la otra forma de conseguir el aislamiento —cada repositorio ya es un árbol de trabajo propio— pero obligaría a Laravel API más un frontend independiente, lo que reabre `docs/decisiones/0001-monolito-laravel-livewire.md` y agrega un contrato entre repositorios que mantener. Con dos programadores y doce semanas, worktrees más rutas disjuntas dan el mismo aislamiento a un costo mucho menor.
 
 ## CI por rama
 - `develop`: previsto en S01 — GitHub Actions ejecutando `./vendor/bin/pint --test`, `php artisan test` y `pnpm build` en cada PR

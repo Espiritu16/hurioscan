@@ -2,61 +2,96 @@
 
 Horizonte: los RF-001 a RF-015 aprobados en `docs/requisitos/rf.md`. No incluye la fase 2 (extracción de campos estructurados) ni ninguna capacidad marcada fuera del horizonte.
 
-Estado de la planificación: **BLOQUEADA** — ningún sprint puede pasar a `Planificación: LISTO` mientras `AGENTS.md` siga en `BORRADOR` y los RF, contratos, schema, taxonomía de errores y permisos sigan en `propuesto`. Esas aprobaciones son del usuario real y de Arquitectura; el Coordinador no puede emitirlas.
+Estado de la planificación: **BLOQUEADA** — ningún sprint puede pasar a `Planificación: LISTO` mientras `AGENTS.md` siga en `BORRADOR` y los RF, contratos, schema, taxonomía de errores y permisos sigan en `propuesto`. **Excepción: F00**, que no consume ningún contrato ni requisito funcional y solo depende del diseño ya producido.
+
+## Estructura del trabajo
+
+El proyecto separa **sprints de backend (`B`)** y **sprints de frontend (`F`)**, de modo que la interfaz pueda avanzar sin esperar al servidor.
+
+Eso es posible porque **los 27 contratos ya están escritos**: cada operación tiene su ruta, sus validaciones campo por campo, su respuesta y sus códigos de error. Un sprint de frontend consume esa definición, no la implementación.
+
+Mientras su backend no exista, cada sprint de frontend trabaja contra un **doble de desarrollo**: una implementación de la firma del servicio que devuelve datos fijos, activada por configuración y acotada a los entornos local y de pruebas. Nunca vive dentro del flujo productivo.
+
+**Consecuencia que hay que aceptar explícitamente:** un sprint de frontend terminado contra su doble llega hasta `EN_VALIDACION`, no hasta `COMPLETADO`. Para cerrarse necesita la integración real con su sprint de backend: reemplazar el doble por el servicio verdadero y verificar el flujo completo. Ese punto de integración está declarado abajo y es trabajo real, no un trámite — es el costo de trabajar en paralelo.
 
 ## Matriz de cobertura
 
-| Fuente | Sprint que la cubre |
-|---|---|
-| RF-001 registro y búsqueda de pacientes | S02 |
-| RF-002 apertura de sesión por folder | S03 |
-| RF-003 captura de hojas | S03 |
-| RF-004 extracción automática de texto | S04 |
-| RF-005 revisión y corrección | S05 |
-| RF-006 cierre de sesión | S05 |
-| RF-007 búsqueda por contenido | S06 |
-| RF-008 línea de tiempo del paciente | S06 |
-| RF-009 visualización de documento | S06 |
-| RF-010 panel de avance | S07 |
-| RF-011 autenticación y roles | S01 |
-| RF-012 auditoría de accesos | S07 |
-| RF-013 reanudación de sesiones pendientes | S03 |
-| RF-014 cola de hojas ilegibles | S05 |
-| RF-015 autocompletado del paciente por DNI | S02 |
-| RNF-001 rendimiento de búsqueda | S06 — medición con seeder de 30 000 documentos |
-| RNF-002 captura no bloqueante | S04 — test con motor de OCR demorado |
-| RNF-003 imagen original inmutable | S03 — test de hash antes y después del ciclo completo |
-| RNF-004 responsive en cuatro anchos | S03, S05, S06 — cada sprint verifica sus propias vistas |
-| RNF-005 instantes en UTC | S01 — test de instante con zona de sesión alterada |
-| RNF-006 retención de auditoría | S07 — MIG-009 revoca `UPDATE`/`DELETE` sobre `auditorias` |
-| RNF-010 validación de input | todos los sprints, sobre sus propias operaciones |
-| RNF-011 queries parametrizadas | S06 — test de inyección en el término de búsqueda |
-| RNF-012 codificación de salida | S05 y S06 — test de payload XSS en texto extraído y en fragmento |
-| RNF-013 deny-by-default | S01 establece el mecanismo; cada sprint prueba sus propias filas de la matriz |
-| RNF-014 sin secretos ni datos personales expuestos | S04 y S07 — revisión de `LogError` y de mensajes de error |
-| MIG-001 a MIG-008 | S01 a S05, según la entidad que introducen |
-| MIG-009 permisos de base sobre auditoría | S07 |
-| Integración con motor de OCR | S04 |
-| Integración con JSON.pe (consulta de DNI) | S02 |
+| Fuente | Backend | Frontend |
+|---|---|---|
+| RF-001 registro y búsqueda de pacientes | B02 | F02 |
+| RF-002 apertura de sesión por folder | B03 | F03 |
+| RF-003 captura de hojas | B03 | F03 |
+| RF-004 extracción automática de texto | B04 | — (sin pantalla propia; su resultado se ve en F05) |
+| RF-005 revisión y corrección | B05 | F05 |
+| RF-006 cierre de sesión | B05 | F05 |
+| RF-007 búsqueda por contenido | B06 | F06 |
+| RF-008 línea de tiempo del paciente | B06 | F06 |
+| RF-009 visualización de documento | B06 | F06 |
+| RF-010 panel de avance | B07 | F07 |
+| RF-011 autenticación y roles | B01 | F01, F07 |
+| RF-012 auditoría de accesos | B07 | F07 |
+| RF-013 reanudación de sesiones pendientes | B03 | F03 |
+| RF-014 cola de hojas ilegibles | B05 | F05 |
+| RF-015 autocompletado del paciente por DNI | B02 | F02 |
+| RNF-001 rendimiento de búsqueda | B06 | — |
+| RNF-002 captura no bloqueante | B04 | — |
+| RNF-003 imagen original inmutable | B03 | — |
+| RNF-004 responsive en cuatro anchos | — | F00, F01, F03, F05, F06 |
+| RNF-005 instantes en UTC | B01 | — |
+| RNF-006 retención de auditoría | B07 | — |
+| RNF-010 validación de input | todos los `B` | replicada en `F` para UX, sin sustituir al backend |
+| RNF-011 queries parametrizadas | B06 | — |
+| RNF-012 codificación de salida | — | F05, F06 (la codificación ocurre donde se renderiza) |
+| RNF-013 deny-by-default | B01 establece el mecanismo; cada `B` prueba sus filas | F01 oculta lo no permitido, **sin sustituir la validación del backend** |
+| RNF-014 sin secretos ni datos expuestos | B04, B07 | — |
+| MIG-001 a MIG-008 | B01 a B05 | — |
+| MIG-009 permisos sobre auditoría | B07 | — |
+| Integración con motor de OCR | B04 | — |
+| Integración con JSON.pe | B02 | — |
+| Sistema de componentes de interfaz | — | F00 |
 
 Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente que lo justifique.
 
 ## Sprints
 
-| ID | Rol | Resultado observable | Fuentes | Depende de | Paralelizable con | RFC | Planificación | Ejecución |
-|---|---|---|---|---|---|---|---|---|
-| S01 | implementation | Se puede acceder al sistema con usuario y rol; las tablas base existen y el mecanismo de permisos rechaza por defecto | RF-011, RNF-005, RNF-013, MIG-001 | ninguna | ninguna | `docs/rfcs/S01.md` | BORRADOR | PLANIFICADO |
-| S02 | implementation | Se registra un paciente —a mano o autocompletando desde el DNI— y se lo encuentra por historia clínica, DNI o nombre | RF-001, RF-015, MIG-002, `docs/contratos/pacientes.md`, `docs/integraciones/json-pe.md` | S01 | ninguna | `docs/rfcs/S02.md` | BORRADOR | PLANIFICADO |
-| S03 | implementation | Se abre la sesión de un folder, se capturan hojas por las tres vías y se retoma una sesión pendiente | RF-002, RF-003, RF-013, RNF-003, MIG-003, MIG-004, `docs/contratos/digitalizacion.md` | S02 | ninguna | `docs/rfcs/S03.md` | BORRADOR | PLANIFICADO |
-| S04 | implementation | Una hoja capturada produce texto en segundo plano mediante el motor configurado, y un fallo se puede reintentar | RF-004, RNF-002, RNF-014, `docs/integraciones/ocr.md` | S03 | ninguna | `docs/rfcs/S04.md` | BORRADOR | PLANIFICADO |
-| S05 | implementation | Se corrige el texto, se marca cada hoja y se cierra el folder con su resumen | RF-005, RF-006, RF-014, RNF-012, `docs/contratos/documentos.md` | S04 | ninguna | `docs/rfcs/S05.md` | BORRADOR | PLANIFICADO |
-| S06 | implementation | Se busca por contenido y se consulta la línea de tiempo y el visor de un documento | RF-007, RF-008, RF-009, RNF-001, RNF-011, MIG-005 | S05 | S07 | `docs/rfcs/S06.md` | BORRADOR | PLANIFICADO |
-| S07 | implementation | El panel muestra el avance real y el administrador consulta la auditoría, que la aplicación no puede alterar | RF-010, RF-012, RNF-006, MIG-006, MIG-007, MIG-009 | S05 | S06 | `docs/rfcs/S07.md` | BORRADOR | PLANIFICADO |
+| ID | Rol | Resultado observable | Depende de | Paralelizable con | RFC | Planificación | Ejecución |
+|---|---|---|---|---|---|---|---|
+| F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01 | `docs/rfcs/F00.md` | BORRADOR | PLANIFICADO |
+| B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | BORRADOR | PLANIFICADO |
+| F01 | implementation | Pantalla de acceso, layout y menú por rol | F00 | B01, B02 | `docs/rfcs/F01.md` | BORRADOR | PLANIFICADO |
+| B02 | implementation | Alta y búsqueda de pacientes; consulta de DNI al proveedor | B01 | F01, F02 | `docs/rfcs/B02.md` | BORRADOR | PLANIFICADO |
+| F02 | implementation | Búsqueda de pacientes y alta con autocompletado | F00, F01 | B02, B03 | `docs/rfcs/F02.md` | BORRADOR | PLANIFICADO |
+| B03 | implementation | Sesión de lote, captura y almacenamiento de imágenes | B02 | F02, F03 | `docs/rfcs/B03.md` | BORRADOR | PLANIFICADO |
+| F03 | implementation | Pantalla de captura con las tres vías y sesiones pendientes | F00, F01 | B03, B04 | `docs/rfcs/F03.md` | BORRADOR | PLANIFICADO |
+| B04 | implementation | OCR en segundo plano con motor intercambiable | B03 | F03, F05 | `docs/rfcs/B04.md` | BORRADOR | PLANIFICADO |
+| F05 | implementation | Pantalla de revisión, marcado y cierre | F00, F01, F03 | B04, B05 | `docs/rfcs/F05.md` | BORRADOR | PLANIFICADO |
+| B05 | implementation | Corrección con control de versión, transiciones y cierre | B04 | F05, F06 | `docs/rfcs/B05.md` | BORRADOR | PLANIFICADO |
+| F06 | implementation | Búsqueda por contenido, línea de tiempo y visor | F00, F01 | B05, B06, F07 | `docs/rfcs/F06.md` | BORRADOR | PLANIFICADO |
+| B06 | implementation | Índice de texto completo y entrega controlada de imágenes | B05 | F06, F07 | `docs/rfcs/B06.md` | BORRADOR | PLANIFICADO |
+| F07 | implementation | Panel de avance, usuarios y auditoría | F00, F01 | B06, B07, F06 | `docs/rfcs/F07.md` | BORRADOR | PLANIFICADO |
+| B07 | implementation | Agregados reales, auditoría append-only y gestión de usuarios | B05 | F07 | `docs/rfcs/B07.md` | BORRADOR | PLANIFICADO |
 
-**Paralelismo declarado, no inferido:** solo S06 y S07 pueden ejecutarse a la vez, una vez terminado S05. Tocan dominios y vistas distintos y no comparten archivos: S06 trabaja sobre `Documentos` y la búsqueda; S07 sobre agregados de `Digitalizacion` y sobre `Usuarios`. El resto de la secuencia es estrictamente lineal porque cada sprint consume el schema o el estado que introduce el anterior.
+## Puntos de integración
 
-**Reparto entre los dos programadores:** ocurre *dentro* de cada sprint, según la tabla de unidades de trabajo de su RFC, no repartiendo sprints distintos en paralelo. Con dos personas y una cadena de dependencias lineal, dividir por unidades dentro del mismo sprint aprovecha mejor el tiempo que forzar sprints simultáneos que se bloquearían entre sí.
+Un par `B`/`F` no está cerrado hasta que se integran de verdad. Cada punto exige: reemplazar el doble por el servicio real, verificar el flujo de punta a punta y confirmar que el build no cae de vuelta al doble.
+
+| Integración | Verifica |
+|---|---|
+| B01 + F01 | Se accede con los tres roles y cada uno ve su menú |
+| B02 + F02 | Se registra un paciente real, con y sin autocompletado por DNI |
+| B03 + F03 | Se capturan hojas reales por las tres vías y se guardan |
+| B04 + B05 + F05 | Una hoja capturada produce texto, se corrige y se cierra el folder |
+| B06 + F06 | Se busca una palabra y aparece el documento que la contiene |
+| B07 + F07 | El panel muestra el avance real de lo digitalizado |
+
+## Qué se puede empezar hoy
+
+**F00 es el único sprint sin ninguna dependencia**, ni de código ni de aprobación: no consume contratos ni requisitos funcionales, solo el diseño ya producido. Puede ejecutarse de inmediato.
+
+Los demás sprints de frontend dependen además de que **su contrato esté aprobado** — no de que el backend exista, pero sí de que la definición sea estable. Construir una pantalla contra un contrato que puede cambiar es rehacerla dos veces.
 
 ## Correspondencia con el cronograma de la propuesta
 
-El cronograma de `docs/propuesta/propuesta.md` está en fases de calendario; este roadmap está en unidades de trabajo. Se corresponden así: la fase 2 (semanas 4–6) cubre S01 y S02; la fase 3 (semanas 7–10) cubre S03 a S05; la fase 4 (semanas 11–12) cubre S06 y S07 en paralelo. La investigación de campo y el benchmark de OCR de la fase 1 no son sprints de software: son insumos que alimentan S04 y la sección de impacto de la propuesta.
+La fase 2 (semanas 4–6) cubre F00, B01, F01 y B02. La fase 3 (semanas 7–10) cubre F02 a B06 con los pares avanzando en paralelo. La fase 4 (semanas 11–12) cubre F07, B07 y los puntos de integración pendientes.
+
+**Reparto entre los cinco integrantes:** los dos programadores toman una línea cada uno —uno backend, otro frontend— y se encuentran en los puntos de integración. Es lo que esta separación habilita y la razón por la que se adoptó.

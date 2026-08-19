@@ -1,0 +1,9 @@
+Dobles de desarrollo de los servicios de dominio.
+
+Cada doble implementa la firma de un servicio que un sprint de backend todavía
+no construyó, devolviendo datos fijos, para que la línea de frontend pueda
+avanzar en paralelo.
+
+Se activan solo por configuración de entorno y nunca se referencian desde código
+de producción. El punto de integración de cada par B/F verifica que el build real
+no cae de vuelta a ellos.
