@@ -1,0 +1,62 @@
+# Verificación de PRs hacia develop — declarada en AGENTS.md § CI por rama.
+# Sprint D01 (docs/rfcs/D01.md): lint, tests y build con caché de dependencias.
+name: verificacion-develop
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  verificacion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Resolver directorio de caché de Composer
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Caché de Composer
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Instalar dependencias PHP
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Preparar entorno de la aplicación
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Lint
+        run: ./vendor/bin/pint --test
+
+      - name: Tests
+        run: php artisan test
+
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Instalar dependencias de assets
+        run: pnpm install --frozen-lockfile
+
+      - name: Build de assets
+        run: pnpm build

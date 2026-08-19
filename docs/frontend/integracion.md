@@ -29,7 +29,11 @@ Autoridad: Arquitectura. Estado: **aprobado** — Arquitectura, 2026-08-19.
 
 ## Nombres de ruta canónicos
 
-El menú y los enlaces consumen rutas **por nombre**, nunca por URL literal. El nombre canónico de cada ruta es su path con puntos por segmento estático, sin parámetros: `acceder`, `salir`, `avance`, `pacientes`, `sesiones.pendientes`, `sesiones.detalle` (`/sesiones/{id}`), `sesiones.revision`, `sesiones.cierre`, `buscar`, `documentos.detalle` (`/documentos/{id}`), `ilegibles`, `usuarios`, `auditoria`, `componentes` (solo local). El backend debe declarar exactamente estos nombres al implementar las rutas reales. — Fijado por Arquitectura, 2026-08-19.
+El menú y los enlaces consumen rutas **por nombre**, nunca por URL literal. El nombre canónico de cada ruta es su path con puntos por segmento estático, sin parámetros: `acceder`, `salir`, `avance`, `pacientes`, `pacientes.detalle` (`/pacientes/{id}`), `sesiones.pendientes`, `sesiones.detalle` (`/sesiones/{id}`), `sesiones.revision`, `sesiones.cierre`, `buscar`, `documentos.detalle` (`/documentos/{id}`), `ilegibles`, `usuarios`, `auditoria`, `componentes` (solo local). El backend debe declarar exactamente estos nombres al implementar las rutas reales. — Fijado por Arquitectura, 2026-08-19.
+
+## Interfaces de servicio
+
+Los componentes Livewire dependen de las interfaces fijadas en `docs/contratos/servicios-aplicacion.md`, nunca de una implementación concreta ni del namespace `Dobles`. Ese documento define también cómo se selecciona el doble por entorno, extendiendo el mecanismo que ADR-0002 estableció para `MotorOcr`.
 
 Estado: aprobado
 Aprobado por (Arquitectura): sesión Coordinación+Arquitectura — fecha: 2026-08-19
