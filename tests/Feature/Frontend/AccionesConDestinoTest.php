@@ -155,12 +155,13 @@ class AccionesConDestinoTest extends TestCase
     {
         preg_match_all('/<(?:a|button)\b[^>]*>/i', $html, $coincidencias);
 
-        return array_values(array_filter(
-            $coincidencias[0],
-            // Los controles del andamiaje de Livewire no son acciones de la
-            // interfaz; se reconocen por no tener ninguna marca propia.
-            fn (string $control) => ! str_contains($control, 'wire:loading'),
-        ));
+        // No se descarta ningún control. La versión anterior excluía los que
+        // llevaran `wire:loading`, y QA señaló el agujero: un botón con
+        // `wire:loading.attr="disabled"` habría dejado de vigilarse en
+        // silencio. Si algún día hace falta excluir algo, que sea por una
+        // marca puesta a propósito y no por un atributo que un botón real
+        // puede llevar.
+        return $coincidencias[0];
     }
 
     /**
