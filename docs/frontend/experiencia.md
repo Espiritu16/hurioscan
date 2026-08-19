@@ -3,7 +3,7 @@
 La UI la sirve el propio backend con Blade + Livewire; no hay SPA ni cliente HTTP separado.
 Estado: `propuesto` hasta aprobación del usuario real.
 
-Referencia visual navegable: `docs/propuesta/prototipo.html`.
+Referencia visual: `docs/frontend/diseno/hurioscan-claude-design.html` (diseño de pantallas) y `docs/propuesta/prototipo.html` (prototipo navegable del flujo completo). Ver `docs/frontend/diseno/README.md` para qué autoridad tiene cada uno.
 
 | Flujo | Ruta UI | Actor | Deriva de | Entrada/disparador | Estados visibles | Navegación esperada | Criterio verificable |
 |---|---|---|---|---|---|---|---|
