@@ -209,6 +209,23 @@ Decisiones tomadas mientras Kevin no estaba disponible, consolidadas a su regres
 | 2 | D01 | Aceptar como cumplido el criterio del rojo provocado con la evidencia del paso Tests, dejando Lint y Build por inferencia estructural | Provocar además un fallo de lint y uno de build | Los tres pasos comparten shell, sin `continue-on-error` ni `if:`; el costo de dos corridas más no aportaba certeza proporcional | Sí — se puede provocar en cualquier momento | `docs/handoffs/D01.md` § Observaciones |
 | 3 | F06 | Adoptar `pacientes.detalle` como nombre canónico de `/pacientes/{id}` | Dejarlo sin nombre hasta que backend lo declarara | Faltaba en la lista canónica y sigue exactamente el patrón de `sesiones.detalle` y `documentos.detalle`; ratificado por Arquitectura | Sí — es solo un nombre de ruta | `docs/frontend/integracion.md` |
 
+## Punto de retomada — pausa del 2026-08-19
+
+Sesión pausada por ausencia de Kevin. **Todo el trabajo está persistido en `origin`**: ningún worktree tenía cambios sin commitear y ninguna rama local commits sin empujar, verificado antes de cortar. Nada quedó vivo solo en la memoria de una sesión.
+
+- **Estado del árbol:** `develop @ d6d2f40`, con `pint` passed, 103/103 tests y las catorce rutas montadas.
+- **Worktrees conservados:** `~/hurioscan-F00` en `sprint/F00 @ adabd5b` y `~/hurioscan-D01` en `sprint/D01 @ 9e9a839`, ambos limpios y ya integrados. El de D01 sigue pendiente de una decisión de Kevin sobre si se elimina.
+- **En curso al pausar:** QA validaba la cadena `F00`→`F07` sobre `develop @ d6d2f40`. Su rol no escribe artefactos, así que lo perdido es solo su progreso de validación; el despacho sigue vigente tal cual y se rehace desde el repositorio.
+
+### Qué sigue, en orden
+
+1. **Retomar la validación de QA** sobre `develop @ d6d2f40`, con el mismo alcance: los siete sprints en `EN_VALIDACION`, validando sobre vistas montadas y con los interruptores de dobles activados en el entorno local. Los puntos a mirar con lupa están en la sección de auditoría de arriba.
+2. **Con un `APROBADO`**, el Coordinador registra el veredicto en los handoffs. Los sprints `F` **no** pasan a `COMPLETADO` con eso: el roadmap exige el punto de integración con su par `B`, que todavía no existe.
+3. **Decisión pendiente de Kevin, que es la que destraba todo lo demás:** aprobar `docs/persistencia/modelo.md` y los cinco ADR. Sin eso B01 no llega a `LISTO` y la línea backend sigue en cero — no hay modelos, servicios ni migraciones propias, solo las tres que Laravel trae de fábrica.
+4. Al habilitarse B01 vencen **AUT-01** y **AUT-02**: `routes/web.php` y las interfaces vuelven a su dueño natural según `AGENTS.md`.
+
+Cualquier sesión que retome reconstruye desde aquí y desde Git, nunca desde la conversación anterior.
+
 ## Chats de rol activos
 
 Índice de qué sesión trabaja en qué. Lo mantiene el Coordinador: se agrega una fila al despachar un chat y se actualiza al recibir su handoff. No sustituye al handoff versionado de cada sprint — es el mapa de quién está haciendo qué.
