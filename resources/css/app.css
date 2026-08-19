@@ -3,7 +3,41 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* Fundación visual de HuriosCan (F00-UT-01).
+   Paleta clara tomada de docs/frontend/diseno/hurioscan-claude-design.html;
+   solo tema claro por decisión de Kevin (2026-08-18). Ninguna vista escribe
+   un color literal: siempre estos tokens. */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    /* Acento (acciones primarias, foco, enlaces) */
+    --color-acento: #1f6e99;
+    --color-acento-suave: #1f6e9914;
+    --color-sobre-acento: #ffffff;
+
+    /* Fondos y superficies */
+    --color-fondo: #edf1f6;
+    --color-superficie: #ffffff;
+    --color-papel: #fbfaf7;
+    --color-franja: #141d2b0d;
+
+    /* Texto y bordes */
+    --color-tinta: #141d2b;
+    --color-tinta-suave: #4f5f76;
+    --color-borde: #dce3ec;
+
+    /* Estados semánticos (etiquetas, mensajes) — nunca el acento */
+    --color-exito: #1f6b4b;
+    --color-exito-suave: #1f6b4b14;
+    --color-advertencia: #8a5a11;
+    --color-advertencia-suave: #8a5a1114;
+    --color-peligro: #9c3b2c;
+    --color-peligro-suave: #9c3b2c14;
+}
+
+@layer base {
+    body {
+        @apply bg-fondo font-sans text-tinta antialiased;
+    }
 }
