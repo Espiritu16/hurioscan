@@ -49,6 +49,10 @@ Mientras su backend no exista, cada sprint de frontend trabaja contra un **doble
 | Integración con motor de OCR | B04 | — |
 | Integración con JSON.pe | B02 | — |
 | Sistema de componentes de interfaz | — | F00 |
+| Pipeline de CI declarado en `AGENTS.md` § CI por rama | D01 | — |
+| Comandos de verificación de `AGENTS.md` | D01 | — |
+| Despliegue, artefactos y ambientes | no aplica — el proyecto no tiene producción comprometida y `AGENTS.md` declara el proveedor como no decidido | — |
+| Validación de cada sprint | QA — ver «Cuándo entra QA» abajo | — |
 
 Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente que lo justifique.
 
@@ -56,7 +60,8 @@ Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente 
 
 | ID | Rol | Resultado observable | Depende de | Paralelizable con | RFC | Planificación | Ejecución |
 |---|---|---|---|---|---|---|---|
-| F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01 | `docs/rfcs/F00.md` | **LISTO** | **LISTO** |
+| D01 | devops | Flujos de verificación en cada pull request hacia `develop` y `main` | ninguna | F00, B01 | `docs/rfcs/D01.md` | BORRADOR | PLANIFICADO |
+| F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01, D01 | `docs/rfcs/F00.md` | **LISTO** | **LISTO** |
 | B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | BORRADOR | PLANIFICADO |
 | F01 | implementation | Pantalla de acceso, layout y menú por rol | F00 | B01, B02 | `docs/rfcs/F01.md` | BORRADOR | PLANIFICADO |
 | B02 | implementation | Alta y búsqueda de pacientes; consulta de DNI al proveedor | B01 | F01, F02 | `docs/rfcs/B02.md` | BORRADOR | PLANIFICADO |
@@ -70,6 +75,24 @@ Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente 
 | B06 | implementation | Índice de texto completo y entrega controlada de imágenes | B05 | F06, F07 | `docs/rfcs/B06.md` | BORRADOR | PLANIFICADO |
 | F07 | implementation | Panel de avance, usuarios y auditoría | F00, F01 | B06, B07, F06 | `docs/rfcs/F07.md` | BORRADOR | PLANIFICADO |
 | B07 | implementation | Agregados reales, auditoría append-only y gestión de usuarios | B05 | F07 | `docs/rfcs/B07.md` | BORRADOR | PLANIFICADO |
+
+## Cuándo entra QA
+
+**QA no tiene sprint propio, y es deliberado.** Un sprint de QA sería un sprint sin resultado propio: la validación no produce código ni documentos de línea base, produce un veredicto sobre el trabajo de otro sprint.
+
+QA entra cuando **un sprint pasa a `Ejecución: EN_VALIDACION`**, y valida contra los criterios de cierre de la tabla de unidades de trabajo de ese RFC — no contra un criterio propio ni contra su interpretación del requisito.
+
+| Qué | Dónde vive |
+|---|---|
+| Cuándo trabaja | Cuando un sprint entra en `EN_VALIDACION` (ver `docs/estado.md`) |
+| Contra qué valida | Los criterios de cierre del RFC de ese sprint |
+| Sobre qué objeto | El `final_sha` exacto que reportó Implementación, en su propio checkout o worktree |
+| Qué produce | Veredicto `APROBADO` / `RECHAZADO` / `BLOQUEADO`; el Coordinador lo registra en el handoff |
+| Qué no hace | No escribe código, no commitea durante la validación, no hace merge, no cierra el sprint |
+
+**Un chat que se declare `qa` cuando ningún sprint está en `EN_VALIDACION` no tiene trabajo habilitado**: lo reporta y se detiene, igual que cualquier otro rol sin sprint asignado.
+
+El gate está declarado en `AGENTS.md`: «QA APROBADO sobre ese `final_sha` cuando el sprint requiere QA».
 
 ## Puntos de integración
 
