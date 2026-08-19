@@ -1,6 +1,6 @@
 # Actores y permisos — HuriosCan
 
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Kevin (usuario) y Arquitectura, 2026-08-19.
 
 El proyecto no expone una API HTTP pública: las operaciones son rutas web y acciones de componentes Livewire. La columna "Recurso/Operación" nombra esa operación real, no un endpoint REST.
 

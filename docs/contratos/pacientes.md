@@ -1,6 +1,6 @@
 # Contrato — dominio Pacientes
 
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Kevin (usuario) y Arquitectura, 2026-08-19.
 El proyecto no expone API HTTP pública: cada operación es una ruta web servida por un componente Livewire. La "Ruta real" es la ruta montada; el encabezado corto la nombra dentro de este documento.
 
 **Criterio de paginación del dominio (aplica a todos los listados de este documento):** estilo **offset** (`pagina`/`porPagina`). Razón: las colecciones son moderadas y el acceso a una página arbitraria es un caso de uso real del personal de archivo, que recorre el acervo por tramos. El corrimiento de filas al insertar durante la paginación no es crítico aquí porque el ritmo de alta es bajo. Migrar a cursor sería un cambio breaking y exigiría subir la versión del contrato.

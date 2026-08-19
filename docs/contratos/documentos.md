@@ -1,6 +1,6 @@
 # Contrato — dominio Documentos
 
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Kevin (usuario) y Arquitectura, 2026-08-19.
 Operaciones servidas por componentes Livewire sobre rutas web; no hay API HTTP pública.
 
 **Paginación:** mismo criterio offset del resto del proyecto.
