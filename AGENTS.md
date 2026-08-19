@@ -17,6 +17,7 @@
 
 ## Vigencia de gobernanza
 - Estado de gobernanza: BORRADOR
+- Última revisión material: separación del rol `implementation` en dos líneas paralelas (backend y frontend) con rutas escribibles disjuntas, para permitir chats de rol simultáneos.
 - Aprobado por: pendiente
 - Fecha de aprobación: pendiente
 
@@ -33,10 +34,26 @@
 - No puede: implementar código, autoaprobar al usuario, sustituir la aprobación de Arquitectura, emitir el veredicto QA ni ejecutar trabajo DevOps
 
 ### implementation
-- Puede escribir código y pruebas: `app/Dominios/`, `app/Compartido/`, `app/Http/Middleware/`, `app/Providers/`, `routes/`, `resources/views/`, `resources/css/`, `resources/js/`, `tests/`
-- Puede escribir bootstrap/configuración cuando el RFC lo autoriza: `composer.json`, `composer.lock`, `package.json`, `pnpm-lock.yaml`, `config/`, `bootstrap/`, `vite.config.js`, `.env.example` (sin secretos), `database/migrations/`, `database/seeders/`, `database/factories/`
+
+El rol se ejerce en **dos líneas que trabajan en paralelo en chats distintos** — sprints `B` (backend) y sprints `F` (frontend). Sus rutas escribibles son disjuntas a propósito: es lo que permite despachar dos agentes a la vez sin que se pisen.
+
+#### implementation · línea backend (sprints `B`)
+- Puede escribir código y pruebas: `app/Dominios/*/` **excepto** la subcarpeta `Componentes/` de cada dominio, `app/Compartido/`, `app/Http/Middleware/`, `app/Providers/`, `tests/Feature/`, `tests/Unit/`
+- Puede escribir bootstrap/configuración cuando el RFC lo autoriza: `composer.json`, `composer.lock`, `config/`, `bootstrap/`, `.env.example` (sin secretos), `database/migrations/`, `database/seeders/`, `database/factories/`
+- **Es dueña de `routes/web.php`**: declara las rutas con su nombre. La línea frontend las consume por nombre y no las edita.
+- No puede escribir: `resources/views/`, `resources/css/`, `resources/js/`, `app/Dominios/*/Componentes/`
+
+#### implementation · línea frontend (sprints `F`)
+- Puede escribir código y pruebas: `app/Dominios/*/Componentes/` (componentes Livewire), `resources/views/`, `resources/css/`, `resources/js/`, `app/Compartido/Dobles/` (dobles de desarrollo), `tests/Feature/Frontend/`
+- Puede escribir bootstrap/configuración cuando el RFC lo autoriza: `package.json`, `pnpm-lock.yaml`, `vite.config.js`, `tailwind.config.js`
+- **Consume las rutas por su nombre**, nunca por su URL literal ni editando `routes/web.php`. Si necesita una ruta que no existe, la pide al Coordinador; no la agrega por su cuenta.
+- No puede escribir: `app/Dominios/*/` fuera de `Componentes/`, `database/`, `app/Compartido/` fuera de `Dobles/`
+
+#### Reglas comunes a ambas líneas
 - Puede actualizar únicamente este handoff: `docs/handoffs/<sprint-id>.md` correspondiente a su propio sprint; nunca `docs/estado.md` ni handoffs ajenos
-- No puede modificar sin autorización: `docs/contratos/`, `docs/persistencia/modelo.md`, `docs/errores/`, `docs/requisitos/actores-permisos.md`, `docs/decisiones/`
+- No puede modificar sin autorización: `docs/contratos/`, `docs/persistencia/modelo.md`, `docs/errores/`, `docs/requisitos/actores-permisos.md`, `docs/decisiones/`, `docs/roadmap.md`
+- **Zona compartida — `routes/web.php`:** la escribe solo backend. Si un sprint de frontend necesita una ruta antes de que su backend exista, el Coordinador la declara apuntando a un componente provisional; nunca dos chats editan ese archivo a la vez.
+- **Los dobles de desarrollo viven en `app/Compartido/Dobles/` y se activan solo por configuración.** Ningún doble se referencia desde código de producción, y el punto de integración de cada par `B`/`F` verifica que el build real no cae de vuelta a ellos.
 
 ### qa
 - Puede leer: todo el repositorio
