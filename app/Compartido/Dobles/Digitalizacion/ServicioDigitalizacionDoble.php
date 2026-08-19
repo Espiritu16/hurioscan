@@ -113,12 +113,6 @@ class ServicioDigitalizacionDoble implements ServicioDigitalizacion
         $this->hojas[$sesionId] = $hojas;
     }
 
-    /** Hojas ya capturadas de una sesión; sirve a la grilla de captura. */
-    public function hojasDe(int $sesionId): array
-    {
-        return $this->hojas[$sesionId] ?? [];
-    }
-
     public function enviarARevision(int $sesionId): array
     {
         if (($this->hojas[$sesionId] ?? []) === []) {

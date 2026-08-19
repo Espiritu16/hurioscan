@@ -37,6 +37,18 @@ interface ServicioDocumentos
     /** `GET /documentos/{id}` */
     public function ver(int $documentoId): array;
 
+    /**
+     * `GET /sesiones/{id}/hojas` — hojas de una sesión, en orden, con su
+     * texto para revisar.
+     *
+     * Vive en este contrato y no en el de Digitalización porque lo que
+     * devuelve son documentos con su texto, igual que `GET /ilegibles`,
+     * aunque la ruta cuelgue de la sesión. Declarada por Arquitectura el
+     * 2026-08-19, tras detectarse que la pantalla de revisión la necesitaba y
+     * ningún contrato la había declarado.
+     */
+    public function hojasDeSesion(int $sesionId): array;
+
     /** `GET /ilegibles` */
     public function ilegibles(int $pagina = 1): array;
 }
