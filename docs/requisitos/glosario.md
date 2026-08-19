@@ -51,3 +51,13 @@ Términos de negocio con una sola definición. Estado: `propuesto` hasta aprobac
 - Definición: el identificador que el establecimiento asigna a cada paciente y con el que rotula su folder físico. Es una cadena de texto, no un número: puede tener ceros iniciales y separadores. Es único dentro del establecimiento.
 - Usado en: RF-001, RF-002, docs/contratos/pacientes.md, docs/persistencia/modelo.md
 - Aprobado por: pendiente — fecha: pendiente
+
+## Proveedor de identidad
+- Definición: el servicio externo que, dado un DNI, devuelve los nombres y apellidos de su titular. En el sistema es intercambiable: se elige por configuración y existe una implementación simulada para desarrollo y pruebas.
+- Usado en: RF-015, docs/integraciones/json-pe.md, docs/contratos/pacientes.md
+- Aprobado por: pendiente — fecha: pendiente
+
+## Origen de los datos del paciente
+- Definición: si los nombres y apellidos guardados vinieron del proveedor de identidad (`proveedor`) o los escribió el operador (`manual`). Un dato traído del proveedor y luego editado por el operador cuenta como `manual`, porque ya no coincide con la fuente.
+- Usado en: RF-015, docs/persistencia/modelo.md, docs/contratos/pacientes.md
+- Aprobado por: pendiente — fecha: pendiente

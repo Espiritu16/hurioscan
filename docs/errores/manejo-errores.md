@@ -48,6 +48,8 @@ Resultado HTTP: **422**. Se usa para presencia, tipo, formato, longitud y valore
 | `ESTADO_DOCUMENTO_INVALIDO` | 422 | el estado de revisión enviado no pertenece al conjunto cerrado aprobado | RF-005 |
 | `HOJA_FORMATO_NO_SOPORTADO` | 422 | el archivo no es JPEG, PNG, WebP ni PDF, verificado por contenido y no solo por extensión | RF-003 |
 | `HOJA_DEMASIADO_GRANDE` | 422 | el archivo supera el límite de 15 MB por hoja | RF-003 |
+| `IDENTIDAD_NO_ENCONTRADA` | 404 | el DNI consultado no existe en la fuente de identidad; el registro manual sigue disponible | RF-015 |
+| `IDENTIDAD_PROVEEDOR_NO_DISPONIBLE` | 503 | el proveedor de identidad no responde, la credencial es inválida o se agotaron los créditos; el registro manual sigue disponible | RF-015 |
 | `OCR_NO_DISPONIBLE` | 503 | el motor configurado no responde o no está instalado; la hoja queda en `PENDIENTE_OCR` y se puede reintentar | RF-004 |
 | `OCR_YA_PROCESADO` | 409 | se intenta reintentar el OCR de una hoja que ya salió de `PENDIENTE_OCR` | RF-004 |
 | `VERSION_DESACTUALIZADA` | 409 | el `version` enviado no coincide con el vigente: otra escritura modificó el documento primero. `detalle.textoActual` trae el contenido vigente para que la persona decida | RF-005 |

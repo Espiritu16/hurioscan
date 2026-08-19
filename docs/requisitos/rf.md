@@ -8,6 +8,7 @@ Todos los RF de este documento están en estado `propuesto` hasta que el usuario
 ## RF-001 — Registro y búsqueda de pacientes
 - Descripción: el sistema permite registrar un paciente con los datos de la carátula de su folder físico y buscarlo después por número de historia clínica, DNI o nombre.
 - Criterio de aceptación: dado un paciente registrado con N.º HC `0021-4487`, al buscar por ese número, por su DNI o por una parte de su apellido, el sistema lo devuelve; buscar un valor inexistente devuelve una lista vacía, no un error. Registrar un segundo paciente con un N.º HC ya existente se rechaza con `PACIENTE_HC_DUPLICADO`.
+- Relación con RF-015: el registro admite dos vías — carga manual de todos los campos, y autocompletado a partir del DNI. Ambas terminan en el mismo formulario y en la misma validación; RF-015 solo cambia cómo se llenan los campos, no qué se guarda ni qué se valida.
 - Prioridad: alta
 - Estado: propuesto
 - Aprobado por: pendiente — fecha: pendiente
@@ -132,6 +133,23 @@ Todos los RF de este documento están en estado `propuesto` hasta que el usuario
 - Estado: propuesto
 - Aprobado por: pendiente — fecha: pendiente
 
+## RF-015 — Autocompletado de los datos del paciente a partir del DNI
+- Descripción: al registrar un paciente, el operador ingresa el DNI y el sistema consulta un proveedor externo de identidad para traer nombres y apellidos ya escritos, en vez de que el operador los tipee. El operador revisa lo traído, puede corregirlo y recién entonces guarda.
+- Criterio de aceptación: ingresado un DNI de 8 dígitos existente, el formulario se completa con apellido paterno, apellido materno y nombres, y el operador puede modificar cualquiera antes de guardar. Si el DNI no existe en el proveedor, si el proveedor no responde, si la credencial es inválida o si se agotaron los créditos, **el registro manual sigue disponible con todos los campos editables** y el motivo se muestra al operador; en ningún caso se bloquea el alta. El paciente guardado registra si sus datos vinieron del proveedor o se cargaron a mano.
+- Motivación: un apellido mal tipeado en el archivo clínico produce un paciente que después no aparece al buscarlo. Traer el dato de la fuente oficial elimina esa clase de error y acelera la carga de cada folder.
+- Prioridad: media
+- Estado: propuesto
+- Aprobado por: pendiente — fecha: pendiente
+
+### Reglas derivadas de la consulta
+
+| Regla | Definición |
+|---|---|
+| El dato del papel manda | Si lo que devuelve el proveedor no coincide con la carátula del folder, el operador puede corregirlo. El archivo físico es la referencia del acervo que se está digitalizando. |
+| No se consulta dos veces lo mismo | Los datos traídos se guardan en la ficha del paciente. El sistema no vuelve a consultar al proveedor para mostrar un paciente ya registrado, y funciona sin conexión una vez registrado. |
+| La consulta no es un requisito para registrar | Un paciente sin DNI legible, un recién nacido o un folder antiguo se registran a mano. |
+| Queda constancia del origen | Cada paciente registra si sus datos vinieron del proveedor o de carga manual, para poder auditar discrepancias después. |
+
 ---
 
 ## Fuera del horizonte
@@ -142,3 +160,4 @@ Registrado explícitamente para que no se planifique por inercia:
 - Integración con RENHICE u otros sistemas del MINSA.
 - Registro de atenciones nuevas: HuriosCan no es una historia clínica electrónica.
 - Aplicación móvil nativa: la captura se hace desde el navegador del dispositivo.
+- Consulta por carné de extranjería: el proveedor elegido la ofrece como servicio aparte, pero se deja fuera del horizonte. Un paciente extranjero se registra a mano, como cualquier paciente sin DNI consultable.
