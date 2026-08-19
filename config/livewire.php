@@ -150,8 +150,15 @@ return [
          * El límite duro contra abuso de recursos es `upload_max_filesize` de
          * PHP, capa de DevOps, que corta antes de que nada llegue a la
          * aplicación. Las tres capas deben quedar coherentes entre sí.
+         *
+         * `max:51200` (50 MB) es un **techo contra abuso**, no el límite del
+         * producto. No lo bajes a 15 MB «para alinearlo con el contrato»: esa
+         * es justamente la corrección que reintroduce QA-F-03, porque una hoja
+         * por encima del techo vuelve a descartar el lote entero en vez de
+         * rechazarse sola. Criterio de Arquitectura: toda capa por debajo del
+         * dominio debe permitir **más** que él, nunca lo mismo.
          */
-        'rules' => ['required', 'file'],
+        'rules' => ['required', 'file', 'max:51200'],
         'directory' => null,                                  // Example: 'tmp'                     | Default: 'livewire-tmp'
         'middleware' => null,                                 // Example: 'throttle:5,1'            | Default: 'throttle:60,1'
         'preview_mimes' => [                                  // Supported file types for temporary pre-signed file URLs...

@@ -78,20 +78,29 @@ class LimiteDeSubidaTest extends TestCase
     }
 
     /**
-     * La configuración publicada no debe volver a imponer un tope de tamaño:
-     * si alguien restaura `max:...`, el lote vuelve a perderse entero.
+     * Criterio de Arquitectura: toda capa por debajo del dominio debe permitir
+     * **más** que él, nunca lo mismo. La subida puede tener un techo contra
+     * abuso, pero si ese techo baja hasta el límite del producto —o por
+     * debajo— una hoja que lo supere vuelve a descartar el lote entero en vez
+     * de rechazarse sola, que es exactamente QA-F-03.
      */
-    public function test_la_configuracion_no_impone_un_tope_de_tamano(): void
+    public function test_el_techo_de_subida_deja_holgura_sobre_el_limite_del_producto(): void
     {
         $reglas = config('livewire.temporary_file_upload.rules');
 
         $this->assertIsArray($reglas, 'sin config/livewire.php rige el default de 12 MB');
 
+        $limiteDelProductoEnKb = 15 * 1024;
+
         foreach ($reglas as $regla) {
-            $this->assertStringNotContainsString(
-                'max:',
-                (string) $regla,
-                'el tope de tamaño se aplica por hoja en el servicio, no en la subida',
+            if (preg_match('/^max:(\d+)$/', (string) $regla, $partes) !== 1) {
+                continue;
+            }
+
+            $this->assertGreaterThan(
+                $limiteDelProductoEnKb,
+                (int) $partes[1],
+                'el techo de subida debe superar el límite del producto, no igualarlo',
             );
         }
     }
