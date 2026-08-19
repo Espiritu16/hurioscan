@@ -1,0 +1,6 @@
+# ADR-0004: la búsqueda por contenido usa el texto completo de PostgreSQL, no un motor de búsqueda dedicado
+- Estado: propuesta
+- Aprobado por (Arquitectura): pendiente — fecha: pendiente
+- Contexto: la capacidad central del producto es encontrar un documento por lo que dice adentro (RF-007), con un objetivo de menos de 2 segundos sobre al menos 30 000 documentos (RNF-001). La alternativa habitual es un motor dedicado como Elasticsearch o Meilisearch.
+- Decisión: se usa la búsqueda de texto completo nativa de PostgreSQL, con una columna generada `tsvector` en configuración `spanish` y un índice GIN. No se incorpora ningún motor de búsqueda adicional.
+- Consecuencias: se renuncia a funciones avanzadas —tolerancia a errores de tipeo, sinónimos, ajuste fino de relevancia— que un motor dedicado ofrece de fábrica. A cambio no hay un segundo servicio que instalar, sincronizar ni mantener consistente con la base, lo que en un establecimiento de salud sin equipo de sistemas propio es la diferencia entre un sistema que sobrevive y uno que se cae y nadie sabe reparar. Si el volumen real superara ampliamente lo previsto, incorporar un motor dedicado seguiría siendo posible: la búsqueda vive en un servicio de dominio, no dispersa en las vistas.

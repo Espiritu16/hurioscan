@@ -1,0 +1,1454 @@
+<title>HuriosCan Prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground: #EDF1F6;
+    --surface: #FFFFFF;
+    --surface-2: #F5F7FA;
+    --ink: #141D2B;
+    --ink-soft: #4F5F76;
+    --ink-faint: #7C8AA0;
+    --accent: #26417A;
+    --accent-hover: #1B3160;
+    --accent-soft: #E2E9F6;
+    --on-accent: #FFFFFF;
+    --ok: #1F6B4B;
+    --ok-soft: #DEF0E6;
+    --warn: #8A5A11;
+    --warn-soft: #FBEEDA;
+    --stamp: #9C3B2C;
+    --stamp-soft: #F8E7E3;
+    --line: #DCE3EC;
+    --line-strong: #BAC6D5;
+    --paper: #FBFAF7;
+    --paper-ink: #3C4658;
+    --shadow-sm: 0 1px 2px rgba(20,29,43,.07);
+    --shadow: 0 2px 4px rgba(20,29,43,.06), 0 12px 28px -18px rgba(20,29,43,.35);
+    --r: 6px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0B1119;
+      --surface: #141C27;
+      --surface-2: #1B2531;
+      --ink: #E3EAF3;
+      --ink-soft: #A2B0C4;
+      --ink-faint: #78879C;
+      --accent: #8FADE8;
+      --accent-hover: #A8C0F0;
+      --accent-soft: #1C2B44;
+      --on-accent: #0B1119;
+      --ok: #7CCAA4;
+      --ok-soft: #16301F;
+      --warn: #E0B368;
+      --warn-soft: #33260F;
+      --stamp: #E59B88;
+      --stamp-soft: #331F1B;
+      --line: #26323F;
+      --line-strong: #3B4A5C;
+      --paper: #E8E6E0;
+      --paper-ink: #3C4658;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.45);
+      --shadow: 0 2px 4px rgba(0,0,0,.4), 0 12px 28px -18px rgba(0,0,0,.9);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0B1119;
+    --surface: #141C27;
+    --surface-2: #1B2531;
+    --ink: #E3EAF3;
+    --ink-soft: #A2B0C4;
+    --ink-faint: #78879C;
+    --accent: #8FADE8;
+    --accent-hover: #A8C0F0;
+    --accent-soft: #1C2B44;
+    --on-accent: #0B1119;
+    --ok: #7CCAA4;
+    --ok-soft: #16301F;
+    --warn: #E0B368;
+    --warn-soft: #33260F;
+    --stamp: #E59B88;
+    --stamp-soft: #331F1B;
+    --line: #26323F;
+    --line-strong: #3B4A5C;
+    --paper: #E8E6E0;
+    --paper-ink: #3C4658;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.45);
+    --shadow: 0 2px 4px rgba(0,0,0,.4), 0 12px 28px -18px rgba(0,0,0,.9);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Archivo", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ══════ barra del prototipo (no es parte del producto) ══════ */
+
+  .protobar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--ink);
+    color: #E3EAF3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .55rem;
+    padding: .55rem clamp(.7rem, 3vw, 1.4rem);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .68rem;
+    letter-spacing: .04em;
+  }
+
+  .protobar-tag {
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: #8FADE8;
+    margin-right: .3rem;
+  }
+
+  .protobar button {
+    font: inherit;
+    background: transparent;
+    color: #A2B0C4;
+    border: 1px solid rgba(226,233,246,.18);
+    border-radius: 3px;
+    padding: .26rem .55rem;
+    cursor: pointer;
+  }
+
+  .protobar button:hover { color: #fff; border-color: rgba(226,233,246,.5); }
+  .protobar button[aria-pressed="true"],
+  .protobar button.on { background: #8FADE8; color: #0B1119; border-color: #8FADE8; }
+  .protobar .spacer { flex: 1 1 auto; }
+
+  /* ══════ marco de dispositivo ══════ */
+
+  .stage { padding: clamp(.6rem, 2.5vw, 1.8rem); }
+
+  .stage.phone {
+    display: flex;
+    justify-content: center;
+    padding-top: 1.6rem;
+  }
+
+  .device {
+    width: 100%;
+    max-width: 1180px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .stage.phone .device {
+    max-width: 392px;
+    border-radius: 26px;
+    border: 8px solid var(--ink);
+  }
+
+  /* ══════ chrome de la app ══════ */
+
+  .appbar {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    padding: .7rem clamp(.85rem, 2.5vw, 1.3rem);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    font-weight: 700;
+    letter-spacing: -.02em;
+    font-size: 1.02rem;
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+  }
+
+  .brand-mark {
+    width: 1.1rem; height: 1.1rem;
+    border: 2px solid var(--accent);
+    border-radius: 2px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .brand-mark::after {
+    content: "";
+    position: absolute;
+    inset: 3px 3px auto 3px;
+    height: 2px;
+    background: var(--accent);
+    box-shadow: 0 3px 0 var(--accent);
+  }
+
+  .appbar nav {
+    display: flex;
+    gap: .15rem;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+
+  .appbar nav button {
+    font: inherit;
+    font-size: .82rem;
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    padding: .35rem .6rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .appbar nav button:hover { background: var(--surface-2); color: var(--ink); }
+  .appbar nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  .user-chip {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .66rem;
+    color: var(--ink-faint);
+    border-left: 1px solid var(--line);
+    padding-left: .8rem;
+    margin-left: .3rem;
+  }
+
+  @media (max-width: 620px) {
+    .user-chip { display: none; }
+    .appbar nav { width: 100%; margin-left: 0; order: 3; overflow-x: auto; }
+  }
+
+  /* ══════ pantallas ══════ */
+
+  .screen { display: none; padding: clamp(1rem, 3vw, 1.9rem); }
+  .screen.active { display: block; }
+
+  .screen-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.4rem;
+  }
+
+  .screen-head h1 {
+    font-size: clamp(1.25rem, 1.1rem + .7vw, 1.65rem);
+    font-weight: 700;
+    letter-spacing: -.025em;
+    margin: 0 0 .2rem;
+    line-height: 1.15;
+  }
+
+  .screen-head p { margin: 0; color: var(--ink-soft); font-size: .9rem; max-width: 58ch; }
+  .screen-head .grow { flex: 1 1 16rem; min-width: 0; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .64rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 .45rem;
+  }
+
+  h2.sec {
+    font-size: .74rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 1.9rem 0 .75rem;
+  }
+
+  /* ══════ controles ══════ */
+
+  .btn {
+    font: inherit;
+    font-size: .88rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    padding: .55rem 1rem;
+    border-radius: var(--r);
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    text-align: center;
+    transition: background .14s, border-color .14s;
+  }
+  .btn:hover { background: var(--surface-2); border-color: var(--ink-faint); }
+
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    font-weight: 600;
+  }
+  .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--accent); }
+  .btn.ghost:hover { background: var(--accent-soft); }
+
+  .btn.big { padding: .85rem 1.1rem; font-size: .95rem; }
+  .btn.block { width: 100%; }
+
+  .btn-row { display: flex; gap: .6rem; flex-wrap: wrap; }
+
+  .field { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .9rem; }
+
+  .field label {
+    font-size: .74rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--ink-soft);
+  }
+
+  .field input, .field select, .field textarea {
+    font: inherit;
+    font-size: .9rem;
+    padding: .55rem .7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r);
+    background: var(--surface);
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+
+  .search {
+    display: flex;
+    gap: .5rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .search input { flex: 1 1 14rem; min-width: 0; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 0 .9rem; }
+
+  /* ══════ tarjetas y datos ══════ */
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 1rem 1.1rem;
+  }
+
+  .card.flat { background: var(--surface-2); }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    overflow: hidden;
+    margin-bottom: 1.4rem;
+  }
+
+  .stat { background: var(--surface); padding: .95rem 1.05rem 1.05rem; }
+
+  .stat dt {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .63rem;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: .35rem;
+  }
+
+  .stat dd {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .stat .unit { font-size: .8rem; font-weight: 500; color: var(--ink-faint); margin-left: .25rem; letter-spacing: 0; }
+  .stat .sub { font-size: .74rem; color: var(--ink-soft); margin-top: .35rem; }
+
+  .bar {
+    height: 7px;
+    background: var(--surface-2);
+    border-radius: 99px;
+    overflow: hidden;
+    margin: .5rem 0 .1rem;
+    border: 1px solid var(--line);
+  }
+  .bar span { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+
+  table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+
+  th {
+    text-align: left;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .63rem;
+    font-weight: 500;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--surface-2);
+    padding: .6rem .85rem;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  td { padding: .6rem .85rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr.click { cursor: pointer; }
+  tbody tr.click:hover { background: var(--accent-soft); }
+
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: .93em; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .64rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .2rem .48rem;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.bad { background: var(--stamp-soft); color: var(--stamp); }
+  .pill.neutral { background: var(--surface-2); color: var(--ink-soft); }
+  .pill.accent { background: var(--accent-soft); color: var(--accent); }
+
+  .pill::before {
+    content: "";
+    width: .42rem; height: .42rem;
+    border-radius: 99px;
+    background: currentColor;
+  }
+
+  /* ══════ paso a paso del lote ══════ */
+
+  .stepper {
+    display: flex;
+    gap: .3rem;
+    align-items: center;
+    overflow-x: auto;
+    padding-bottom: .4rem;
+    margin-bottom: 1.3rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .66rem;
+    letter-spacing: .05em;
+  }
+
+  .stepper span {
+    padding: .28rem .6rem;
+    border-radius: 3px;
+    color: var(--ink-faint);
+    background: var(--surface-2);
+    white-space: nowrap;
+    border: 1px solid var(--line);
+  }
+  .stepper span.done { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
+  .stepper span.now { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+  .stepper i { color: var(--ink-faint); font-style: normal; }
+
+  /* ══════ encabezado de paciente fijo ══════ */
+
+  .patient-bar {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    flex-wrap: wrap;
+    background: var(--accent-soft);
+    border: 1px solid transparent;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--r) var(--r) 0;
+    padding: .7rem .95rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .patient-bar .who { font-weight: 600; font-size: .95rem; }
+  .patient-bar .meta { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .72rem; color: var(--ink-soft); }
+  .patient-bar .lock {
+    margin-left: auto;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .62rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* ══════ captura ══════ */
+
+  .capture-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    gap: .7rem;
+    margin-bottom: 1.3rem;
+  }
+
+  .drop {
+    border: 1.5px dashed var(--line-strong);
+    border-radius: var(--r);
+    background: var(--surface-2);
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .45rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .14s, background .14s;
+  }
+  .drop:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .drop b { font-size: .92rem; font-weight: 600; }
+  .drop small { color: var(--ink-soft); font-size: .76rem; line-height: 1.35; }
+
+  .drop-icon { color: var(--accent); }
+
+  .sheets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+    gap: .8rem;
+  }
+
+  .sheet {
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--surface);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sheet .thumb {
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+    aspect-ratio: 3 / 4;
+    display: grid;
+    place-items: center;
+    position: relative;
+    padding: .5rem;
+  }
+
+  .sheet .thumb svg { width: 100%; height: 100%; }
+
+  .sheet .idx {
+    position: absolute;
+    top: .35rem; left: .35rem;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .6rem;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 2px;
+    padding: .1rem .3rem;
+  }
+
+  .sheet .body { padding: .5rem .6rem .6rem; display: flex; flex-direction: column; gap: .3rem; }
+  .sheet .type { font-size: .78rem; font-weight: 600; line-height: 1.25; }
+  .sheet .date { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .68rem; color: var(--ink-faint); }
+
+  .sheet.add {
+    border-style: dashed;
+    align-items: center;
+    justify-content: center;
+    min-height: 11rem;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: .85rem;
+    font-weight: 500;
+    gap: .3rem;
+  }
+  .sheet.add:hover { background: var(--accent-soft); }
+
+  /* ══════ hoja de papel simulada ══════ */
+
+  .paper-svg { background: var(--paper); border-radius: 2px; }
+
+  /* ══════ revisión OCR ══════ */
+
+  .review {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  @media (min-width: 860px) {
+    .review { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  }
+
+  .pane {
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .pane-head {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .5rem .8rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .64rem;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .pane-head .right { margin-left: auto; display: flex; gap: .4rem; }
+
+  .pane-body { padding: .8rem; }
+  .pane-body.paper { background: var(--surface-2); display: grid; place-items: center; }
+
+  .ocr-text {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8rem;
+    line-height: 1.9;
+    white-space: pre-wrap;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .ocr-text u {
+    text-decoration: none;
+    background: var(--warn-soft);
+    color: var(--warn);
+    border-bottom: 1.5px dashed var(--warn);
+    padding: .05em .15em;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .ocr-text .bad {
+    background: var(--stamp-soft);
+    color: var(--stamp);
+    border-bottom: 1.5px dashed var(--stamp);
+    padding: .05em .15em;
+    border-radius: 2px;
+  }
+
+  .verdict {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-top: .9rem;
+    padding-top: .9rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .verdict button {
+    font: inherit;
+    font-size: .8rem;
+    font-weight: 500;
+    padding: .45rem .8rem;
+    border-radius: var(--r);
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink-soft);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+  .verdict button:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .verdict button.sel-ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; font-weight: 600; }
+  .verdict button.sel-warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; font-weight: 600; }
+  .verdict button.sel-bad { background: var(--stamp-soft); color: var(--stamp); border-color: transparent; font-weight: 600; }
+
+  .review-nav {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-top: 1.1rem;
+    flex-wrap: wrap;
+  }
+  .review-nav .count {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .74rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .review-nav .grow { flex: 1 1 auto; }
+
+  /* ══════ nota ══════ */
+
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: .7rem .9rem;
+    border-radius: 0 var(--r) var(--r) 0;
+    font-size: .85rem;
+    color: var(--ink);
+    margin: 1.1rem 0;
+  }
+  .note b { font-weight: 600; }
+  .note.warn { border-left-color: var(--stamp); background: var(--stamp-soft); }
+
+  /* ══════ línea de tiempo ══════ */
+
+  .timeline { display: flex; flex-direction: column; gap: .55rem; }
+
+  .doc-row {
+    display: grid;
+    grid-template-columns: 3.4rem minmax(0, 1fr) auto;
+    gap: .85rem;
+    align-items: center;
+    padding: .6rem .8rem .6rem .6rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    background: var(--surface);
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    width: 100%;
+    transition: border-color .14s, background .14s;
+  }
+  .doc-row:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+  .doc-row .mini {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+  .doc-row .mini svg { width: 100%; height: 100%; }
+
+  .doc-row .t { font-weight: 600; font-size: .89rem; margin-bottom: .1rem; }
+  .doc-row .d { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .7rem; color: var(--ink-faint); }
+  .doc-row .snippet { font-size: .78rem; color: var(--ink-soft); margin-top: .25rem; line-height: 1.4; }
+  .doc-row .snippet mark { background: var(--warn-soft); color: var(--warn); padding: .05em .25em; border-radius: 2px; font-weight: 600; }
+
+  @media (max-width: 560px) {
+    .doc-row { grid-template-columns: 2.8rem minmax(0, 1fr); }
+    .doc-row > .end { grid-column: 2; justify-self: start; }
+  }
+
+  .filters { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+  .chip {
+    font: inherit;
+    font-size: .78rem;
+    padding: .32rem .7rem;
+    border-radius: 99px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+
+  /* ══════ visor ══════ */
+
+  .viewer {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .viewer { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); }
+  }
+
+  .viewer-paper {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 1.2rem;
+    display: grid;
+    place-items: center;
+  }
+  .viewer-paper svg { width: 100%; max-width: 30rem; height: auto; }
+
+  dl.kv { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: .4rem .9rem; font-size: .84rem; }
+  dl.kv dt { color: var(--ink-faint); font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; align-self: center; }
+  dl.kv dd { margin: 0; font-weight: 500; }
+
+  .empty {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--ink-faint);
+    font-size: .88rem;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<!-- ══════════ hojas de papel reutilizables ══════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- hoja de atención: encabezado impreso + campos manuscritos -->
+    <symbol id="pg-atencion" viewBox="0 0 300 400">
+      <rect width="300" height="400" fill="#FBFAF7"/>
+      <rect x="0" y="0" width="300" height="46" fill="#EFEDE7"/>
+      <rect x="18" y="14" width="96" height="7" rx="1" fill="#5C6478"/>
+      <rect x="18" y="27" width="150" height="5" rx="1" fill="#9AA0AE"/>
+      <rect x="232" y="14" width="50" height="18" rx="2" fill="none" stroke="#9AA0AE" stroke-width="1.2"/>
+      <rect x="18" y="60" width="44" height="4" rx="1" fill="#9AA0AE"/>
+      <path d="M70 66c6-5 10 3 16-1s9 3 15-1 11 2 18-2 9 3 15 0" stroke="#2F4A86" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <rect x="18" y="82" width="30" height="4" rx="1" fill="#9AA0AE"/>
+      <path d="M56 88c5-4 8 2 13-1s8 2 13-1 9 2 14-1" stroke="#2F4A86" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <rect x="18" y="108" width="264" height="1" fill="#D9D6CE"/>
+      <rect x="18" y="120" width="58" height="4" rx="1" fill="#9AA0AE"/>
+      <path d="M18 140c10-6 16 4 27-1s18 5 29-2 20 5 31-1 17 4 27-1 18 4 28-1" stroke="#2F4A86" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <path d="M18 160c12-5 19 4 31-1s20 4 32-2 19 5 30-1" stroke="#2F4A86" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <path d="M18 180c9-5 15 4 25-1s17 4 27-2 18 5 28-1 16 4 25-1" stroke="#2F4A86" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <path d="M18 200c11-6 18 4 29-1s19 4 30-2" stroke="#2F4A86" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <rect x="18" y="222" width="264" height="1" fill="#D9D6CE"/>
+      <rect x="18" y="236" width="46" height="4" rx="1" fill="#9AA0AE"/>
+      <path d="M18 256c10-5 17 4 27-1s18 4 28-2 19 5 29-1 16 4 26-1" stroke="#2F4A86" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <path d="M18 276c13-6 20 4 32-1s21 4 33-2" stroke="#2F4A86" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <path d="M18 296c9-5 15 4 24-1s16 4 26-2 17 5 27-1" stroke="#2F4A86" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <rect x="18" y="336" width="70" height="1" fill="#B7B3A9"/>
+      <rect x="18" y="343" width="44" height="3.5" rx="1" fill="#B0B5C0"/>
+      <path d="M24 326c9-9 14 6 22-3s13 5 20-4" stroke="#2F4A86" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <circle cx="238" cy="330" r="27" fill="none" stroke="#A5493A" stroke-width="1.8" opacity=".55"/>
+      <rect x="216" y="322" width="44" height="4" rx="1" fill="#A5493A" opacity=".45"/>
+      <rect x="221" y="332" width="34" height="3" rx="1" fill="#A5493A" opacity=".45"/>
+    </symbol>
+
+    <!-- receta -->
+    <symbol id="pg-receta" viewBox="0 0 300 400">
+      <rect width="300" height="400" fill="#FBFAF7"/>
+      <rect x="18" y="18" width="110" height="6" rx="1" fill="#5C6478"/>
+      <rect x="18" y="30" width="72" height="4" rx="1" fill="#9AA0AE"/>
+      <rect x="18" y="52" width="264" height="1" fill="#D9D6CE"/>
+      <rect x="18" y="66" width="26" height="4" rx="1" fill="#9AA0AE"/>
+      <path d="M52 72c6-4 9 2 14-1s8 2 13-1 9 2 14-1" stroke="#2F4A86" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <text x="18" y="112" font-family="Georgia, serif" font-size="26" fill="#5C6478">Rp.</text>
+      <path d="M62 106c12-8 19 6 31-2s20 6 32-3" stroke="#2F4A86" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+      <path d="M62 126c10-7 16 5 26-2s18 5 28-3 15 4 24-2" stroke="#2F4A86" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+      <path d="M62 150c11-7 18 5 29-2s19 5 30-3" stroke="#2F4A86" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+      <path d="M62 174c9-7 15 5 24-2s17 5 26-3 14 4 22-2" stroke="#2F4A86" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+      <path d="M62 198c12-7 19 5 31-2" stroke="#2F4A86" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+      <path d="M62 222c10-7 17 5 27-2s18 5 28-3" stroke="#2F4A86" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+      <rect x="18" y="300" width="264" height="1" fill="#D9D6CE"/>
+      <path d="M40 340c14-14 22 10 34-5s20 8 30-6" stroke="#2F4A86" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+      <rect x="34" y="356" width="86" height="1" fill="#B7B3A9"/>
+      <rect x="42" y="362" width="66" height="3.5" rx="1" fill="#B0B5C0"/>
+      <circle cx="230" cy="344" r="25" fill="none" stroke="#A5493A" stroke-width="1.8" opacity=".5"/>
+      <rect x="211" y="338" width="38" height="3.5" rx="1" fill="#A5493A" opacity=".42"/>
+      <rect x="215" y="347" width="30" height="3" rx="1" fill="#A5493A" opacity=".42"/>
+    </symbol>
+
+    <!-- resultado de laboratorio: impreso, tabular -->
+    <symbol id="pg-lab" viewBox="0 0 300 400">
+      <rect width="300" height="400" fill="#FBFAF7"/>
+      <rect x="18" y="16" width="88" height="6" rx="1" fill="#5C6478"/>
+      <rect x="18" y="28" width="130" height="4" rx="1" fill="#9AA0AE"/>
+      <rect x="18" y="46" width="264" height="1" fill="#D9D6CE"/>
+      <rect x="18" y="58" width="120" height="4" rx="1" fill="#8B92A2"/>
+      <rect x="18" y="70" width="94" height="4" rx="1" fill="#B0B5C0"/>
+      <rect x="18" y="92" width="264" height="18" fill="#EFEDE7"/>
+      <rect x="26" y="99" width="52" height="4" rx="1" fill="#7A8193"/>
+      <rect x="140" y="99" width="34" height="4" rx="1" fill="#7A8193"/>
+      <rect x="208" y="99" width="44" height="4" rx="1" fill="#7A8193"/>
+      <g fill="#9AA0AE">
+        <rect x="26" y="124" width="76" height="4" rx="1"/><rect x="140" y="124" width="28" height="4" rx="1"/><rect x="208" y="124" width="40" height="4" rx="1"/>
+        <rect x="26" y="146" width="64" height="4" rx="1"/><rect x="140" y="146" width="30" height="4" rx="1"/><rect x="208" y="146" width="36" height="4" rx="1"/>
+        <rect x="26" y="168" width="82" height="4" rx="1"/><rect x="140" y="168" width="24" height="4" rx="1"/><rect x="208" y="168" width="42" height="4" rx="1"/>
+        <rect x="26" y="190" width="58" height="4" rx="1"/><rect x="140" y="190" width="32" height="4" rx="1"/><rect x="208" y="190" width="38" height="4" rx="1"/>
+        <rect x="26" y="212" width="70" height="4" rx="1"/><rect x="140" y="212" width="26" height="4" rx="1"/><rect x="208" y="212" width="44" height="4" rx="1"/>
+        <rect x="26" y="234" width="66" height="4" rx="1"/><rect x="140" y="234" width="30" height="4" rx="1"/><rect x="208" y="234" width="34" height="4" rx="1"/>
+      </g>
+      <rect x="18" y="256" width="264" height="1" fill="#D9D6CE"/>
+      <rect x="26" y="270" width="150" height="4" rx="1" fill="#B0B5C0"/>
+      <rect x="26" y="282" width="118" height="4" rx="1" fill="#B0B5C0"/>
+      <path d="M40 344c12-12 19 9 30-4" stroke="#2F4A86" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <rect x="34" y="358" width="80" height="1" fill="#B7B3A9"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ══════════ barra del prototipo ══════════ -->
+<div class="protobar">
+  <span class="protobar-tag">Prototipo</span>
+  <button data-goto="s1">01 Avance</button>
+  <button data-goto="s2">02 Nueva sesión</button>
+  <button data-goto="s3">03 Captura</button>
+  <button data-goto="s4">04 Revisión</button>
+  <button data-goto="s5">05 Cierre</button>
+  <button data-goto="s6">06 Búsqueda</button>
+  <button data-goto="s7">07 Documento</button>
+  <span class="spacer"></span>
+  <button id="toggle-device" aria-pressed="false">Ver en celular</button>
+</div>
+
+<div class="stage" id="stage">
+  <div class="device">
+
+    <!-- ══════════ barra de la app ══════════ -->
+    <div class="appbar">
+      <div class="brand"><span class="brand-mark"></span>HuriosCan</div>
+      <nav>
+        <button data-goto="s1" data-nav="s1">Avance</button>
+        <button data-goto="s2" data-nav="s2 s3 s4 s5">Digitalizar</button>
+        <button data-goto="s6" data-nav="s6 s7">Consultar</button>
+      </nav>
+      <span class="user-chip">C.S. San Juan · R. Ticona</span>
+    </div>
+
+    <!-- ══════════ 01 · PANEL DE AVANCE ══════════ -->
+    <section class="screen active" id="s1">
+      <div class="screen-head">
+        <div class="grow">
+          <p class="eyebrow">Campaña de digitalización</p>
+          <h1>Avance del archivo</h1>
+          <p>Estado de la digitalización del acervo físico del establecimiento.</p>
+        </div>
+        <button class="btn primary" data-goto="s2">Nueva sesión de digitalización</button>
+      </div>
+
+      <dl class="stats">
+        <div class="stat">
+          <dt>Folders digitalizados</dt>
+          <dd>1 240<span class="unit">/ 8 500</span></dd>
+          <div class="bar"><span style="width:14.6%"></span></div>
+          <div class="sub">14,6 % del acervo</div>
+        </div>
+        <div class="stat">
+          <dt>Hojas procesadas</dt>
+          <dd>27 480</dd>
+          <div class="sub">Promedio de 22 hojas por folder</div>
+        </div>
+        <div class="stat">
+          <dt>Requieren revisión</dt>
+          <dd>312</dd>
+          <div class="sub">Hojas marcadas como ilegibles</div>
+        </div>
+        <div class="stat">
+          <dt>Ritmo semanal</dt>
+          <dd>186<span class="unit">folders</span></dd>
+          <div class="sub">Cierre estimado: agosto 2027</div>
+        </div>
+      </dl>
+
+      <h2 class="sec">Sesiones recientes</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Paciente</th><th>N.º HC</th><th>Hojas</th><th>Operador</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr class="click" data-goto="s6"><td>Quispe Huamán, María Elena</td><td class="mono">0021-4487</td><td class="mono">27</td><td>R. Ticona</td><td><span class="pill ok">Cerrada</span></td></tr>
+            <tr class="click" data-goto="s6"><td>Mamani Ccopa, José Antonio</td><td class="mono">0019-2210</td><td class="mono">14</td><td>R. Ticona</td><td><span class="pill ok">Cerrada</span></td></tr>
+            <tr class="click" data-goto="s6"><td>Cárdenas Rojas, Luis Fernando</td><td class="mono">0022-9013</td><td class="mono">31</td><td>M. Salazar</td><td><span class="pill warn">En revisión</span></td></tr>
+            <tr class="click" data-goto="s6"><td>Ticona Flores, Rosa Isabel</td><td class="mono">0018-7734</td><td class="mono">9</td><td>M. Salazar</td><td><span class="pill ok">Cerrada</span></td></tr>
+            <tr class="click" data-goto="s6"><td>Huanca Apaza, Carmen Julia</td><td class="mono">0023-1156</td><td class="mono">18</td><td>R. Ticona</td><td><span class="pill bad">3 ilegibles</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <b>Por qué este panel importa:</b> convierte una campaña de años en algo medible. Sin él, nadie sabe si el archivo avanza o se estancó.
+      </div>
+    </section>
+
+    <!-- ══════════ 02 · NUEVA SESIÓN ══════════ -->
+    <section class="screen" id="s2">
+      <div class="stepper">
+        <span class="now">Paciente</span><i>›</i>
+        <span>Captura</span><i>›</i>
+        <span>Revisión</span><i>›</i>
+        <span>Cierre</span>
+      </div>
+
+      <div class="screen-head">
+        <div class="grow">
+          <p class="eyebrow">Paso 1 de 4</p>
+          <h1>¿De quién es este folder?</h1>
+          <p>Busca el número de historia clínica que figura en la carátula. El paciente queda fijado para todas las hojas de esta sesión.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.1rem">
+        <div class="field" style="margin-bottom:.7rem">
+          <label for="q-pac">N.º de historia clínica, DNI o nombre</label>
+          <div class="search">
+            <input id="q-pac" type="search" value="0021-4487" autocomplete="off">
+            <button class="btn primary">Buscar</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>N.º HC</th><th>Paciente</th><th>DNI</th><th></th></tr></thead>
+            <tbody>
+              <tr class="click" data-goto="s3">
+                <td class="mono">0021-4487</td>
+                <td>Quispe Huamán, María Elena</td>
+                <td class="mono">45872193</td>
+                <td style="text-align:right"><span class="pill accent">Seleccionar</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h2 class="sec">El folder no está registrado</h2>
+      <div class="card flat">
+        <p style="margin:0 0 .9rem;font-size:.86rem;color:var(--ink-soft)">Al inicio de la campaña es lo habitual: el paciente existe en papel, pero todavía no en el sistema. Regístralo con los datos de la carátula.</p>
+        <div class="grid-2">
+          <div class="field"><label for="n-hc">N.º de historia clínica</label><input id="n-hc" placeholder="0000-0000"></div>
+          <div class="field"><label for="n-dni">DNI</label><input id="n-dni" placeholder="00000000"></div>
+          <div class="field"><label for="n-ape">Apellidos</label><input id="n-ape" placeholder="Paterno y materno"></div>
+          <div class="field"><label for="n-nom">Nombres</label><input id="n-nom" placeholder="Nombres"></div>
+          <div class="field"><label for="n-fec">Fecha de nacimiento</label><input id="n-fec" placeholder="DD/MM/AAAA"></div>
+        </div>
+        <div class="btn-row"><button class="btn" data-goto="s3">Registrar y continuar</button></div>
+      </div>
+    </section>
+
+    <!-- ══════════ 03 · CAPTURA ══════════ -->
+    <section class="screen" id="s3">
+      <div class="stepper">
+        <span class="done">Paciente</span><i>›</i>
+        <span class="now">Captura</span><i>›</i>
+        <span>Revisión</span><i>›</i>
+        <span>Cierre</span>
+      </div>
+
+      <div class="patient-bar">
+        <div>
+          <div class="who">Quispe Huamán, María Elena</div>
+          <div class="meta">HC 0021-4487 · DNI 45872193 · 12/03/1978</div>
+        </div>
+        <div class="lock">Fijado para esta sesión</div>
+      </div>
+
+      <div class="screen-head">
+        <div class="grow">
+          <p class="eyebrow">Paso 2 de 4</p>
+          <h1>Capturar las hojas del folder</h1>
+          <p>En orden, tal como están en el folder. No hace falta indicar de quién es cada hoja.</p>
+        </div>
+      </div>
+
+      <div class="capture-actions">
+        <button class="drop" data-goto="s4">
+          <svg class="drop-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 8h3l1.6-2h6.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+            <circle cx="12" cy="13" r="3.4"/>
+          </svg>
+          <b>Tomar foto</b>
+          <small>Abre la cámara del celular</small>
+        </button>
+        <button class="drop" data-goto="s4">
+          <svg class="drop-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="2"/>
+            <circle cx="8.5" cy="9.5" r="1.6"/>
+            <path d="M21 16l-5-5-5.5 5.5L8 14l-5 5"/>
+          </svg>
+          <b>Elegir de la galería</b>
+          <small>Fotos que ya tomaste</small>
+        </button>
+        <button class="drop" data-goto="s4">
+          <svg class="drop-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 16V4"/><path d="M8 8l4-4 4 4"/>
+            <path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/>
+          </svg>
+          <b>Subir archivos</b>
+          <small>Arrastra aquí o busca en el equipo · JPG, PNG, PDF</small>
+        </button>
+      </div>
+
+      <h2 class="sec">27 hojas en esta sesión</h2>
+      <div class="sheets">
+        <div class="sheet">
+          <div class="thumb"><span class="idx">01</span><svg class="paper-svg" viewBox="0 0 300 400"><use href="#pg-atencion"/></svg></div>
+          <div class="body">
+            <span class="type">Hoja de atención</span>
+            <span class="date">14/03/2024</span>
+          </div>
+        </div>
+        <div class="sheet">
+          <div class="thumb"><span class="idx">02</span><svg class="paper-svg" viewBox="0 0 300 400"><use href="#pg-receta"/></svg></div>
+          <div class="body">
+            <span class="type">Receta</span>
+            <span class="date">14/03/2024</span>
+          </div>
+        </div>
+        <div class="sheet">
+          <div class="thumb"><span class="idx">03</span><svg class="paper-svg" viewBox="0 0 300 400"><use href="#pg-lab"/></svg></div>
+          <div class="body">
+            <span class="type">Resultado de laboratorio</span>
+            <span class="date">02/02/2024</span>
+          </div>
+        </div>
+        <div class="sheet">
+          <div class="thumb"><span class="idx">04</span><svg class="paper-svg" viewBox="0 0 300 400"><use href="#pg-atencion"/></svg></div>
+          <div class="body">
+            <span class="type">Hoja de atención</span>
+            <span class="date">18/11/2023</span>
+          </div>
+        </div>
+        <button class="sheet add" data-goto="s4">
+          <span style="font-size:1.4rem;line-height:1">+</span>
+          <span>Agregar hoja</span>
+        </button>
+      </div>
+
+      <div class="note">
+        <b>El tipo y la fecha se heredan de la hoja anterior.</b> Solo se corrigen cuando cambian, para que capturar 27 hojas no signifique llenar 27 formularios.
+      </div>
+
+      <div class="btn-row">
+        <button class="btn primary big" data-goto="s4">Continuar a revisión</button>
+        <button class="btn big" data-goto="s1">Guardar y salir</button>
+      </div>
+    </section>
+
+    <!-- ══════════ 04 · REVISIÓN OCR ══════════ -->
+    <section class="screen" id="s4">
+      <div class="stepper">
+        <span class="done">Paciente</span><i>›</i>
+        <span class="done">Captura</span><i>›</i>
+        <span class="now">Revisión</span><i>›</i>
+        <span>Cierre</span>
+      </div>
+
+      <div class="patient-bar">
+        <div>
+          <div class="who">Quispe Huamán, María Elena</div>
+          <div class="meta">HC 0021-4487 · Hoja 02 de 27 · Receta · 14/03/2024</div>
+        </div>
+        <div class="lock">Fijado para esta sesión</div>
+      </div>
+
+      <div class="screen-head">
+        <div class="grow">
+          <p class="eyebrow">Paso 3 de 4</p>
+          <h1>Revisar el texto reconocido</h1>
+          <p>El original manda siempre. Corrige lo que el reconocimiento no acertó y marca el estado de la hoja.</p>
+        </div>
+      </div>
+
+      <div class="review">
+        <div class="pane">
+          <div class="pane-head">
+            Original escaneado
+            <span class="right">
+              <span class="pill neutral">Manuscrito</span>
+            </span>
+          </div>
+          <div class="pane-body paper">
+            <svg class="paper-svg" viewBox="0 0 300 400" style="width:100%;max-width:19rem;height:auto" role="img" aria-label="Receta manuscrita escaneada"><use href="#pg-receta"/></svg>
+          </div>
+        </div>
+
+        <div class="pane">
+          <div class="pane-head">
+            Texto extraído
+            <span class="right"><span class="pill warn">3 dudas</span></span>
+          </div>
+          <div class="pane-body">
+            <p class="ocr-text">C.S. SAN JUAN DE MIRAFLORES
+Consultorio de Medicina General
+
+Paciente: QUISPE HUAMAN, MARIA ELENA
+HC: 0021-4487    Fecha: 14/03/2024
+
+Rp.
+1. <u>Metf0rmina</u> 850 mg — 1 tab. c/12h
+2. Enalapril <u>1O</u> mg — 1 tab. c/24h
+3. <span class="bad">▓▓▓▓▓▓</span> 500 mg — c/8h × 5 días
+
+Control en 30 días.</p>
+
+            <div class="verdict">
+              <button class="sel-ok" type="button">Correcta</button>
+              <button type="button">Corregida</button>
+              <button type="button">Ilegible</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note warn">
+        <b>Lo subrayado es lo que el sistema no leyó con seguridad.</b> Aquí confundió una «o» con un cero en «Metf0rmina» y no pudo leer el tercer medicamento. Por eso el texto es un índice de búsqueda y nunca reemplaza a la imagen original.
+      </div>
+
+      <div class="review-nav">
+        <button class="btn">‹ Hoja anterior</button>
+        <span class="count">02 / 27</span>
+        <button class="btn">Hoja siguiente ›</button>
+        <span class="grow"></span>
+        <button class="btn primary" data-goto="s5">Terminar revisión</button>
+      </div>
+    </section>
+
+    <!-- ══════════ 05 · CIERRE DE LOTE ══════════ -->
+    <section class="screen" id="s5">
+      <div class="stepper">
+        <span class="done">Paciente</span><i>›</i>
+        <span class="done">Captura</span><i>›</i>
+        <span class="done">Revisión</span><i>›</i>
+        <span class="now">Cierre</span>
+      </div>
+
+      <div class="screen-head">
+        <div class="grow">
+          <p class="eyebrow">Paso 4 de 4</p>
+          <h1>Cerrar el folder</h1>
+          <p>Revisa el resumen antes de confirmar. Al cerrar, el folder físico se rotula como digitalizado.</p>
+        </div>
+      </div>
+
+      <div class="patient-bar">
+        <div>
+          <div class="who">Quispe Huamán, María Elena</div>
+          <div class="meta">HC 0021-4487 · DNI 45872193</div>
+        </div>
+        <div class="lock">Sesión del 18/08/2026 · R. Ticona</div>
+      </div>
+
+      <dl class="stats">
+        <div class="stat"><dt>Hojas capturadas</dt><dd>27</dd></div>
+        <div class="stat"><dt>Correctas</dt><dd style="color:var(--ok)">24</dd><div class="sub">Reconocidas sin dudas</div></div>
+        <div class="stat"><dt>Corregidas a mano</dt><dd style="color:var(--warn)">2</dd><div class="sub">Editadas por el operador</div></div>
+        <div class="stat"><dt>Ilegibles</dt><dd style="color:var(--stamp)">1</dd><div class="sub">La imagen se conserva igual</div></div>
+      </dl>
+
+      <h2 class="sec">Tipos de documento en este folder</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo</th><th>Hojas</th><th>Rango de fechas</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Hoja de atención</td><td class="mono">12</td><td class="mono">11/2019 – 03/2024</td><td><span class="pill ok">Completo</span></td></tr>
+            <tr><td>Receta</td><td class="mono">9</td><td class="mono">02/2020 – 03/2024</td><td><span class="pill ok">Completo</span></td></tr>
+            <tr><td>Resultado de laboratorio</td><td class="mono">5</td><td class="mono">08/2021 – 02/2024</td><td><span class="pill ok">Completo</span></td></tr>
+            <tr><td>Consentimiento informado</td><td class="mono">1</td><td class="mono">05/2022</td><td><span class="pill bad">Ilegible</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">
+        <b>La hoja ilegible no bloquea el cierre.</b> Su imagen queda archivada y consultable; solo no aporta texto a la búsqueda. Queda en la lista de pendientes por si más adelante se reescanea con mejor luz.
+      </div>
+
+      <div class="btn-row" style="margin-top:1.3rem">
+        <button class="btn primary big" data-goto="s1">Cerrar folder y marcar como digitalizado</button>
+        <button class="btn big" data-goto="s4">Volver a la revisión</button>
+      </div>
+    </section>
+
+    <!-- ══════════ 06 · BÚSQUEDA Y LÍNEA DE TIEMPO ══════════ -->
+    <section class="screen" id="s6">
+      <div class="screen-head">
+        <div class="grow">
+          <p class="eyebrow">Consulta</p>
+          <h1>Buscar en el archivo</h1>
+          <p>Por paciente, o por lo que dice adentro del documento.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.3rem">
+        <div class="field" style="margin-bottom:.55rem">
+          <label for="q-doc">Paciente, N.º HC, DNI o palabra dentro del documento</label>
+          <div class="search">
+            <input id="q-doc" type="search" value="metformina" autocomplete="off">
+            <button class="btn primary">Buscar</button>
+          </div>
+        </div>
+        <p style="margin:0;font-size:.78rem;color:var(--ink-faint)">4 coincidencias en los documentos de Quispe Huamán, María Elena</p>
+      </div>
+
+      <div class="patient-bar">
+        <div>
+          <div class="who">Quispe Huamán, María Elena</div>
+          <div class="meta">HC 0021-4487 · DNI 45872193 · 47 años · 27 documentos</div>
+        </div>
+        <div class="lock">Digitalizado el 18/08/2026</div>
+      </div>
+
+      <div class="filters">
+        <button class="chip on">Todos · 27</button>
+        <button class="chip">Hojas de atención · 12</button>
+        <button class="chip">Recetas · 9</button>
+        <button class="chip">Laboratorio · 5</button>
+        <button class="chip">Consentimientos · 1</button>
+      </div>
+
+      <div class="timeline">
+        <button class="doc-row" data-goto="s7">
+          <span class="mini"><svg viewBox="0 0 300 400" aria-hidden="true"><use href="#pg-receta"/></svg></span>
+          <span>
+            <span class="t">Receta</span>
+            <span class="d">14/03/2024 · Medicina General</span>
+            <span class="snippet">Rp. 1. <mark>Metformina</mark> 850 mg — 1 tab. c/12h · 2. Enalapril 10 mg…</span>
+          </span>
+          <span class="end"><span class="pill warn">Corregida</span></span>
+        </button>
+
+        <button class="doc-row" data-goto="s7">
+          <span class="mini"><svg viewBox="0 0 300 400" aria-hidden="true"><use href="#pg-atencion"/></svg></span>
+          <span>
+            <span class="t">Hoja de atención</span>
+            <span class="d">14/03/2024 · Medicina General</span>
+            <span class="snippet">Paciente refiere control de glucosa. Se continúa con <mark>metformina</mark>…</span>
+          </span>
+          <span class="end"><span class="pill ok">Correcta</span></span>
+        </button>
+
+        <button class="doc-row" data-goto="s7">
+          <span class="mini"><svg viewBox="0 0 300 400" aria-hidden="true"><use href="#pg-lab"/></svg></span>
+          <span>
+            <span class="t">Resultado de laboratorio</span>
+            <span class="d">02/02/2024 · Bioquímica</span>
+            <span class="snippet">Glucosa en ayunas 138 mg/dL · Hemoglobina glicosilada 7,2 %</span>
+          </span>
+          <span class="end"><span class="pill ok">Correcta</span></span>
+        </button>
+
+        <button class="doc-row" data-goto="s7">
+          <span class="mini"><svg viewBox="0 0 300 400" aria-hidden="true"><use href="#pg-receta"/></svg></span>
+          <span>
+            <span class="t">Receta</span>
+            <span class="d">18/11/2023 · Medicina General</span>
+            <span class="snippet">Rp. 1. <mark>Metformina</mark> 850 mg — 1 tab. c/12h · 2. Ácido acetilsalicílico…</span>
+          </span>
+          <span class="end"><span class="pill ok">Correcta</span></span>
+        </button>
+
+        <button class="doc-row" data-goto="s7">
+          <span class="mini"><svg viewBox="0 0 300 400" aria-hidden="true"><use href="#pg-atencion"/></svg></span>
+          <span>
+            <span class="t">Hoja de atención</span>
+            <span class="d">05/07/2023 · Medicina General</span>
+            <span class="snippet">Control de presión arterial. Sin cambios en el tratamiento.</span>
+          </span>
+          <span class="end"><span class="pill ok">Correcta</span></span>
+        </button>
+      </div>
+
+      <div class="note">
+        <b>Esto es lo que el papel no puede hacer.</b> Buscar «metformina» y ver en qué documentos aparece, de qué año y en qué contexto — sin abrir un solo folder.
+      </div>
+    </section>
+
+    <!-- ══════════ 07 · VISOR DE DOCUMENTO ══════════ -->
+    <section class="screen" id="s7">
+      <div class="screen-head">
+        <div class="grow">
+          <p class="eyebrow">Quispe Huamán, María Elena · HC 0021-4487</p>
+          <h1>Receta · 14/03/2024</h1>
+        </div>
+        <div class="btn-row">
+          <button class="btn" data-goto="s6">‹ Volver</button>
+          <button class="btn">Descargar</button>
+          <button class="btn">Imprimir</button>
+        </div>
+      </div>
+
+      <div class="viewer">
+        <div class="viewer-paper">
+          <svg class="paper-svg" viewBox="0 0 300 400" role="img" aria-label="Receta manuscrita escaneada, documento original"><use href="#pg-receta"/></svg>
+        </div>
+
+        <div>
+          <div class="pane" style="margin-bottom:1rem">
+            <div class="pane-head">Texto extraído<span class="right"><span class="pill warn">Corregida</span></span></div>
+            <div class="pane-body">
+              <p class="ocr-text">C.S. SAN JUAN DE MIRAFLORES
+Consultorio de Medicina General
+
+Paciente: QUISPE HUAMAN, MARIA ELENA
+HC: 0021-4487    Fecha: 14/03/2024
+
+Rp.
+1. <mark>Metformina</mark> 850 mg — 1 tab. c/12h
+2. Enalapril 10 mg — 1 tab. c/24h
+3. Amoxicilina 500 mg — c/8h × 5 días
+
+Control en 30 días.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2 class="sec" style="margin-top:0">Ficha del documento</h2>
+            <dl class="kv">
+              <dt>Tipo</dt><dd>Receta</dd>
+              <dt>Fecha</dt><dd class="mono">14/03/2024</dd>
+              <dt>Origen</dt><dd>C.S. San Juan de Miraflores</dd>
+              <dt>Escritura</dt><dd>Manuscrita</dd>
+              <dt>Estado</dt><dd><span class="pill warn">Corregida por operador</span></dd>
+              <dt>Digitalizó</dt><dd>R. Ticona · 18/08/2026</dd>
+              <dt>Sesión</dt><dd class="mono">Lote 0021-4487 · hoja 02/27</dd>
+            </dl>
+          </div>
+
+          <div class="note" style="margin-bottom:0">
+            <b>La imagen de la izquierda es la fuente válida.</b> El texto de arriba solo existe para que este documento se pueda encontrar.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    var screens = Array.prototype.slice.call(document.querySelectorAll('.screen'));
+    var navBtns = Array.prototype.slice.call(document.querySelectorAll('[data-nav]'));
+    var protoBtns = Array.prototype.slice.call(document.querySelectorAll('.protobar [data-goto]'));
+
+    function show(id) {
+      screens.forEach(function (s) { s.classList.toggle('active', s.id === id); });
+      navBtns.forEach(function (b) {
+        b.classList.toggle('active', b.dataset.nav.split(' ').indexOf(id) !== -1);
+      });
+      protoBtns.forEach(function (b) { b.classList.toggle('on', b.dataset.goto === id); });
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest('[data-goto]');
+      if (t) show(t.dataset.goto);
+    });
+
+    var toggle = document.getElementById('toggle-device');
+    var stage = document.getElementById('stage');
+    toggle.addEventListener('click', function () {
+      var on = stage.classList.toggle('phone');
+      toggle.setAttribute('aria-pressed', String(on));
+      toggle.textContent = on ? 'Ver en escritorio' : 'Ver en celular';
+    });
+
+    show('s1');
+  })();
+</script>
