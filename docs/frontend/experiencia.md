@@ -1,7 +1,7 @@
 # Experiencia frontend — HuriosCan
 
 La UI la sirve el propio backend con Blade + Livewire; no hay SPA ni cliente HTTP separado.
-Estado: `propuesto` hasta aprobación del usuario real.
+Estado: **aprobado** — Kevin, 2026-08-18.
 
 Referencia visual: `docs/frontend/diseno/hurioscan-claude-design.html` (diseño de pantallas) y `docs/propuesta/prototipo.html` (prototipo navegable del flujo completo). Ver `docs/frontend/diseno/README.md` para qué autoridad tiene cada uno.
 
@@ -32,5 +32,5 @@ Referencia visual: `docs/frontend/diseno/hurioscan-claude-design.html` (diseño 
 - **Responsive** en 360, 768, 1024 y 1440 px, según RNF-004. Captura y revisión son operables con el pulgar en 360 px.
 - **El texto extraído por OCR se muestra siempre escapado**, tanto en el visor como en el fragmento resaltado de resultados (RNF-012).
 
-Estado: propuesto
-Aprobado por: pendiente — fecha: pendiente
+Estado: aprobado
+Aprobado por: Kevin — fecha: 2026-08-18
