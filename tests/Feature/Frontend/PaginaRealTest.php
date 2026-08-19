@@ -45,6 +45,11 @@ class PaginaRealTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // El CI corre los tests antes de compilar los assets, así que el
+        // manifiesto de Vite no existe todavía. Lo que aquí se verifica es que
+        // la página se sirve con su layout, no que los assets estén
+        // compilados.
+        $this->withoutVite();
         $this->app->singleton(ServicioPacientes::class, ServicioPacientesDoble::class);
         $this->app->singleton(ServicioDigitalizacion::class, ServicioDigitalizacionDoble::class);
         $this->app->singleton(ServicioDocumentos::class, ServicioDocumentosDoble::class);
