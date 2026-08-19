@@ -104,8 +104,8 @@ Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescr
 **Por qué no se separó en dos repositorios.** Sería la otra forma de conseguir el aislamiento —cada repositorio ya es un árbol de trabajo propio— pero obligaría a Laravel API más un frontend independiente, lo que reabre `docs/decisiones/0001-monolito-laravel-livewire.md` y agrega un contrato entre repositorios que mantener. Con dos programadores y doce semanas, worktrees más rutas disjuntas dan el mismo aislamiento a un costo mucho menor.
 
 ## CI por rama
-- `develop`: previsto en D01 — GitHub Actions ejecutando `./vendor/bin/pint --test`, `php artisan test` y `pnpm build` en cada PR
-- `main`: previsto en D01 — los checks anteriores más la suite completa de Feature tests sobre PostgreSQL, en cada PR desde `develop`
+- `develop`: `.github/workflows/verificacion-develop.yml` — GitHub Actions ejecutando `./vendor/bin/pint --test`, `php artisan test` y `pnpm build` en cada PR
+- `main`: `.github/workflows/verificacion-main.yml` — los checks anteriores más la suite de Feature tests sobre un servicio PostgreSQL 18 con migraciones desde base limpia, en cada PR desde `develop`
 
 ## Convención de commits
 <!-- Este bloque debe ser autocontenible. No citar exclusivamente una ruta
@@ -123,7 +123,7 @@ Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescr
 ## Comandos de verificación
 - Lint: `./vendor/bin/pint --test` — ejecutado 2026-08-18, resultado `passed`
 - Tests unitarios/componentes: `php artisan test` — ejecutado 2026-08-18, 2 tests, 2 passed
-- Integración/contrato: previsto en D01 — `php artisan test --testsuite=Feature` con base PostgreSQL de prueba
+- Integración/contrato: `php artisan test --testsuite=Feature` con base PostgreSQL de prueba — ejecutado en CI por `verificacion-main.yml`, verde el 2026-08-19
 - E2E: no aplica — el proyecto no incorpora navegador automatizado en el horizonte planificado; la verificación de flujo se cubre con tests Feature de Livewire
 - Accesibilidad: previsto en F06 — revisión manual de teclado, foco y contraste sobre las vistas de consulta
 - Build: `pnpm build` — ejecutado 2026-08-18, `built in 530ms`, artefactos en `public/build/`
@@ -143,7 +143,7 @@ Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescr
 ## Operación DevOps/Release
 - Proveedor/topología: no decidido — el proyecto es académico y no tiene despliegue productivo comprometido
 - Ambientes: local y CI de GitHub Actions; no hay staging ni producción
-- Pipeline: previsto en D01 — GitHub Actions
+- Pipeline: GitHub Actions — `.github/workflows/verificacion-develop.yml` y `verificacion-main.yml`, entregados en D01
 - Artefacto canónico: no aplica — no hay despliegue en el horizonte planificado
 - Configuración/secretos: `.env` local a partir de `.env.example`; ningún secreto versionado
 - Migraciones: `php artisan migrate`; responsable Implementación dentro del sprint que las introduce
@@ -159,6 +159,7 @@ Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescr
 - Glosario: `docs/requisitos/glosario.md`
 - Actores y permisos: `docs/requisitos/actores-permisos.md`
 - Contratos/API: `docs/contratos/` — operaciones de aplicación (rutas web y acciones Livewire); el proyecto no expone API HTTP pública
+- Interfaces de servicio y selección de dobles: `docs/contratos/servicios-aplicacion.md`
 - Frontend — experiencia/integración: `docs/frontend/`
 - Persistencia: `docs/persistencia/`
 - Manejo de errores: `docs/errores/`
