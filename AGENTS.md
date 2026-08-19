@@ -125,7 +125,7 @@ Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescr
 - Tests unitarios/componentes: `php artisan test` — ejecutado 2026-08-18, 2 tests, 2 passed
 - Integración/contrato: `php artisan test --testsuite=Feature` con base PostgreSQL de prueba — ejecutado en CI por `verificacion-main.yml`, verde el 2026-08-19
 - E2E: no aplica — el proyecto no incorpora navegador automatizado en el horizonte planificado; la verificación de flujo se cubre con tests Feature de Livewire
-- Accesibilidad: previsto en F06 — revisión manual de teclado, foco y contraste sobre las vistas de consulta
+- Accesibilidad: revisión de teclado, foco y contraste sobre las vistas de consulta — ejecutada en F06 el 2026-08-19 (29 elementos evaluados para contraste componiendo fondos translúcidos, 0 incumplimientos; 8 enfocables, todos con foco visible y nombre accesible). Evidencia en `docs/handoffs/F06.md`
 - Build: `pnpm build` — ejecutado 2026-08-18, `built in 530ms`, artefactos en `public/build/`
 - Otros RNF: previsto en B06 — medición del tiempo de búsqueda de texto completo contra el umbral de RNF-001
 
