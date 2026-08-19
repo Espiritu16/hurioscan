@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Frontend;
 
+use Illuminate\Routing\Route;
+use Illuminate\Routing\RouteCollection;
 use Tests\TestCase;
 
 class ComponentesEstructuraTest extends TestCase
@@ -25,13 +27,60 @@ class ComponentesEstructuraTest extends TestCase
         $administrador->assertSee('Auditoría');
     }
 
+    /**
+     * El test fabrica su propia condición vaciando la tabla de rutas, en vez
+     * de apoyarse en que las rutas reales no estén montadas: eso era cierto
+     * mientras la línea frontend iba por delante del montaje, y dejó de serlo
+     * en cuanto las rutas existieron.
+     */
     public function test_el_menu_deshabilita_las_opciones_sin_ruta_declarada(): void
     {
-        // Ninguna ruta con nombre existe todavía en este sprint: todas las
-        // opciones deben degradarse a deshabilitadas, no romper la vista.
+        $this->app['router']->setRoutes(new RouteCollection);
+
         $menu = $this->blade('<x-menu-lateral rol="administrador" />');
+
         $menu->assertSee('aria-disabled="true"', false);
         $menu->assertDontSee('href=', false);
+        // Degrada, no rompe: las opciones siguen visibles.
+        $menu->assertSee('Panel de avance');
+    }
+
+    public function test_el_menu_enlaza_las_opciones_cuya_ruta_si_existe(): void
+    {
+        $rutas = new RouteCollection;
+        $rutas->add(new Route(['GET'], '/avance', ['as' => 'avance', fn () => '']));
+        $this->app['router']->setRoutes($rutas);
+
+        $menu = $this->blade('<x-menu-lateral rol="administrador" />');
+
+        $menu->assertSee('href=', false);
+        // La que existe se enlaza y la que no, se deshabilita: conviven.
+        $menu->assertSee('aria-disabled="true"', false);
+    }
+
+    /**
+     * Invariante que no depende de qué rutas estén montadas: cada opción del
+     * menú es un enlace o está deshabilitada, nunca ninguna de las dos ni las
+     * dos a la vez. Vale con el montaje completo y sin él.
+     */
+    public function test_ninguna_opcion_del_menu_queda_sin_resolver(): void
+    {
+        foreach (['operador', 'consulta', 'administrador'] as $rol) {
+            $html = (string) $this->blade('<x-menu-lateral :rol="$rol" />', ['rol' => $rol]);
+
+            preg_match_all('/<a\b[^>]*>/', $html, $coincidencias);
+            $this->assertNotEmpty($coincidencias[0], "el rol {$rol} no vio ninguna opción");
+
+            foreach ($coincidencias[0] as $ancla) {
+                $enlaza = str_contains($ancla, 'href=');
+                $deshabilitada = str_contains($ancla, 'aria-disabled="true"');
+
+                $this->assertTrue(
+                    $enlaza xor $deshabilitada,
+                    "opción sin resolver para el rol {$rol}: {$ancla}",
+                );
+            }
+        }
     }
 
     public function test_la_barra_de_paciente_es_fija_y_muestra_la_marca_de_sesion(): void
