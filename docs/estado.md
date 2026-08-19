@@ -115,10 +115,10 @@ sprints:
 - Todos los documentos de línea base están en `propuesto`. Requieren aprobación del usuario real (requisitos, glosario, experiencia) y de Arquitectura (contratos, persistencia, errores, permisos, integración, ADR).
 - Los catorce RFC están en `propuesto`; ninguno puede pasar a `Planificación: LISTO` hasta que sus fuentes estén aprobadas. **Excepción: F00**, que no consume contratos ni requisitos funcionales y solo depende del diseño ya producido: puede aprobarse y ejecutarse de inmediato.
 - Decisiones abiertas registradas, ninguna bloquea la aprobación de los documentos pero sí la implementación del sprint que las consume:
-  - formato de documento de identidad: si el establecimiento registra carné de extranjería además de DNI, el formato de 8 dígitos no alcanza. El proveedor elegido ofrece consulta de carné de extranjería como servicio aparte, pero se declaró fuera del horizonte: un paciente extranjero se registra a mano (S02);
-  - activación de la cuenta de JSON.pe: los 100 créditos gratuitos vencen a los 30 días y el proyecto dura 12 semanas, así que la cuenta real se activa cerca de la demostración final, no ahora (S02);
-  - límite de 15 MB por hoja: confirmar contra los equipos reales del establecimiento (S03);
-  - motor de OCR de producción: lo decide el benchmark (S04).
+  - formato de documento de identidad: si el establecimiento registra carné de extranjería además de DNI, el formato de 8 dígitos no alcanza. El proveedor elegido ofrece consulta de carné de extranjería como servicio aparte, pero se declaró fuera del horizonte: un paciente extranjero se registra a mano (B02);
+  - activación de la cuenta de JSON.pe: los 100 créditos gratuitos vencen a los 30 días y el proyecto dura 12 semanas, así que la cuenta real se activa cerca de la demostración final, no ahora (B02);
+  - límite de 15 MB por hoja: confirmar contra los equipos reales del establecimiento (B03);
+  - motor de OCR de producción: lo decide el benchmark (B04).
 
 ## Siguiente fase habilitada
 - **F00 está habilitado** (`Planificación: LISTO`, `Ejecución: LISTO`): su RFC está aprobado y sus dos fuentes materiales —`docs/frontend/experiencia.md` y los RNF— también, tras detectarse que se había habilitado con ambas en `propuesto`. Para todo lo demás, el siguiente paso sigue siendo la aprobación de `AGENTS.md` y de la línea base documental; con eso, B01 y F01 quedan habilitados y las dos líneas —backend y frontend— pueden avanzar en paralelo.
