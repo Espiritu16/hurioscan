@@ -162,6 +162,16 @@ Ampliaciones puntuales del perímetro de la línea frontend, aprobadas por Kevin
 - Cada ruta se agrega **cuando su componente ya existe**, para que el pipeline de CI nunca quede en rojo por una clase inexistente.
 - Vence al habilitarse B01, momento en que `routes/web.php` vuelve a su dueño único (línea backend) según `AGENTS.md`.
 
+### AUT-03 — configuración del límite de subida (aprobada por Kevin, 2026-08-19)
+
+Para corregir **QA-F-03**, cuyo arreglo cruza tres capas y ninguna está en las rutas de la línea frontend:
+
+- La línea frontend puede crear y mantener **`config/livewire.php`**, exclusivamente para alinear el límite de subida temporal (`temporary_file_upload.rules`) y sus mensajes con el límite que declara el producto. No habilita ninguna otra escritura en `config/`.
+- **DevOps** se encarga de la capa de entorno: `upload_max_filesize` y `post_max_size` de PHP en local y en CI, y del servidor web cuando exista. Es su rutas ya autorizadas más la configuración operativa que `AGENTS.md` le reconoce.
+- **Límite a configurar: 15 MB**, el valor que ya declaran el contrato y el mensaje al usuario. Sigue siendo una decisión abierta pendiente de contrastar con los equipos reales del establecimiento; cambiarlo después será tocar una línea en cada capa, y por eso no bloquea la corrección. Las tres capas deben quedar coherentes entre sí y con `docs/contratos/digitalizacion.md`.
+- **Criterio de cierre del defecto, no negociable:** una hoja rechazada por tamaño muestra su motivo en su tarjeta y **las demás hojas del mismo lote se conservan**, igual que ya ocurre con el rechazo por formato. El mensaje es el del producto, en español, no texto crudo del framework.
+- Vence al cerrarse QA-F-03. `config/livewire.php` queda después bajo el dueño que `AGENTS.md` declara para `config/`.
+
 ### AUT-02 — interfaces de servicio y binding de dobles (aprobada por Kevin, 2026-08-19)
 
 - La línea frontend puede crear exclusivamente estos archivos, con las firmas ya fijadas por Arquitectura en `docs/contratos/servicios-aplicacion.md`:
