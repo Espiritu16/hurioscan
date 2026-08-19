@@ -209,20 +209,49 @@ Decisiones tomadas mientras Kevin no estaba disponible, consolidadas a su regres
 | 2 | D01 | Aceptar como cumplido el criterio del rojo provocado con la evidencia del paso Tests, dejando Lint y Build por inferencia estructural | Provocar además un fallo de lint y uno de build | Los tres pasos comparten shell, sin `continue-on-error` ni `if:`; el costo de dos corridas más no aportaba certeza proporcional | Sí — se puede provocar en cualquier momento | `docs/handoffs/D01.md` § Observaciones |
 | 3 | F06 | Adoptar `pacientes.detalle` como nombre canónico de `/pacientes/{id}` | Dejarlo sin nombre hasta que backend lo declarara | Faltaba en la lista canónica y sigue exactamente el patrón de `sesiones.detalle` y `documentos.detalle`; ratificado por Arquitectura | Sí — es solo un nombre de ruta | `docs/frontend/integracion.md` |
 
+## Validación QA de la cadena `F` — parcial, 2026-08-19
+
+QA validó sobre `develop @ d6d2f40` en worktree propio con dobles activados, servidor real y navegador. **La validación quedó incompleta y sin veredicto** por el corte de la sesión; lo que sigue son los resultados concluyentes, no un veredicto de sprint.
+
+### Defectos confirmados
+
+**QA-F-01 — dos componentes inalcanzables desde la aplicación servida.** Severidad alta. Afecta F02-UT-03 y F03-UT-02.
+`FormularioPaciente` (alta de paciente) y `AperturaSesion` no tienen ruta montada y ningún archivo del árbol los referencia. Los botones que deberían conducir a ellos existen y se ven habilitados, pero no llevan ninguna directiva: en `resources/views/dominios/pacientes/buscador.blade.php` salen como `<x-boton>` sin `wire:click` ni `href`, así que un clic real no hace nada. Consecuencia: desde la interfaz servida no se puede registrar un paciente ni abrir una sesión de digitalización.
+
+**La causa de fondo es de Arquitectura, no de la línea frontend ni del montaje.** La lista de nombres canónicos de `docs/frontend/integracion.md` omitía `pacientes.alta` y `sesiones.apertura`, pese a que las unidades de trabajo de F02 y F03 las fijan como su interfaz. El montaje declaró exactamente los catorce nombres de esa lista, o sea hizo bien su trabajo sobre una entrada incompleta. La lista ya está corregida en ese documento, con la lección: **al derivar nombres canónicos hay que recorrer las unidades de trabajo de cada RFC, no solo los flujos de `experiencia.md`.**
+
+**Por qué ninguna prueba lo detectó**, y es el séptimo caso del mismo patrón: `tests/Feature/Frontend/PaginaRealTest.php` registra su propia ruta para cada componente antes de servirlo. Comprueba que cada componente *puede* renderizarse como página, nunca que la aplicación real *llegue* a él. La prueba se apoya en una condición que ella misma fabrica.
+
+**QA-F-02 — deny-by-default inconsistente sin sesión.** Severidad media. Afecta F02-UT-02, contra RNF-013.
+El layout resuelve el rol como `null` sin sesión y el menú no muestra ninguna opción, que es correcto; pero `BuscadorPacientes` declara `public string $rol = 'operador'`, un default privilegiado. En la página servida sin sesión conviven un menú vacío y el botón «Registrar paciente nuevo», reservado a operador y administrador. Hoy no concede acceso real porque no hay backend, así que no es una fuga de permisos, pero el estado por defecto de la aplicación servida es el privilegiado en vez del restringido.
+
+### Verificado en verde
+
+No hace falta rehacerlo mientras no cambie su entrada: proveniencia y suite (103/103, `pint` passed) reproducidas en worktree propio; las catorce rutas responden 200; **RNF-012 en sus dos puntos** sobre HTML renderizado, incluido el caso negativo de buscar un payload como término, sin inyección; **conflicto de versión** reproducido con sus dos salidas explícitas y sin reenvío silencioso; sin fuga de hash de contraseña en `/usuarios` con la página listando usuarios reales; sin jerga del proveedor de identidad en los cuatro desenlaces del alta por DNI; y `/pacientes` a 360 px sin desborde, con la tabla scrolleando dentro de su contenedor.
+
+### Pendiente al retomar
+
+Barrido responsive completo de las catorce páginas en los cuatro anchos —midiendo página por página, porque medirlas juntas en un iframe agotó el tiempo del navegador—; criterios de cierre detallados de F05, F06 y F07; la superficie de subida de archivos de F03-UT-03, que es la de mayor carga de riesgo y quedó sin ejercer; accesibilidad sobre páginas servidas; y el cierre de `seguridad-validacion`, en curso y **sin hallazgos bloqueantes hasta el corte**.
+
+### Limitación de entorno declarada
+
+`AGENTS.md` declara PostgreSQL 18.3 para validación, pero el servidor local exige una credencial que QA no tiene, así que sesión y caché corrieron sobre SQLite. QA verificó antes que ningún componente de dominio toca la base —sin Eloquent ni `DB::` en `app/Dominios` ni `app/Compartido`, y solo las tres migraciones base de Laravel—, de modo que el motor no puede enmascarar nada de lo validado. **Para los sprints `B` sí hará falta PostgreSQL real: conviene dejar disponible la credencial local antes de arrancar el backend.**
+
 ## Punto de retomada — pausa del 2026-08-19
 
 Sesión pausada por ausencia de Kevin. **Todo el trabajo está persistido en `origin`**: ningún worktree tenía cambios sin commitear y ninguna rama local commits sin empujar, verificado antes de cortar. Nada quedó vivo solo en la memoria de una sesión.
 
 - **Estado del árbol:** `develop @ d6d2f40`, con `pint` passed, 103/103 tests y las catorce rutas montadas.
 - **Worktrees conservados:** `~/hurioscan-F00` en `sprint/F00 @ adabd5b` y `~/hurioscan-D01` en `sprint/D01 @ 9e9a839`, ambos limpios y ya integrados. El de D01 sigue pendiente de una decisión de Kevin sobre si se elimina.
-- **En curso al pausar:** QA validaba la cadena `F00`→`F07` sobre `develop @ d6d2f40`. Su rol no escribe artefactos, así que lo perdido es solo su progreso de validación; el despacho sigue vigente tal cual y se rehace desde el repositorio.
+- **QA alcanzó a reportar antes de cortar:** validación parcial, sin veredicto, con dos defectos confirmados y buena parte de los criterios en verde. Todo registrado en la sección anterior, así que no hay que redescubrirlo — solo completar lo que quedó pendiente allí.
 
 ### Qué sigue, en orden
 
-1. **Retomar la validación de QA** sobre `develop @ d6d2f40`, con el mismo alcance: los siete sprints en `EN_VALIDACION`, validando sobre vistas montadas y con los interruptores de dobles activados en el entorno local. Los puntos a mirar con lupa están en la sección de auditoría de arriba.
-2. **Con un `APROBADO`**, el Coordinador registra el veredicto en los handoffs. Los sprints `F` **no** pasan a `COMPLETADO` con eso: el roadmap exige el punto de integración con su par `B`, que todavía no existe.
-3. **Decisión pendiente de Kevin, que es la que destraba todo lo demás:** aprobar `docs/persistencia/modelo.md` y los cinco ADR. Sin eso B01 no llega a `LISTO` y la línea backend sigue en cero — no hay modelos, servicios ni migraciones propias, solo las tres que Laravel trae de fábrica.
-4. Al habilitarse B01 vencen **AUT-01** y **AUT-02**: `routes/web.php` y las interfaces vuelven a su dueño natural según `AGENTS.md`.
+1. **Corregir QA-F-01**, que es lo que bloquea el cierre de F02 y F03: la lista canónica ya está corregida con `pacientes.alta` y `sesiones.apertura`, así que falta montar esas dos rutas y cablear los botones que hoy no conducen a ninguna parte. Corregir también QA-F-02 (el default privilegiado de rol). Ambos son trabajo de la línea frontend sobre una entrada de Arquitectura ya resuelta.
+2. **Retomar la validación de QA** sobre el SHA nuevo que resulte de esa corrección, completando lo que quedó pendiente y revalidando lo afectado. Lo verde ya registrado se reutiliza mientras su entrada no cambie.
+3. **Con un `APROBADO`**, el Coordinador registra el veredicto en los handoffs. Los sprints `F` **no** pasan a `COMPLETADO` con eso: el roadmap exige el punto de integración con su par `B`, que todavía no existe.
+4. **Decisión pendiente de Kevin, que es la que destraba todo lo demás:** aprobar `docs/persistencia/modelo.md` y los cinco ADR. Sin eso B01 no llega a `LISTO` y la línea backend sigue en cero — no hay modelos, servicios ni migraciones propias, solo las tres que Laravel trae de fábrica.
+5. Al habilitarse B01 vencen **AUT-01** y **AUT-02**: `routes/web.php` y las interfaces vuelven a su dueño natural según `AGENTS.md`.
 
 Cualquier sesión que retome reconstruye desde aquí y desde Git, nunca desde la conversación anterior.
 
