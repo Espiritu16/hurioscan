@@ -6,7 +6,7 @@ active_phase: cadena F00→F07
 active_status: EN_VALIDACION
 last_completed_phase: D01
 bootstrap_status: COMPLETO
-planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; backend habilitado desde B01
+planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; backend con línea base aprobada pero sin habilitar
 current_rfc_batch: [D01, F00, B01, F01, B02, F02, B03, F03, B04, F05, B05, F06, B06, F07, B07]
 planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014, RF-015]
 updated_at: 2026-08-19
@@ -30,8 +30,8 @@ sprints:
     parallelizable_with: [B01]
   - id: B01
     repository: hurioscan
-    planning_status: LISTO
-    execution_status: LISTO
+    planning_status: BORRADOR
+    execution_status: PLANIFICADO
     depends_on: []
     parallelizable_with: [F00]
   - id: F01
@@ -139,7 +139,8 @@ Al corregir esos dos aparecieron cuatro más, todos de la misma familia. La list
 **El patrón, que es la conclusión que vale conservar:** los seis eran invisibles desde adentro de la suite porque la pieza no se estaba ejerciendo como se usa de verdad, o porque la prueba se apoyaba en una condición del entorno en vez de fabricarla. Los dos remedios que quedaron en el repositorio son `tests/Feature/Frontend/PaginaRealTest.php`, que sirve los quince componentes como páginas reales con ruta y layout, y la comprobación por reflexión de `servicios-aplicacion.md`. Al despachar QA conviene decirlo explícitamente: **validar sobre vistas montadas, no sobre componentes en aislamiento.**
 
 ## Bloqueantes
-- ~~**Persistencia y ADR sin aprobar**~~ → **APROBADOS por Kevin el 2026-08-19.** El modelo de persistencia con sus nueve migraciones y los cinco ADR quedaron firmes; **B01 pasa a `LISTO`** y la línea backend arranca. Los sprints B02–B07 siguen con su RFC en `BORRADOR`: cada uno se habilita al aprobarse el suyo, derivado de los RF ya aprobados.
+- ~~**Persistencia y ADR sin aprobar**~~ → **APROBADOS por Kevin el 2026-08-19.** El modelo con sus nueve migraciones y los cinco ADR quedaron firmes.
+- **La línea backend sigue sin habilitarse, por decisión de Kevin.** Aprobar la línea base era condición necesaria pero no suficiente: **ningún RFC de sprint `B` está aprobado**, empezando por el de B01, así que B01 permanece en `BORRADOR`/`PLANIFICADO` y no se despacha. Kevin decidió cerrar primero la línea frontend y no avanzar con backend por ahora. Cuando quiera arrancar, el único paso que falta es aprobar el RFC de B01: sus fuentes —RF-011, RNF-005, RNF-013, actores y permisos, el modelo y la taxonomía de errores— ya están todas aprobadas.
 - Decisiones abiertas registradas, ninguna bloquea lo aprobado pero sí la implementación del sprint que las consume:
   - formato de documento de identidad: si el establecimiento registra carné de extranjería además de DNI, el formato de 8 dígitos no alcanza. El proveedor elegido ofrece consulta de carné de extranjería como servicio aparte, pero se declaró fuera del horizonte: un paciente extranjero se registra a mano (B02);
   - activación de la cuenta de JSON.pe: los 100 créditos gratuitos vencen a los 30 días y el proyecto dura 12 semanas, así que la cuenta real se activa cerca de la demostración final, no ahora (B02);
@@ -151,6 +152,22 @@ Al corregir esos dos aparecieron cuatro más, todos de la misma familia. La list
 - **D01:** `COMPLETADO` e integrado. Todo PR hacia `develop` ejecuta ahora lint, tests y build automáticamente.
 - **Backend:** bloqueado hasta que Kevin apruebe `docs/persistencia/modelo.md` y los ADR.
 
+## Revisión de cobertura ficticia — informe, 2026-08-19
+
+QA revisó **192 aserciones sobre literales** en `develop @ 4ae1d2b` y encontró **tres alarmas apagadas**, cada una demostrada por mutación. Ningún defecto de producto, tal como se había anticipado al aprobar la unidad.
+
+**1 · Prioridad alta — la prueba escrita para impedir QA-F-01 no lo atraparía.** QA borró la ruta `pacientes.alta`, lo que reproduce el defecto entero, y la suite dio **134 pasaron, 0 fallaron**. La causa son tres condicionales de `AccionesConDestinoTest` que apagan la guarda justo cuando la ruta falta: un `markTestSkipped` en el proveedor de datos y dos `if (Route::has(...))` que hacen correr las aserciones solo si la ruta ya existe. El botón tampoco delata nada, porque degrada a deshabilitado —su diseño correcto— y la comprobación acepta `disabled` como destino válido, también correcto. **Cada pieza está bien por separado; juntas dejan pasar el defecto que la prueba existe para impedir.** Los condicionales se escribieron cuando las rutas todavía no existían, para no romper el CI: cumplieron su función y quedaron. Un `skip` sirve para algo que aún no existe; para algo que ya existe y podría desaparecer, la ausencia tiene que fallar.
+
+**2 · Prioridad media — las guardas de jerga del proveedor no atrapan la fuga real.** `assertDontSee('token')` y `assertDontSee('crédito')` vigilan dos palabras que solo existen en **comentarios de PHP**, así que ningún camino de código puede emitirlas. QA filtró el mensaje de la excepción a la vista conservando la frase esperada —para aislar cuál aserción falla— y el test pasó igual: la fuga realista no la ve nadie.
+
+**3 · Prioridad baja — la auditoría se verifica contra el desplegable de filtros.** Los valores que la prueba busca no vienen de las filas sino de los `<option>` del filtro, que están siempre. QA vació las celdas de la tabla y el test pasó. La mitad negativa de esa prueba es sólida; la positiva no verifica lo que dice.
+
+**Lo revisado y sano, registrado para que nadie repita el trabajo:** las cuatro guardas de `role="alert"` pasan el segundo argumento que evita el escapado; las de credenciales sí disparan, verificado inyectando un hash real; la de autorización usa un prefijo en vez de la palabra completa, lo que cubre variantes; y la hipótesis sistémica de que las 141 `assertSee` pudieran pasar por el snapshot de Livewire quedó **refutada** —Livewire lo descarta en `assertSee`—, de modo que solo el patrón `->html()` conserva ese riesgo y se revisó caso por caso.
+
+**Alcance declarado por QA, sin inflarlo:** examinó una por una las 38 aserciones negativas y las 10 positivas sobre `->html()`, que son las de mayor riesgo estructural. Para las 141 `assertSee` probó la hipótesis sistémica y, refutada, hizo un barrido heurístico de los 116 literales únicos. Puede quedar alguna que pase por el motivo equivocado en un caso que el heurístico no vea; esa capa sería otra tanda y con rendimiento esperado bastante menor.
+
+Las tres correcciones están despachadas a la línea frontend. No requieren tocar código de producción.
+
 ## Aprobación de la línea base de backend — 2026-08-19
 
 Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerrada la línea base documental completa del proyecto y **la línea backend deja de estar bloqueada**.
@@ -160,7 +177,7 @@ Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerra
 1. **Un usuario tiene un solo rol.** La matriz de permisos contemplaba varios, pero el schema admite uno. Habilitar varios exige una tabla `usuario_rol` y reabre el modelo. Si en el establecimiento alguien resulta ser operador y administrador a la vez, es un cambio de schema, no de configuración.
 2. **El panel de avance necesita `total_folders_acervo`,** un dato que el sistema no puede averiguar. Sin él muestra el avance absoluto sin porcentaje, que es el comportamiento ya validado en F07.
 
-**Estado de las autorizaciones temporales.** AUT-01, AUT-02 y AUT-03 se declararon vigentes «hasta habilitarse B01». Ese momento llegó: **las tres vencen al despacharse B01**, y `routes/web.php`, las interfaces de `app/Dominios/*/Contratos/` y `config/livewire.php` vuelven a los dueños que declara `AGENTS.md`. Se conservan escritas más abajo como registro de por qué existieron.
+**Estado de las autorizaciones temporales: siguen vigentes.** AUT-01, AUT-02 y AUT-03 se declararon vigentes «hasta habilitarse B01», y B01 **no** se habilitó. Aprobar el modelo y los ADR no las vence: el disparador es el despacho del sprint. Mientras tanto la línea frontend conserva su perímetro ampliado sobre `routes/web.php`, las interfaces de dominio y `config/livewire.php`.
 
 **Qué hereda B01 al arrancar**, ya registrado en su contexto: la deuda de verificar los propios límites de subida al arrancar y fallar de forma visible; la deuda de fondo de QA-F-04 —que un aviso del motor pueda romper una respuesta JSON en cualquier punto—; y la idea de que `composer dev` delegue en el script de arranque, que es ruta suya.
 
