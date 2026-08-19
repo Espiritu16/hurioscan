@@ -1,6 +1,6 @@
 # Contrato — dominio Usuarios
 
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Kevin (usuario) y Arquitectura, 2026-08-19.
 
 ---
 
