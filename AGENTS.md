@@ -84,6 +84,25 @@ El rol se ejerce en **dos líneas que trabajan en paralelo en chats distintos** 
 - Gate antes de integrar a `develop`: QA APROBADO sobre ese `final_sha` cuando el sprint requiere QA
 - Gate antes de integrar a `main`: la suite completa en verde sobre `develop` — `main` nunca recibe algo que no haya pasado por `develop` primero
 
+## Aislamiento del trabajo paralelo
+
+Este repositorio es **fullstack**: backend y frontend viven en el mismo árbol. Dos chats de rol trabajando a la vez necesitan por eso dos capas de protección, y ninguna sustituye a la otra.
+
+**Capa 1 — worktree por sprint.** Cada sprint que se ejecuta en paralelo con otro usa su propio worktree de Git en la rama `sprint/<id>`, creado desde el mismo `base_sha`. Un chat de rol por worktree. Ningún chat toca el checkout principal ni el worktree de otro sprint. La ruta queda registrada en `worktree_path` del handoff.
+
+```bash
+git worktree add ../hurioscan-F00 -b sprint/F00 develop
+git worktree add ../hurioscan-B01 -b sprint/B01 develop
+```
+
+Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescriben.
+
+**Capa 2 — rutas escribibles disjuntas.** El worktree evita que se pisen mientras escriben, pero **no evita el conflicto al fusionar**: dos ramas que editan el mismo archivo chocan igual en el merge. Por eso las dos líneas de `implementation` tienen rutas declaradas y separadas más arriba, y `routes/web.php` tiene un dueño único.
+
+**Antes de despachar dos chats en paralelo**, el Coordinador verifica que los sprints no compartan rutas escribibles según esa separación. Si al materializar el trabajo aparece un archivo compartido que la separación no previó, la línea base resultó incorrecta: se pausa, se corrige `AGENTS.md` y se vuelve a aprobar, en vez de resolver conflictos de merge a mano cada vez.
+
+**Por qué no se separó en dos repositorios.** Sería la otra forma de conseguir el aislamiento —cada repositorio ya es un árbol de trabajo propio— pero obligaría a Laravel API más un frontend independiente, lo que reabre `docs/decisiones/0001-monolito-laravel-livewire.md` y agrega un contrato entre repositorios que mantener. Con dos programadores y doce semanas, worktrees más rutas disjuntas dan el mismo aislamiento a un costo mucho menor.
+
 ## CI por rama
 - `develop`: previsto en S01 — GitHub Actions ejecutando `./vendor/bin/pint --test`, `php artisan test` y `pnpm build` en cada PR
 - `main`: previsto en S01 — los checks anteriores más la suite completa de Feature tests sobre PostgreSQL, en cada PR desde `develop`
