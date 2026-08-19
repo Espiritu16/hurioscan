@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Compartido\Dobles\Digitalizacion\ServicioDigitalizacionDoble;
+use App\Compartido\Dobles\Documentos\ServicioDocumentosDoble;
 use App\Compartido\Dobles\Pacientes\ServicioPacientesDoble;
 use App\Compartido\Dobles\Usuarios\ServicioUsuariosDoble;
 use App\Dominios\Digitalizacion\Contratos\ServicioDigitalizacion;
+use App\Dominios\Documentos\Contratos\ServicioDocumentos;
 use App\Dominios\Pacientes\Contratos\ServicioPacientes;
 use App\Dominios\Usuarios\Contratos\ServicioUsuarios;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +34,7 @@ class DoblesServiceProvider extends ServiceProvider
         'usuarios' => [ServicioUsuarios::class, ServicioUsuariosDoble::class],
         'pacientes' => [ServicioPacientes::class, ServicioPacientesDoble::class],
         'digitalizacion' => [ServicioDigitalizacion::class, ServicioDigitalizacionDoble::class],
+        'documentos' => [ServicioDocumentos::class, ServicioDocumentosDoble::class],
     ];
 
     public function register(): void
