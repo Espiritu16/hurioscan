@@ -96,13 +96,32 @@ class AvanceYAdministracionTest extends TestCase
             ->assertSet('estado', 'exito')
             ->html();
 
-        // Los campos permitidos están.
-        $this->assertStringContainsString('Documento', $html);
-        $this->assertStringContainsString('consultar', $html);
+        // Los campos permitidos están, verificados **dentro de las filas**.
+        //
+        // Antes se buscaban «Documento» y «consultar» en todo el HTML, y esas
+        // dos palabras también son opciones del desplegable de filtros, que
+        // está siempre: la mitad positiva pasaba aunque la tabla viniera
+        // vacía. Se acota al cuerpo de la tabla y se usa un valor que solo
+        // puede venir de una fila.
+        $cuerpo = $this->cuerpoDeLaTabla($html);
+        $this->assertStringContainsString('Documento', $cuerpo);
+        $this->assertStringContainsString('consultar', $cuerpo);
+        // Identificador de entidad: no aparece en ningún filtro.
+        $this->assertStringContainsString('8142', $cuerpo);
+
         // Ningún texto de documento ni contraseña.
         $this->assertStringNotContainsString('textoExtraido', $html);
         $this->assertStringNotContainsString('DIAGNÓSTICO', $html);
         $this->assertStringNotContainsString('password', $html);
+    }
+
+    /** Solo las filas, sin cabeceras ni desplegables de filtro. */
+    private function cuerpoDeLaTabla(string $html): string
+    {
+        $this->assertMatchesRegularExpression('/<tbody\b[^>]*>.*<\/tbody>/s', $html);
+        preg_match('/<tbody\b[^>]*>(.*)<\/tbody>/s', $html, $partes);
+
+        return $partes[1];
     }
 
     public function test_los_filtros_de_auditoria_viajan_en_la_url_y_filtran(): void
