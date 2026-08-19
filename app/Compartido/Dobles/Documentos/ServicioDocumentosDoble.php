@@ -63,10 +63,15 @@ class ServicioDocumentosDoble implements ServicioDocumentos
             ?? throw new ErrorDeAplicacion('RECURSO_NO_ENCONTRADO', 'El documento no existe.');
     }
 
-    /** Hojas de una sesión, en orden; alimenta la vista de revisión. */
+    /**
+     * Hojas de una sesión, en su orden de captura. Sin paginar: una sesión es
+     * un folder y se revisa completa. La respuesta va envuelta en `datos`,
+     * como declara el contrato, y cada hoja lleva su `version` porque la
+     * corrección posterior con `PATCH /documentos/{id}/texto` la exige.
+     */
     public function hojasDeSesion(int $sesionId): array
     {
-        return array_values($this->documentos);
+        return ['datos' => array_values($this->documentos)];
     }
 
     public function corregirTexto(int $documentoId, string $texto, int $version): array

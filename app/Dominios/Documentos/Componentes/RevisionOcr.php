@@ -34,7 +34,7 @@ class RevisionOcr extends Component
 
     public function mount(ServicioDocumentos $documentos): void
     {
-        $this->hojas = $documentos->hojasDeSesion($this->sesionId);
+        $this->hojas = $documentos->hojasDeSesion($this->sesionId)['datos'];
         $this->cargarHoja();
     }
 

@@ -140,13 +140,33 @@ class RevisionYCierreTest extends TestCase
             ->assertDontSee('Reabrir revisión');
     }
 
+    /**
+     * La respuesta de `GET /sesiones/{id}/hojas` sigue el contrato al pie:
+     * envuelta en `datos` y con los campos declarados en cada hoja. `version`
+     * es el que más importa, porque la corrección posterior lo exige.
+     */
+    public function test_las_hojas_de_sesion_traen_los_campos_del_contrato(): void
+    {
+        $respuesta = (new ServicioDocumentosDoble)->hojasDeSesion(77);
+
+        $this->assertArrayHasKey('datos', $respuesta);
+
+        foreach ($respuesta['datos'] as $hoja) {
+            foreach (['id', 'orden', 'tipo', 'fechaDocumento', 'estadoRevision',
+                'textoExtraido', 'textoCorregido', 'version', 'urlImagen'] as $campo) {
+                $this->assertArrayHasKey($campo, $hoja, "falta {$campo}");
+            }
+            $this->assertIsInt($hoja['version']);
+        }
+    }
+
     public function test_el_doble_cubre_los_cinco_estados_y_el_conflicto(): void
     {
         $documentos = new ServicioDocumentosDoble;
 
         $estados = array_map(
             fn (array $h) => $h['estadoRevision'],
-            $documentos->hojasDeSesion(77),
+            $documentos->hojasDeSesion(77)['datos'],
         );
 
         foreach (['PENDIENTE_OCR', 'EN_REVISION', 'CORRECTA', 'CORREGIDA', 'ILEGIBLE'] as $estado) {
