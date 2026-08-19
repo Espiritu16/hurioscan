@@ -121,7 +121,7 @@ sprints:
   - motor de OCR de producción: lo decide el benchmark (S04).
 
 ## Siguiente fase habilitada
-- **F00 está habilitado** (`Planificación: LISTO`, `Ejecución: LISTO`): su RFC fue aprobado y no depende de ningún contrato ni RF. Para todo lo demás, el siguiente paso sigue siendo la aprobación de `AGENTS.md` y de la línea base documental; con eso, B01 y F01 quedan habilitados y las dos líneas —backend y frontend— pueden avanzar en paralelo.
+- **F00 está habilitado** (`Planificación: LISTO`, `Ejecución: LISTO`): su RFC está aprobado y sus dos fuentes materiales —`docs/frontend/experiencia.md` y los RNF— también, tras detectarse que se había habilitado con ambas en `propuesto`. Para todo lo demás, el siguiente paso sigue siendo la aprobación de `AGENTS.md` y de la línea base documental; con eso, B01 y F01 quedan habilitados y las dos líneas —backend y frontend— pueden avanzar en paralelo.
 
 ## Chats de rol activos
 
