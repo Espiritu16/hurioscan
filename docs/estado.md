@@ -13,7 +13,7 @@ updated_at: 2026-08-18
 repositories:
   - name: hurioscan
     path: ~/hurioscan
-    branch: main
+    branch: develop
     current_sha: null
 sprints:
   - id: S01
