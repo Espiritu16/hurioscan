@@ -55,7 +55,9 @@ class AccionesConDestinoTest extends TestCase
             'pacientes' => ['pacientes', []],
             'pacientes.alta' => ['pacientes.alta', []],
             'pacientes.detalle' => ['pacientes.detalle', ['pacienteId' => 1]],
-            'sesiones.apertura' => ['sesiones.apertura', []],
+            // La apertura cuelga del paciente: su ruta lleva `pacienteId`,
+            // que es la propiedad que espera el componente.
+            'sesiones.apertura' => ['sesiones.apertura', ['pacienteId' => 1]],
             'sesiones.pendientes' => ['sesiones.pendientes', []],
             'sesiones.detalle' => ['sesiones.detalle', ['sesionId' => 77]],
             'sesiones.revision' => ['sesiones.revision', ['sesionId' => 77]],
