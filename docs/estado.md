@@ -7,7 +7,7 @@ active_status: LISTO
 last_completed_phase: null
 bootstrap_status: COMPLETO
 planning_horizon_status: BLOQUEADA
-current_rfc_batch: [F00, B01, F01, B02, F02, B03, F03, B04, F05, B05, F06, B06, F07, B07]
+current_rfc_batch: [D01, F00, B01, F01, B02, F02, B03, F03, B04, F05, B05, F06, B06, F07, B07]
 planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014, RF-015]
 updated_at: 2026-08-18
 repositories:
@@ -16,6 +16,12 @@ repositories:
     branch: develop
     current_sha: null
 sprints:
+  - id: D01
+    repository: hurioscan
+    planning_status: BORRADOR
+    execution_status: PLANIFICADO
+    depends_on: []
+    parallelizable_with: [F00, B01]
   - id: F00
     repository: hurioscan
     planning_status: LISTO
@@ -108,12 +114,12 @@ sprints:
 - Proyecto Laravel 13.26.1 creado y verificado: lint, tests y build ejecutan correctamente.
 - Estructura domain-first materializada en `app/Dominios/` y `app/Compartido/Ocr/`.
 - Documentación inicial completa escrita: requisitos, permisos, glosario, contratos de los cuatro dominios, modelo de persistencia con plan de migraciones, taxonomía de errores, experiencia e integración de interfaz, integración del motor de OCR y cinco ADR.
-- Roadmap de catorce sprints —siete de backend y siete de frontend— con matriz de cobertura de todos los RF y RNF del horizonte, paralelismo declarado por pares y puntos de integración explícitos.
+- Roadmap de quince sprints —siete de backend, siete de frontend y uno de DevOps— con matriz de cobertura de todos los RF y RNF del horizonte, paralelismo declarado por pares y puntos de integración explícitos.
 
 ## Bloqueantes
 - ~~`AGENTS.md` está en `BORRADOR`~~ → **APROBADO por Kevin el 2026-08-18**.
 - Todos los documentos de línea base están en `propuesto`. Requieren aprobación del usuario real (requisitos, glosario, experiencia) y de Arquitectura (contratos, persistencia, errores, permisos, integración, ADR).
-- Los catorce RFC están en `propuesto`; ninguno puede pasar a `Planificación: LISTO` hasta que sus fuentes estén aprobadas. **Excepción: F00**, que no consume contratos ni requisitos funcionales y solo depende del diseño ya producido: puede aprobarse y ejecutarse de inmediato.
+- Los quince RFC están en `propuesto`; ninguno puede pasar a `Planificación: LISTO` hasta que sus fuentes estén aprobadas. **Excepción: F00**, que no consume contratos ni requisitos funcionales y solo depende del diseño ya producido: puede aprobarse y ejecutarse de inmediato.
 - Decisiones abiertas registradas, ninguna bloquea la aprobación de los documentos pero sí la implementación del sprint que las consume:
   - formato de documento de identidad: si el establecimiento registra carné de extranjería además de DNI, el formato de 8 dígitos no alcanza. El proveedor elegido ofrece consulta de carné de extranjería como servicio aparte, pero se declaró fuera del horizonte: un paciente extranjero se registra a mano (B02);
   - activación de la cuenta de JSON.pe: los 100 créditos gratuitos vencen a los 30 días y el proyecto dura 12 semanas, así que la cuenta real se activa cerca de la demostración final, no ahora (B02);
@@ -134,6 +140,8 @@ sprints:
 
 > Worktrees previstos al despachar: `../hurioscan-F00` en `sprint/F00` y `../hurioscan-B01` en `sprint/B01`, ambos desde `develop`. Ver "Aislamiento del trabajo paralelo" en `AGENTS.md`.
 | implementation | backend | (sin despachar) | B01 | ninguna | — | PLANIFICADO | — |
+| devops | — | abierto por el usuario | D01 | ninguna | ABIERTO | PLANIFICADO | — |
+| qa | — | (sin despachar) | ninguno | ningún sprint en EN_VALIDACION | — | — | — |
 
 **Regla de despacho con dos líneas en paralelo:** antes de abrir un chat, el Coordinador verifica que su sprint no comparta rutas escribibles con el sprint activo de la otra línea, según la separación declarada en `AGENTS.md`. Si aparece un archivo compartido que la separación no previó, esa línea base resultó incorrecta: se pausa y se corrige `AGENTS.md` antes de continuar, en vez de dejar que dos agentes se pisen.
 
