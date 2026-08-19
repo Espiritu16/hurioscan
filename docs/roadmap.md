@@ -56,7 +56,7 @@ Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente 
 
 | ID | Rol | Resultado observable | Depende de | Paralelizable con | RFC | Planificación | Ejecución |
 |---|---|---|---|---|---|---|---|
-| F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01 | `docs/rfcs/F00.md` | BORRADOR | PLANIFICADO |
+| F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01 | `docs/rfcs/F00.md` | **LISTO** | **LISTO** |
 | B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | BORRADOR | PLANIFICADO |
 | F01 | implementation | Pantalla de acceso, layout y menú por rol | F00 | B01, B02 | `docs/rfcs/F01.md` | BORRADOR | PLANIFICADO |
 | B02 | implementation | Alta y búsqueda de pacientes; consulta de DNI al proveedor | B01 | F01, F02 | `docs/rfcs/B02.md` | BORRADOR | PLANIFICADO |

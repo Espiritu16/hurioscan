@@ -2,8 +2,8 @@
 project: HuriosCan
 source_status: CANONICA
 baseline: documentación inicial completa, sin aprobar
-active_phase: null
-active_status: null
+active_phase: F00
+active_status: LISTO
 last_completed_phase: null
 bootstrap_status: COMPLETO
 planning_horizon_status: BLOQUEADA
@@ -18,8 +18,8 @@ repositories:
 sprints:
   - id: F00
     repository: hurioscan
-    planning_status: BORRADOR
-    execution_status: PLANIFICADO
+    planning_status: LISTO
+    execution_status: LISTO
     depends_on: []
     parallelizable_with: [B01]
   - id: B01
@@ -111,7 +111,7 @@ sprints:
 - Roadmap de catorce sprints —siete de backend y siete de frontend— con matriz de cobertura de todos los RF y RNF del horizonte, paralelismo declarado por pares y puntos de integración explícitos.
 
 ## Bloqueantes
-- `AGENTS.md` está en `BORRADOR`: sin su aprobación no puede habilitarse ningún sprint.
+- ~~`AGENTS.md` está en `BORRADOR`~~ → **APROBADO por Kevin el 2026-08-18**.
 - Todos los documentos de línea base están en `propuesto`. Requieren aprobación del usuario real (requisitos, glosario, experiencia) y de Arquitectura (contratos, persistencia, errores, permisos, integración, ADR).
 - Los catorce RFC están en `propuesto`; ninguno puede pasar a `Planificación: LISTO` hasta que sus fuentes estén aprobadas. **Excepción: F00**, que no consume contratos ni requisitos funcionales y solo depende del diseño ya producido: puede aprobarse y ejecutarse de inmediato.
 - Decisiones abiertas registradas, ninguna bloquea la aprobación de los documentos pero sí la implementación del sprint que las consume:
@@ -121,7 +121,7 @@ sprints:
   - motor de OCR de producción: lo decide el benchmark (S04).
 
 ## Siguiente fase habilitada
-- **F00** puede habilitarse sin esperar el resto de aprobaciones: no depende de ningún contrato ni RF. Para todo lo demás, el siguiente paso sigue siendo la aprobación de `AGENTS.md` y de la línea base documental; con eso, B01 y F01 quedan habilitados y las dos líneas —backend y frontend— pueden avanzar en paralelo.
+- **F00 está habilitado** (`Planificación: LISTO`, `Ejecución: LISTO`): su RFC fue aprobado y no depende de ningún contrato ni RF. Para todo lo demás, el siguiente paso sigue siendo la aprobación de `AGENTS.md` y de la línea base documental; con eso, B01 y F01 quedan habilitados y las dos líneas —backend y frontend— pueden avanzar en paralelo.
 
 ## Chats de rol activos
 
@@ -130,7 +130,7 @@ sprints:
 | Rol | Línea | Sesión (chat principal) | Sprint activo | Depende de | Estado del chat | Estado del sprint | Último handoff |
 |---|---|---|---|---|---|---|---|
 | coordinacion | — | este chat | — | — | ABIERTO | — | — |
-| implementation | frontend | (sin despachar) | F00 | ninguna | — | PLANIFICADO | — |
+| implementation | frontend | (sin despachar) | F00 | ninguna | — | LISTO | — |
 
 > Worktrees previstos al despachar: `../hurioscan-F00` en `sprint/F00` y `../hurioscan-B01` en `sprint/B01`, ambos desde `develop`. Ver "Aislamiento del trabajo paralelo" en `AGENTS.md`.
 | implementation | backend | (sin despachar) | B01 | ninguna | — | PLANIFICADO | — |
