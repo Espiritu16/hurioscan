@@ -2,8 +2,8 @@
 project: HuriosCan
 source_status: CANONICA
 baseline: línea base parcialmente aprobada — frontend habilitado; persistencia y ADR pendientes a propósito
-active_phase: F00
-active_status: EN_PROGRESO
+active_phase: cadena F00→F07
+active_status: EN_VALIDACION
 last_completed_phase: D01
 bootstrap_status: COMPLETO
 planning_horizon_status: PARCIAL — línea frontend LISTO; línea backend BLOQUEADA
@@ -25,7 +25,7 @@ sprints:
   - id: F00
     repository: hurioscan
     planning_status: LISTO
-    execution_status: EN_PROGRESO
+    execution_status: EN_VALIDACION
     depends_on: []
     parallelizable_with: [B01]
   - id: B01
@@ -37,7 +37,7 @@ sprints:
   - id: F01
     repository: hurioscan
     planning_status: LISTO
-    execution_status: PLANIFICADO
+    execution_status: EN_VALIDACION
     depends_on: [F00]
     parallelizable_with: [B01, B02]
   - id: B02
@@ -49,7 +49,7 @@ sprints:
   - id: F02
     repository: hurioscan
     planning_status: LISTO
-    execution_status: PLANIFICADO
+    execution_status: EN_VALIDACION
     depends_on: [F00, F01]
     parallelizable_with: [B02, B03]
   - id: B03
@@ -61,7 +61,7 @@ sprints:
   - id: F03
     repository: hurioscan
     planning_status: LISTO
-    execution_status: PLANIFICADO
+    execution_status: EN_VALIDACION
     depends_on: [F00, F01]
     parallelizable_with: [B03, B04]
   - id: B04
@@ -73,7 +73,7 @@ sprints:
   - id: F05
     repository: hurioscan
     planning_status: LISTO
-    execution_status: PLANIFICADO
+    execution_status: EN_VALIDACION
     depends_on: [F00, F01, F03]
     parallelizable_with: [B04, B05]
   - id: B05
@@ -85,7 +85,7 @@ sprints:
   - id: F06
     repository: hurioscan
     planning_status: LISTO
-    execution_status: PLANIFICADO
+    execution_status: EN_VALIDACION
     depends_on: [F00, F01]
     parallelizable_with: [B05, B06, F07]
   - id: B06
@@ -97,7 +97,7 @@ sprints:
   - id: F07
     repository: hurioscan
     planning_status: LISTO
-    execution_status: PLANIFICADO
+    execution_status: EN_VALIDACION
     depends_on: [F00, F01]
     parallelizable_with: [B06, B07, F06]
   - id: B07
@@ -126,10 +126,17 @@ sprints:
 
 La cadena `F00`→`F07` quedó construida y en verde en `sprint/F00`, pero la auditoría previa a integrarla encontró dos defectos que **ninguna prueba podía detectar**, porque ambos solo se manifiestan al usar las piezas como se usarán de verdad. Se registran aquí porque la lección vale más que la corrección puntual.
 
-1. **Falta el layout que Livewire exige al servir un componente como página.** No existe `resources/views/components/layouts/app.blade.php` ni `config/livewire.php` ni ningún `#[Layout]`. Los 84 tests pasan porque `Livewire::test()` renderiza sin layout; el fallo aparecería recién al montar las rutas. Corrección a cargo de la línea frontend.
+1. **Faltaba el layout que Livewire exige al servir un componente como página.** Livewire 4 resuelve el espacio de nombres `layouts::app` sobre `resources/views/layouts/`; sin ese archivo, montar cualquier ruta falla con «No hint path defined for [layouts]». Las pruebas pasaban porque `Livewire::test()` renderiza sin layout, así que el fallo solo aparecía al montar las rutas. Resuelto con `resources/views/layouts/app.blade.php`, que delega en el `<x-layout>` de F00. **Nota:** el Coordinador diagnosticó mal la ubicación (`components.layouts.app`, que es la convención de otra versión) y la línea frontend lo corrigió reproduciendo el error real en vez de aplicar la indicación recibida. Queda registrado el diagnóstico correcto para que no haya que volver a depurarlo.
 2. **Divergencia de contrato en `hojasDeSesion`.** `RevisionOcr` (producción) invocaba un método que solo existía en el doble, no en la interfaz `ServicioDocumentos`. PHP no lo detecta estáticamente y las pruebas tampoco, porque siempre corren contra el doble: habría fallado en runtime al llegar B05. La causa de fondo era un hueco de la línea base — ninguna operación declaraba cómo listar las hojas de una sesión para revisarlas. Arquitectura declaró `GET /sesiones/{id}/hojas` en `docs/contratos/documentos.md` y la sumó a la interfaz.
 
-De ahí sale la comprobación obligatoria que `docs/contratos/servicios-aplicacion.md` ahora exige antes de entregar cualquier sprint que consuma estas interfaces. El patrón común con el defecto de `<x-tabla>` (que solo se veía al reutilizar el componente dentro de un contenedor flex real) es el mismo, y conviene tenerlo presente al despachar QA: **validar las piezas en su uso real, no en aislamiento.**
+Al corregir esos dos aparecieron cuatro más, todos de la misma familia. La lista completa, porque el patrón importa más que cada caso:
+
+3. **Un método público de más en un doble**, fuera de su interfaz y sin invocar. No era un fallo latente, pero el backend podía leerlo como parte del contrato. Lo encontró la línea frontend con una comparación por reflexión entre cada doble y su interfaz — mejor que la comparación por `grep` que se había declarado, porque ve también lo que nadie invoca. `servicios-aplicacion.md` adoptó ese criterio.
+4. **La forma de la respuesta divergía del contrato**: el doble devolvía la lista pelada donde el contrato la envuelve en `datos`. Componente y doble estaban de acuerdo entre sí y en desacuerdo con el contrato — el modo de fallo que ninguna prueba puede detectar desde adentro.
+5. **El manifiesto de Vite en CI.** La prueba nueva que sirve las páginas como páginas reales exige `public/build/manifest.json`, y el workflow corre los tests antes del build. Pasaba localmente porque el entorno tenía un artefacto que el runner no tiene, y `public/build/` no se versiona. Lo detectó el pipeline de D01 en su primer uso real sobre código de aplicación.
+6. **Una prueba que dependía de una ausencia.** Verificaba que el menú deshabilita las opciones sin ruta declarada, apoyándose en que ninguna estuviera montada. Al montarlas dejó de tener premisa. Se rehízo para que fabrique su propia condición, y se le agregaron el caso mixto —enlazadas y deshabilitadas conviviendo, que es el estado real hasta B01— y un invariante que no depende del montaje.
+
+**El patrón, que es la conclusión que vale conservar:** los seis eran invisibles desde adentro de la suite porque la pieza no se estaba ejerciendo como se usa de verdad, o porque la prueba se apoyaba en una condición del entorno en vez de fabricarla. Los dos remedios que quedaron en el repositorio son `tests/Feature/Frontend/PaginaRealTest.php`, que sirve los quince componentes como páginas reales con ruta y layout, y la comprobación por reflexión de `servicios-aplicacion.md`. Al despachar QA conviene decirlo explícitamente: **validar sobre vistas montadas, no sobre componentes en aislamiento.**
 
 ## Bloqueantes
 - **Persistencia y ADR sin aprobar (deliberado):** `docs/persistencia/modelo.md` y `docs/decisiones/` siguen en `propuesto`. La línea backend completa (B01–B07) queda `BORRADOR`/`PLANIFICADO` hasta que Kevin los apruebe. Ninguna delegación vigente permite habilitarlos.
@@ -209,10 +216,10 @@ Decisiones tomadas mientras Kevin no estaba disponible, consolidadas a su regres
 | Rol | Línea | Sesión (chat principal) | Sprint activo | Depende de | Estado del chat | Estado del sprint | Último handoff |
 |---|---|---|---|---|---|---|---|
 | coordinacion | — | COORDINADOR (este chat) | — | — | ABIERTO | — | — |
-| implementation | frontend | FRONTEND | cadena F00→F07 | AUT-01 y AUT-02 | ABIERTO | F00 y F01 EN_PROGRESO, detenidos en la costura | `docs/handoffs/F00.md` y `F01.md` @ sprint/F00 |
+| implementation | frontend | FRONTEND | cadena F00→F07 | — | ABIERTO | los siete EN_VALIDACION, integrados en `develop` | `docs/handoffs/F00.md` (ancla) y uno por sprint |
 | implementation | backend | (sin despachar) | B01 | aprobación de persistencia/ADR | — | PLANIFICADO | — |
 | devops | — | DEVOP | D01 | ninguna | ABIERTO | COMPLETADO | `docs/handoffs/D01.md` |
-| qa | — | QA | ninguno (en espera) | la cadena `F` en EN_VALIDACION | ABIERTO | — | `docs/handoffs/D01.md` (D01 APROBADO) |
+| qa | — | QA | cadena F00→F07 (por despachar) | ninguna | ABIERTO | — | `docs/handoffs/D01.md` (D01 APROBADO) |
 
 > Worktrees activos: `../hurioscan-F00` en `sprint/F00` y `../hurioscan-D01` en `sprint/D01`, ambos desde `develop @ bb7ae5b`. Ver "Aislamiento del trabajo paralelo" en `AGENTS.md`. Los cuatro chats se comunican por mensajería directa entre sesiones (SendMessage); el Coordinador es COORDINADOR.
 

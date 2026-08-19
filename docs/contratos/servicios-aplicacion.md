@@ -103,15 +103,20 @@ Esto extiende el criterio que ADR-0002 ya fijó para `MotorOcr` y las sustitucio
 
 PHP no comprueba estáticamente que un método invocado sobre una interfaz esté declarado en ella: lo resuelve en runtime sobre el objeto concreto. Con un doble que sí lo tiene, el código pasa todas las pruebas y la divergencia solo aparece cuando llega la implementación real. Ya ocurrió una vez (ver el «Origen» de `GET /sesiones/{id}/hojas`).
 
-Por eso, antes de entregar un sprint que consuma estas interfaces, se comparan los métodos invocados sobre servicios contra los declarados, y la lista de sobrantes debe quedar vacía:
+Por eso, antes de entregar un sprint que consuma estas interfaces, **se compara cada doble contra su interfaz por reflexión** y la diferencia debe quedar vacía en los cuatro pares:
 
-```bash
-grep -rhoE '\$[a-zA-Z]+->[a-zA-Z]+\(' app/Dominios/*/Componentes/*.php | sed 's/.*->//;s/(//' | sort -u > /tmp/invocados
-grep -hoE 'public function [a-zA-Z]+' app/Dominios/*/Contratos/*.php | sed 's/public function //' | sort -u > /tmp/declarados
-comm -13 /tmp/declarados /tmp/invocados
+```php
+// Para cada par: los métodos públicos del doble menos los declarados en su interfaz.
+$doble = new ReflectionClass($claseDoble);
+$interfaz = new ReflectionClass($claseInterfaz);
+$publicos = array_column($doble->getMethods(ReflectionMethod::IS_PUBLIC), 'name');
+$declarados = array_column($interfaz->getMethods(), 'name');
+$sobrantes = array_diff($publicos, $declarados, ['__construct']);
 ```
 
-Un método que aparezca ahí es una de dos cosas: una llamada que no pertenece a un servicio (ruido del grep, se descarta a ojo) o una operación que falta declarar. Lo segundo se escala a Arquitectura; nunca se agrega al doble y se sigue.
+Un método que aparezca ahí es una operación que falta declarar. Se escala a Arquitectura; **nunca se agrega al doble y se sigue**.
+
+Este criterio reemplaza a una comparación anterior por `grep` de métodos invocados, que solo veía los que alguien llamaba: la reflexión detecta además los sobrantes que nadie invoca todavía, y que el backend puede leer como parte del contrato. La mejora vino de la línea frontend al aplicar la versión anterior — encontró con ella un segundo método fuera de contrato que el `grep` no veía.
 
 ## Qué implica para los sprints `B`
 
