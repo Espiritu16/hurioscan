@@ -258,7 +258,17 @@ Con `max_file_uploads` bajo **y `display_errors=On`** —el valor por defecto de
 **El aviso no introdujo este defecto, y conviene leerlo bien:** QA-F-04 nace de cómo conviven un aviso de PHP y el parseo de Livewire, y estaba ahí desde antes de que el aviso existiera — el mismo lote ya rompía igual, solo que nadie lo había ejercido. Lo que hizo el aviso fue dar una razón para ejercer ese caso. Se deja dicho explícitamente porque dentro de unas semanas es fácil leer «defecto encontrado al validar el aviso» y concluir que el aviso lo causó. Tampoco **incumple** el criterio de cierre de esa unidad, que se cumple y está demostrado. Resolución en dos partes, con el mismo patrón que la deuda anterior:
 
 - **Despachado a DevOps:** fijar en `scripts/php/hurioscan.ini` que ningún aviso de PHP pueda contaminar el cuerpo de una respuesta, sin cambiar una pérdida silenciosa por otra —los avisos deberían quedar registrados en algún lado, no simplemente apagados—.
-- **Deuda técnica para B01:** que un aviso del motor pueda romper una respuesta JSON en cualquier punto de la aplicación es un problema de fondo, no de esta configuración.
+- **Deuda técnica para B01:** que un aviso del motor pueda romper una respuesta JSON en cualquier punto de la aplicación es un problema de fondo, no de esta configuración. El ajuste de DevOps cierra el caso soportado, no la clase entera.
+
+**Corregida la parte accionable** (`display_errors=Off` más `log_errors=On` en `scripts/php/hurioscan.ini`), verificada reproduciendo el defecto antes y comprobando después que la misma petición devuelve JSON limpio y parseable, con el aviso registrado en la salida de error del servidor.
+
+Sobre la duda de si eso apaga visibilidad en desarrollo, DevOps la resolvió midiendo en vez de opinando: **Laravel ya fuerza `display_errors=Off` al arrancar**, aunque `APP_DEBUG` sea verdadero — lo que muestra los errores en desarrollo es el propio framework, no esta directiva. Lo único que cambia el ajuste es la ventana **anterior** al arranque del framework, que es justo donde vive el defecto y donde ni Laravel ni la aplicación pueden intervenir, porque esos avisos ocurren antes de que se ejecute una línea de código. Coste en visibilidad: ninguno.
+
+También evaluó encaminar los avisos a un archivo y decidió no hacerlo: con `log_errors=On` y sin destino explícito, PHP escribe a la salida de error del proceso, que en desarrollo es la terminal donde se arrancó — misma convención de logs a `stderr` que ya declara `AGENTS.md` § Observabilidad, y sin agregar un artefacto que gestionar. Queda anotado que **cuando exista un servidor web real convendrá un destino explícito**.
+
+### Anotado por DevOps para quien tenga la autoridad
+
+Que `composer dev` delegue en `scripts/servir-desarrollo.sh` cerraría el agujero del arranque directo en el punto de entrada más usado. Hoy la única defensa es el encabezado que advierte, **y una advertencia depende de que alguien la lea**. `composer.json` es ruta de la línea backend, así que la decisión es suya, no de DevOps.
 
 ### Revisión de cobertura ficticia — aprobada por Kevin, pendiente de despacho
 
