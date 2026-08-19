@@ -36,6 +36,20 @@ class CapturaHojas extends Component
     /** Rechazos por hoja: cada uno conserva el nombre y el motivo. */
     public array $rechazos = [];
 
+    /**
+     * Cuántos archivos eligió la persona, informado por el navegador antes de
+     * subirlos.
+     *
+     * No se puede deducir en el servidor: si PHP descarta archivos por
+     * `max_file_uploads`, el componente nunca los ve, así que contar lo que
+     * llega no revelaría nada. Este número es la única referencia contra la
+     * cual comparar.
+     */
+    public int $seleccionadas = 0;
+
+    /** Aviso cuando volvieron menos hojas de las que se eligieron. */
+    public ?string $avisoPerdida = null;
+
     public string $tipo = 'hoja_atencion';
 
     public string $fechaDocumento = '';
@@ -65,6 +79,9 @@ class CapturaHojas extends Component
 
     public function agregar($archivos, ServicioDigitalizacion $digitalizacion): void
     {
+        $hojasAntes = count($this->hojas);
+        $rechazosAntes = count($this->rechazos);
+
         foreach ((array) $archivos as $archivo) {
             try {
                 // El tipo y la fecha se heredan de la hoja anterior.
@@ -89,6 +106,40 @@ class CapturaHojas extends Component
 
             $this->hojas[] = $hoja;
         }
+
+        $this->revisarPerdidasSilenciosas($hojasAntes, $rechazosAntes);
+    }
+
+    /**
+     * Compara lo elegido con lo resuelto —capturado o rechazado con motivo— y
+     * avisa si falta algo.
+     *
+     * Una hoja rechazada está explicada y no cuenta como pérdida. Lo que se
+     * persigue aquí es lo que desaparece sin dejar rastro: archivos que el
+     * navegador o el servidor descartan antes de que la aplicación los vea,
+     * por ejemplo al superar `max_file_uploads` de PHP. Sin este aviso el
+     * contador simplemente mostraría menos hojas y nadie tendría contra qué
+     * notarlo.
+     */
+    private function revisarPerdidasSilenciosas(int $hojasAntes, int $rechazosAntes): void
+    {
+        $resueltas = (count($this->hojas) - $hojasAntes) + (count($this->rechazos) - $rechazosAntes);
+        $perdidas = $this->seleccionadas - $resueltas;
+
+        // Se consume: la cuenta vale para este lote y no para el siguiente.
+        $elegidas = $this->seleccionadas;
+        $this->seleccionadas = 0;
+
+        // Sin dato del navegador no se inventa un aviso.
+        if ($elegidas === 0 || $perdidas <= 0) {
+            $this->avisoPerdida = null;
+
+            return;
+        }
+
+        $this->avisoPerdida = "Elegiste {$elegidas} hojas y solo se procesaron {$resueltas}. "
+            ."El equipo descartó {$perdidas} sin avisar, probablemente por ser demasiadas de una vez. "
+            .'Vuelve a agregar las que faltan en tandas más pequeñas.';
     }
 
     public function quitar(int $hojaId, ServicioDigitalizacion $digitalizacion): void
