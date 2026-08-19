@@ -237,6 +237,23 @@ Decisiones tomadas mientras Kevin no estaba disponible, consolidadas a su regres
 | 2 | D01 | Aceptar como cumplido el criterio del rojo provocado con la evidencia del paso Tests, dejando Lint y Build por inferencia estructural | Provocar además un fallo de lint y uno de build | Los tres pasos comparten shell, sin `continue-on-error` ni `if:`; el costo de dos corridas más no aportaba certeza proporcional | Sí — se puede provocar en cualquier momento | `docs/handoffs/D01.md` § Observaciones |
 | 3 | F06 | Adoptar `pacientes.detalle` como nombre canónico de `/pacientes/{id}` | Dejarlo sin nombre hasta que backend lo declarara | Faltaba en la lista canónica y sigue exactamente el patrón de `sesiones.detalle` y `documentos.detalle`; ratificado por Arquitectura | Sí — es solo un nombre de ruta | `docs/frontend/integracion.md` |
 
+## Lección de método — cobertura ficticia, 2026-08-19
+
+En dos días aparecieron **tres casos del mismo patrón**, y la repetición es lo que lo convierte en lección y no en anécdota:
+
+1. `<x-tabla>` desbordaba en 360 px, pero solo al reutilizarse dentro de un contenedor flex real; el catálogo de componentes no la ejercía así y por eso pasaba.
+2. La prueba de acciones con destino comprobaba la subcadena `disabled`, que aparece dentro de las clases de estilo (`disabled:opacity-50`), de modo que **cualquier** botón la satisfacía — incluido uno inerte.
+3. Una guarda contra el mensaje del framework buscaba `may not be greater than`, redacción que la versión actual de Laravel ya no usa: la cadena aparece **cero veces** en el paquete, así que esa aserción no podía fallar nunca.
+
+En los tres casos el código pasaba, la suite estaba verde y la cobertura era ficticia. **Lo único que los destapó fue romper algo a propósito para ver si alguien se quejaba.** Ninguno se habría encontrado leyendo el código ni mirando el resultado de la suite.
+
+De ahí salen dos prácticas que este proyecto adopta:
+
+- **Verificar que una prueba pasa no dice nada; lo que dice algo es verificar que puede fallar.** Antes de dar por buena una prueba que cubre un defecto recién corregido, se muta el defecto de vuelta —en una copia desechable— y se confirma que falla **esa aserción concreta**, no la suite por otra vía. Se aplicó a `AccionesConDestinoTest`, a `LimiteDeSubidaTest` y a la corrección del techo de subida.
+- **Una cadena copiada a mano de un tercero se vuelve obsoleta en silencio.** La corrección de la guarda no fue reemplazar la frase por la vigente, sino verificarla contra la traducción real del framework, con un mensaje que indica qué actualizar si cambia. Reemplazar la frase habría dejado el mismo defecto latente para la próxima versión.
+
+Queda anotada la sugerencia de revisar la suite completa con esta lente, planteada por la línea frontend: si tres aparecieron sin buscarlas, es razonable que haya más. Pendiente de que QA valore si el retorno justifica el esfuerzo, y de decisión de Kevin como unidad de trabajo propia.
+
 ## Veredicto QA de la cadena `F` — 2026-08-19
 
 Sobre `hurioscan@9576f68`. Detalle por sprint en cada `docs/handoffs/F0*.md`.
