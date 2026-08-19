@@ -162,6 +162,34 @@ Ampliaciones puntuales del perímetro de la línea frontend, aprobadas por Kevin
 - Cada ruta se agrega **cuando su componente ya existe**, para que el pipeline de CI nunca quede en rojo por una clase inexistente.
 - Vence al habilitarse B01, momento en que `routes/web.php` vuelve a su dueño único (línea backend) según `AGENTS.md`.
 
+### AUT-03 — configuración del límite de subida (aprobada por Kevin, 2026-08-19)
+
+Para corregir **QA-F-03**, cuyo arreglo cruza tres capas y ninguna está en las rutas de la línea frontend:
+
+- La línea frontend puede crear y mantener **`config/livewire.php`**, exclusivamente para alinear el límite de subida temporal (`temporary_file_upload.rules`) y sus mensajes con el límite que declara el producto. No habilita ninguna otra escritura en `config/`.
+- **DevOps** se encarga de la capa de entorno: `upload_max_filesize` y `post_max_size` de PHP en local y en CI, y del servidor web cuando exista. Es su rutas ya autorizadas más la configuración operativa que `AGENTS.md` le reconoce.
+- **Límite del producto: 15 MB**, el valor que ya declaran el contrato y el mensaje al usuario. Sigue siendo una decisión abierta pendiente de contrastar con los equipos reales del establecimiento; cambiarlo después será tocar una línea por capa, y por eso no bloqueó la corrección.
+
+**Corrección del criterio (Arquitectura, 2026-08-19):** esta autorización decía originalmente «configurar 15 MB en `config/livewire.php`», y eso **no habría cerrado el defecto** — solo habría movido el umbral. Lo detectó la línea frontend al implementarla, y el principio que se deduce quedó fijado como criterio del proyecto:
+
+> **El límite del producto lo aplica la única capa que puede explicarlo hoja por hoja —el servicio de dominio—, y toda capa por debajo debe permitir MÁS que él, nunca lo mismo.** Livewire, PHP y el servidor web trabajan sobre la petición completa: cuando una de ellas corta, descarta el lote entero y devuelve un error crudo del framework, que es exactamente el defecto QA-F-03. Una capa inferior configurada con el mismo número que el producto lo reintroduce.
+
+El criterio evitó reintroducir el defecto una segunda vez: el despacho a DevOps decía «alinear PHP con 15 MB», lo que habría matado en PHP las hojas de 16 MB que el dominio debe rechazar con su mensaje. Se corrigió antes de aplicarse.
+- **Criterio de cierre del defecto, no negociable:** una hoja rechazada por tamaño muestra su motivo en su tarjeta y **las demás hojas del mismo lote se conservan**, igual que ya ocurre con el rechazo por formato. El mensaje es el del producto, en español, no texto crudo del framework.
+- Vence al cerrarse QA-F-03. `config/livewire.php` queda después bajo el dueño que `AGENTS.md` declara para `config/`.
+
+### Estado de las tres capas al 2026-08-19 — coherentes, verificado por Coordinación
+
+| Capa | Valor | Rol |
+|---|---|---|
+| Servicio de dominio | 15 MB | **límite del producto**: rechaza hoja por hoja, con su mensaje en español, conservando el resto del lote |
+| Subida (`config/livewire.php`) | 50 MB | techo contra abuso, comentado como tal para que nadie lo «corrija» al valor del contrato |
+| Entorno (`scripts/php/hurioscan.ini`) | `upload_max_filesize=50M`, `post_max_size=60M`, `max_file_uploads=200` | techo duro de recursos; `post` sobre `upload` porque una captura envía varias hojas en la misma petición |
+
+`max_file_uploads` se elevó de su valor por defecto de 20 tras medir que, con 25 hojas, PHP entrega 20 y **descarta 5 dejando el aviso solo en el log del servidor**: la aplicación no puede saber que faltaban. Es la misma familia de pérdida silenciosa que QA-F-03, sin siquiera un mensaje. Ningún requisito fija un máximo de hojas por folder, así que 20 no era una regla de negocio.
+
+La capa de entorno tiene la **primera evidencia de punta a punta del proyecto** en ese nivel: con la configuración anterior una hoja de 13 MB devolvía HTTP 413 con `$_FILES` vacío; con la nueva, hojas de 13, 16 y 30 MB atraviesan PHP y llegan al enrutador. Es reproducción, no lectura de configuración. Para el futuro servidor web, `client_max_body_size` (nginx) o `LimitRequestBody` (Apache) deben alinearse con `post_max_size`.
+
 ### AUT-02 — interfaces de servicio y binding de dobles (aprobada por Kevin, 2026-08-19)
 
 - La línea frontend puede crear exclusivamente estos archivos, con las firmas ya fijadas por Arquitectura en `docs/contratos/servicios-aplicacion.md`:
