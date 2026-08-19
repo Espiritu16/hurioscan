@@ -2,7 +2,9 @@
 
 ## `hurioscan-claude-design.html`
 
-Diseño de las pantallas generado con Claude Design a partir del prompt derivado de `docs/frontend/experiencia.md` y de la paleta definida en `docs/decisiones/`. Es la **referencia visual** para implementar las vistas Blade y Livewire.
+Diseño de las pantallas generado con Claude Design a partir del prompt derivado de `docs/frontend/experiencia.md`. Es la **referencia visual** para implementar las vistas Blade y Livewire.
+
+**Paleta canónica:** las variables CSS de este mismo archivo (ningún ADR de `docs/decisiones/` contiene colores). Es la fuente de los tokens de F00. Solo el **tema claro** está en el horizonte del proyecto; el tema oscuro que el archivo también define queda fuera, por decisión de Kevin del 2026-08-18 (ver `docs/estado.md`).
 
 **Necesita conexión a internet para abrirse**: el archivo es un bundle que carga React desde `unpkg.com`. Abierto sin red muestra la pantalla de carga y no avanza.
 

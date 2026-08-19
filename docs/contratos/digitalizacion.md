@@ -1,6 +1,6 @@
 # Contrato — dominio Digitalización
 
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Kevin (usuario) y Arquitectura, 2026-08-19.
 Operaciones servidas por componentes Livewire sobre rutas web; no hay API HTTP pública.
 
 **Paginación:** mismo criterio offset del dominio Pacientes (`pagina` base 1, `porPagina` default 20 máximo 100), por consistencia entre listados del proyecto.

@@ -1,6 +1,6 @@
 # Glosario — HuriosCan
 
-Términos de negocio con una sola definición. Estado: `propuesto` hasta aprobación del usuario real.
+Términos de negocio con una sola definición. Estado: **aprobado** — Kevin, 2026-08-19.
 
 ## Acervo documental
 - Definición: el conjunto completo de documentos clínicos en papel que el establecimiento conserva archivados antes de digitalizarlos.
