@@ -61,7 +61,7 @@ sprints:
   - id: F03
     repository: hurioscan
     planning_status: LISTO
-    execution_status: EN_PROGRESO
+    execution_status: EN_VALIDACION
     depends_on: [F00, F01]
     parallelizable_with: [B03, B04]
   - id: B04
@@ -245,11 +245,20 @@ Sobre `hurioscan@9576f68`. Detalle por sprint en cada `docs/handoffs/F0*.md`.
 |---|---|
 | F00 | APROBADO con observación |
 | F01, F02, F05, F06, F07 | APROBADO |
-| **F03** | **RECHAZADO** — vuelve a `EN_PROGRESO` |
+| **F03** | **APROBADO** el 2026-08-19 tras corregir QA-F-03 (revalidado sobre `f5ca21e`) |
 
 **Ningún APROBADO cierra su sprint.** Son veredictos sobre interfaz contra dobles; el paso a `COMPLETADO` exige el punto de integración con el sprint `B` correspondiente, que no existe.
 
-### QA-F-03 — el defecto que rechaza F03
+### QA-F-03 — cerrado el 2026-08-19
+
+Corregido en sus tres capas y revalidado por QA con archivos reales inyectados en el navegador, atravesando `php.ini` → Livewire → dominio. El caso que antes perdía el lote entero ahora conserva las hojas válidas y muestra la rechazada con el mensaje del producto en español; un lote de 25 hojas llega completo. Detalle en `docs/handoffs/F03.md`.
+
+**Deuda operativa declarada, con dueño y sprint.** QA midió que `scripts/php/hurioscan.ini` solo se aplica a través de `scripts/servir-desarrollo.sh`: arrancar con `composer dev` o `php artisan serve` directos devuelve los valores por defecto (2 MB, 20 archivos) **sin ninguna señal**, que es la misma familia de pérdida silenciosa del defecto original. Resolución en dos partes:
+
+- **Ya despachado a DevOps:** corregir la línea del encabezado del script que dice «equivale a `composer dev`», porque induce a creer que son intercambiables cuando la diferencia es todo el arreglo.
+- **Deuda técnica para B01:** que la aplicación **verifique sus propios límites al arrancar** y falle de forma visible si están por debajo del límite del producto. Toca `app/Providers`, fuera de las autorizaciones vigentes; B01 tendrá autoridad natural sobre eso. No se acepta como deuda indefinida: queda con dueño y sprint asignados.
+
+### QA-F-03 — el defecto que rechazó F03 (histórico)
 
 El rechazo de una hoja por tamaño nunca ocurre, y en su lugar se pierde el lote entero sin mostrar ningún motivo. Detalle completo en `docs/handoffs/F03.md`. Lo esencial: **hay tres límites descoordinados y ninguna capa está configurada para respetar el que declara el producto** — producto 15 MB, Livewire 12 MB por su valor por defecto, y `upload_max_filesize` de PHP 2 MB en la máquina de validación. El defecto no depende de qué número se elija; depende de que nadie configuró la plataforma.
 
