@@ -140,7 +140,7 @@ sprints:
 
 > Worktrees previstos al despachar: `../hurioscan-F00` en `sprint/F00` y `../hurioscan-B01` en `sprint/B01`, ambos desde `develop`. Ver "Aislamiento del trabajo paralelo" en `AGENTS.md`.
 | implementation | backend | (sin despachar) | B01 | ninguna | — | PLANIFICADO | — |
-| devops | — | abierto por el usuario | D01 | ninguna | ABIERTO | PLANIFICADO | — |
+| devops | — | (cerrado — se reabrirá con D01 aprobado) | D01 | aprobación de su RFC | CERRADO | PLANIFICADO | — |
 | qa | — | (sin despachar) | ninguno | ningún sprint en EN_VALIDACION | — | — | — |
 
 **Regla de despacho con dos líneas en paralelo:** antes de abrir un chat, el Coordinador verifica que su sprint no comparta rutas escribibles con el sprint activo de la otra línea, según la separación declarada en `AGENTS.md`. Si aparece un archivo compartido que la separación no previó, esa línea base resultó incorrecta: se pausa y se corrige `AGENTS.md` antes de continuar, en vez de dejar que dos agentes se pisen.
