@@ -21,19 +21,22 @@
         <label class="flex cursor-pointer flex-col gap-1 rounded-lg bg-acento px-4 py-4 text-sobre-acento focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-acento">
             <span class="font-medium">Tomar foto</span>
             <span class="font-mono text-xs opacity-80 uppercase">Cámara</span>
-            <input type="file" accept="image/*" capture="environment" wire:model="archivosCamara" class="sr-only" />
+            <input type="file" accept="image/*" capture="environment" data-cuenta-seleccion
+                wire:model="archivosCamara" class="sr-only" />
         </label>
 
         <label class="flex cursor-pointer flex-col gap-1 rounded-lg border border-borde bg-superficie px-4 py-4 text-tinta focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-acento">
             <span class="font-medium">Elegir de la galería</span>
             <span class="font-mono text-xs text-tinta-suave uppercase">Imágenes</span>
-            <input type="file" accept="image/*" multiple wire:model="archivosGaleria" class="sr-only" />
+            <input type="file" accept="image/*" multiple data-cuenta-seleccion
+                wire:model="archivosGaleria" class="sr-only" />
         </label>
 
         <label class="flex cursor-pointer flex-col gap-1 rounded-lg border border-dashed border-borde bg-superficie px-4 py-4 text-tinta focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-acento">
             <span class="font-medium">Subir archivos</span>
             <span class="font-mono text-xs text-tinta-suave uppercase">JPG · PNG · PDF</span>
-            <input type="file" accept="image/*,application/pdf" multiple wire:model="archivos" class="sr-only" />
+            <input type="file" accept="image/*,application/pdf" multiple data-cuenta-seleccion
+                wire:model="archivos" class="sr-only" />
         </label>
     </div>
 
@@ -51,6 +54,19 @@
         </x-campo>
         <x-campo nombre="fechaDocumento" etiqueta="Fecha del documento" tipo="date" wire:model="fechaDocumento" />
     </div>
+
+    {{-- Mientras el lote sube, para que la espera no parezca un cuelgue. --}}
+    <p wire:loading wire:target="archivos, archivosGaleria, archivosCamara" role="status"
+        class="font-mono text-xs tracking-wide text-tinta-suave uppercase">
+        Subiendo hojas…
+    </p>
+
+    {{-- Faltaron hojas que nadie rechazó: se perdieron antes de llegar. --}}
+    @if ($avisoPerdida)
+        <p role="alert" class="rounded-md bg-advertencia-suave px-3 py-2 text-sm text-advertencia">
+            {{ $avisoPerdida }}
+        </p>
+    @endif
 
     {{-- Rechazos: uno por hoja, sin tocar las ya capturadas. --}}
     @foreach ($rechazos as $indice => $rechazo)
