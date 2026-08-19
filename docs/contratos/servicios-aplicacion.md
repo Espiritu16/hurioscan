@@ -62,6 +62,7 @@ Sin esta separación no se pueden cumplir a la vez las dos reglas vigentes: que 
 | `reintentarOcr(int $documentoId): array` | `POST /documentos/{id}/reintentar-ocr` |
 | `buscar(string $termino, array $filtros = [], int $pagina = 1): array` | `GET /buscar` |
 | `ver(int $documentoId): array` | `GET /documentos/{id}` |
+| `hojasDeSesion(int $sesionId): array` | `GET /sesiones/{id}/hojas` |
 | `ilegibles(int $pagina = 1): array` | `GET /ilegibles` |
 
 `corregirTexto` recibe `$version` de forma obligatoria: es el control de concurrencia optimista del contrato. Ante `VERSION_DESACTUALIZADA`, la vista muestra `detalle.textoActual` y pide decidir — **nunca reenvía con la versión nueva en silencio**.
@@ -97,6 +98,20 @@ return [
 `DoblesServiceProvider` liga cada interfaz a su doble **solo** cuando el interruptor está activo y el entorno es `local` o `testing`. En cualquier otro entorno el provider no liga nada, de modo que un binding faltante falla de forma visible en vez de servir datos de ejemplo en producción. Los interruptores se documentan en `.env.example` con valor `false`; ningún doble se activa por defecto.
 
 Esto extiende el criterio que ADR-0002 ya fijó para `MotorOcr` y las sustituciones por entorno de `docs/frontend/integracion.md` § Cliente compartido, sin introducir un mecanismo nuevo.
+
+## Verificación obligatoria antes de entregar
+
+PHP no comprueba estáticamente que un método invocado sobre una interfaz esté declarado en ella: lo resuelve en runtime sobre el objeto concreto. Con un doble que sí lo tiene, el código pasa todas las pruebas y la divergencia solo aparece cuando llega la implementación real. Ya ocurrió una vez (ver el «Origen» de `GET /sesiones/{id}/hojas`).
+
+Por eso, antes de entregar un sprint que consuma estas interfaces, se comparan los métodos invocados sobre servicios contra los declarados, y la lista de sobrantes debe quedar vacía:
+
+```bash
+grep -rhoE '\$[a-zA-Z]+->[a-zA-Z]+\(' app/Dominios/*/Componentes/*.php | sed 's/.*->//;s/(//' | sort -u > /tmp/invocados
+grep -hoE 'public function [a-zA-Z]+' app/Dominios/*/Contratos/*.php | sed 's/public function //' | sort -u > /tmp/declarados
+comm -13 /tmp/declarados /tmp/invocados
+```
+
+Un método que aparezca ahí es una de dos cosas: una llamada que no pertenece a un servicio (ruido del grep, se descarta a ojo) o una operación que falta declarar. Lo segundo se escala a Arquitectura; nunca se agrega al doble y se sigue.
 
 ## Qué implica para los sprints `B`
 
