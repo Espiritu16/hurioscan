@@ -17,6 +17,9 @@ jobs:
         with:
           php-version: '8.5'
           extensions: pdo_sqlite, sqlite3
+          # Mismos valores que scripts/php/hurioscan.ini — ahí está por qué
+          # son un techo de recursos, no el límite de 15 MB del producto.
+          ini-values: upload_max_filesize=50M, post_max_size=60M
           coverage: none
 
       - name: Resolver directorio de caché de Composer
