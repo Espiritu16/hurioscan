@@ -16,10 +16,10 @@
 - Handoffs de sprint: `docs/handoffs/<sprint-id>.md` (previsto: se crea el primero en S01)
 
 ## Vigencia de gobernanza
-- Estado de gobernanza: BORRADOR
+- Estado de gobernanza: APROBADO
 - Última revisión material: separación del rol `implementation` en dos líneas paralelas (backend y frontend) con rutas escribibles disjuntas, para permitir chats de rol simultáneos.
-- Aprobado por: pendiente
-- Fecha de aprobación: pendiente
+- Aprobado por: Kevin
+- Fecha de aprobación: 2026-08-18
 
 <!-- Un archivo nuevo permanece BORRADOR aunque exista o esté commiteado.
      Cambiar tipo/stack, roles, permisos, ramas, gates, push o autoridad invalida la
