@@ -11,9 +11,9 @@
 - Stack/framework: Laravel 13.26.1 + Livewire 4.4.1 (verificado: `composer show`)
 - Runtime y versión: PHP 8.5.9 (verificado: `php -v`); Node 24.19.0 para el build de assets (verificado: `node -v`)
 - Gestor de paquetes/build: Composer 2.10.2 para PHP; pnpm 11.22.0 + Vite 8.2.1 para assets (verificado)
-- Persistencia/motor: PostgreSQL 18.3 (verificado instalado: `psql --version`; conexión de la app se configura en S01)
+- Persistencia/motor: PostgreSQL 18.3 (verificado instalado: `psql --version`; conexión de la app se configura en B01)
 - Estado global / roadmap: `docs/roadmap.md` y `docs/estado.md`
-- Handoffs de sprint: `docs/handoffs/<sprint-id>.md` (previsto: se crea el primero en S01)
+- Handoffs de sprint: `docs/handoffs/<sprint-id>.md` (previsto: se crea el primero en B01 o F00, el que arranque antes)
 
 ## Vigencia de gobernanza
 - Estado de gobernanza: APROBADO
@@ -104,8 +104,8 @@ Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescr
 **Por qué no se separó en dos repositorios.** Sería la otra forma de conseguir el aislamiento —cada repositorio ya es un árbol de trabajo propio— pero obligaría a Laravel API más un frontend independiente, lo que reabre `docs/decisiones/0001-monolito-laravel-livewire.md` y agrega un contrato entre repositorios que mantener. Con dos programadores y doce semanas, worktrees más rutas disjuntas dan el mismo aislamiento a un costo mucho menor.
 
 ## CI por rama
-- `develop`: previsto en S01 — GitHub Actions ejecutando `./vendor/bin/pint --test`, `php artisan test` y `pnpm build` en cada PR
-- `main`: previsto en S01 — los checks anteriores más la suite completa de Feature tests sobre PostgreSQL, en cada PR desde `develop`
+- `develop`: previsto en B01 — GitHub Actions ejecutando `./vendor/bin/pint --test`, `php artisan test` y `pnpm build` en cada PR
+- `main`: previsto en B01 — los checks anteriores más la suite completa de Feature tests sobre PostgreSQL, en cada PR desde `develop`
 
 ## Convención de commits
 <!-- Este bloque debe ser autocontenible. No citar exclusivamente una ruta
@@ -123,11 +123,11 @@ Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescr
 ## Comandos de verificación
 - Lint: `./vendor/bin/pint --test` — ejecutado 2026-08-18, resultado `passed`
 - Tests unitarios/componentes: `php artisan test` — ejecutado 2026-08-18, 2 tests, 2 passed
-- Integración/contrato: previsto en S01 — `php artisan test --testsuite=Feature` con base PostgreSQL de prueba
+- Integración/contrato: previsto en B01 — `php artisan test --testsuite=Feature` con base PostgreSQL de prueba
 - E2E: no aplica — el proyecto no incorpora navegador automatizado en el horizonte planificado; la verificación de flujo se cubre con tests Feature de Livewire
-- Accesibilidad: previsto en S06 — revisión manual de teclado, foco y contraste sobre las vistas de consulta
+- Accesibilidad: previsto en F06 — revisión manual de teclado, foco y contraste sobre las vistas de consulta
 - Build: `pnpm build` — ejecutado 2026-08-18, `built in 530ms`, artefactos en `public/build/`
-- Otros RNF: previsto en S06 — medición del tiempo de búsqueda de texto completo contra el umbral de RNF-001
+- Otros RNF: previsto en B06 — medición del tiempo de búsqueda de texto completo contra el umbral de RNF-001
 
 ## Validación QA
 - Entorno autorizado: local, sobre PostgreSQL 18.3 con base descartable creada por migraciones
@@ -143,7 +143,7 @@ Esto aísla el sistema de archivos: dos agentes editando a la vez no se sobrescr
 ## Operación DevOps/Release
 - Proveedor/topología: no decidido — el proyecto es académico y no tiene despliegue productivo comprometido
 - Ambientes: local y CI de GitHub Actions; no hay staging ni producción
-- Pipeline: previsto en S01 — GitHub Actions
+- Pipeline: previsto en B01 — GitHub Actions
 - Artefacto canónico: no aplica — no hay despliegue en el horizonte planificado
 - Configuración/secretos: `.env` local a partir de `.env.example`; ningún secreto versionado
 - Migraciones: `php artisan migrate`; responsable Implementación dentro del sprint que las introduce

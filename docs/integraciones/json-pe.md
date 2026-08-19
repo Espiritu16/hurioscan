@@ -71,7 +71,7 @@ Variable `JSONPE_TOKEN` en `.env`, nunca versionada. El token se obtiene registr
 - 1 crédito por consulta.
 - El plan gratuito da **100 créditos con vigencia de 30 días**.
 
-**Consecuencia práctica para el cronograma:** el proyecto dura 12 semanas y la ventana gratuita es de 30 días. Registrarse al inicio deja los créditos vencidos para la sustentación. Lo previsto es desarrollar y probar contra el proveedor simulado, y activar la cuenta real cerca de la demostración final. Está anotado como criterio del sprint S02, no como algo que alguien deba recordar.
+**Consecuencia práctica para el cronograma:** el proyecto dura 12 semanas y la ventana gratuita es de 30 días. Registrarse al inicio deja los créditos vencidos para la sustentación. Lo previsto es desarrollar y probar contra el proveedor simulado, y activar la cuenta real cerca de la demostración final. Está anotado como criterio del sprint B02, no como algo que alguien deba recordar.
 
 ## Manejo de fallas
 
