@@ -35,7 +35,7 @@
             titulo="Ningún documento contiene ese término"
             descripcion="Prueba con una palabra más corta o revisa la ortografía. El buscador solo mira dentro de hojas ya digitalizadas."
         >
-            <x-boton variante="secundario">Buscar un paciente</x-boton>
+            <x-boton ruta="pacientes" variante="secundario">Buscar un paciente</x-boton>
         </x-estado-vacio>
     @elseif ($estado === 'exito')
         <p class="font-mono text-xs tracking-wide text-tinta-suave uppercase">
@@ -52,7 +52,7 @@
                         <span class="font-mono text-xs text-acento">
                             H.C. {{ $resultado['paciente']['numeroHistoria'] }}
                         </span>
-                        <x-boton variante="terciario" class="ms-auto">Abrir visor</x-boton>
+                        <x-boton ruta="documentos.detalle" :parametros="['documentoId' => $resultado['documentoId']]" variante="terciario" class="ms-auto">Abrir visor</x-boton>
                     </div>
                     <p class="rounded bg-papel p-2 font-mono text-xs leading-relaxed text-tinta">
                         {!! $this->resaltar($resultado['fragmento']) !!}

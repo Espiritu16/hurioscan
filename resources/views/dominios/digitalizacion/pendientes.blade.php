@@ -9,7 +9,7 @@
             titulo="No tienes sesiones pendientes"
             descripcion="Cuando dejes un folder a medias, aparecerá aquí para que lo retomes donde lo dejaste."
         >
-            <x-boton variante="secundario">Buscar un paciente</x-boton>
+            <x-boton ruta="pacientes" variante="secundario">Buscar un paciente</x-boton>
         </x-estado-vacio>
     @else
         <x-tabla>
@@ -40,7 +40,11 @@
                         {{ \Illuminate\Support\Carbon::parse($sesion['creadoEn'])->timezone('America/Lima')->format('d/m/Y H:i') }}
                     </td>
                     <td class="px-3 py-2">
-                        <x-boton variante="terciario">
+                        <x-boton
+                            variante="terciario"
+                            :ruta="$this->rutaDe($sesion['estado'])"
+                            :parametros="['sesionId' => $sesion['id']]"
+                        >
                             Retomar en {{ $this->destinoDe($sesion['estado']) }}
                         </x-boton>
                     </td>

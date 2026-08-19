@@ -52,7 +52,7 @@
                     titulo="Todavía no hay sesiones"
                     descripcion="Cuando se digitalice el primer folder aparecerá aquí."
                 >
-                    <x-boton variante="secundario">Iniciar una sesión</x-boton>
+                    <x-boton ruta="pacientes" variante="secundario">Iniciar una sesión</x-boton>
                 </x-estado-vacio>
             @else
                 <x-tabla>

@@ -15,7 +15,12 @@
                 <ul class="flex flex-col gap-1">
                     @foreach ($sinRevisar as $hoja)
                         <li>
-                            <x-boton variante="terciario" class="text-peligro">
+                            <x-boton
+                                variante="terciario"
+                                class="text-peligro"
+                                ruta="sesiones.revision"
+                                :parametros="['sesionId' => $sesionId]"
+                            >
                                 Hoja {{ $hoja['orden'] ?? $hoja['id'] }} — revisar
                             </x-boton>
                         </li>

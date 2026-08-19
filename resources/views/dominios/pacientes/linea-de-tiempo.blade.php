@@ -53,7 +53,7 @@
                     <p class="min-w-0 flex-1 truncate font-mono text-xs text-tinta-suave">
                         {{ $documento['fragmento'] ?? 'Sin texto asociado' }}
                     </p>
-                    <x-boton variante="terciario">Abrir</x-boton>
+                    <x-boton ruta="documentos.detalle" :parametros="['documentoId' => $documento['id']]" variante="terciario">Abrir</x-boton>
                 </li>
             @endforeach
         </ol>

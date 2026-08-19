@@ -29,7 +29,9 @@ class PacientesTest extends TestCase
 
     public function test_un_termino_sin_coincidencias_muestra_estado_vacio_con_salida(): void
     {
-        Livewire::test(BuscadorPacientes::class)
+        // El rol se declara: la acción de registrar solo se ofrece a quien
+        // puede, y el default del componente es no tener rol.
+        Livewire::test(BuscadorPacientes::class, ['rol' => 'operador'])
             ->set('termino', 'zzzz-no-existe')
             ->assertSet('estado', 'vacio')
             // Estado vacío, nunca un error.

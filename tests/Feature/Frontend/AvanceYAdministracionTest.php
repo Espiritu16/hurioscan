@@ -54,8 +54,14 @@ class AvanceYAdministracionTest extends TestCase
             ->assertSet('estado', 'exito')
             ->html();
 
-        $this->assertStringNotContainsString('password', $html);
+        // Lo que no puede aparecer es una credencial de un usuario existente:
+        // ni el hash bcrypt ni ningún valor de contraseña. El formulario de
+        // alta sí tiene un campo de contraseña, vacío, y eso es correcto.
         $this->assertStringNotContainsString('$2y$', $html);
+        $this->assertStringNotContainsString('hurioscan"', $html);
+        // `[^&]` y no `.` : el valor vacío del formulario es `&quot;&quot;`, y
+        // un comodín cruzaría hasta el campo siguiente dando un falso positivo.
+        $this->assertDoesNotMatchRegularExpression('/password&quot;:&quot;[^&]/', $html);
     }
 
     public function test_quitarse_el_propio_rol_de_administrador_explica_por_que_se_rechaza(): void

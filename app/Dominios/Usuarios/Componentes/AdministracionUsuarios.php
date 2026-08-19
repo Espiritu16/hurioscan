@@ -23,9 +23,51 @@ class AdministracionUsuarios extends Component
 
     public ?string $aviso = null;
 
+    /**
+     * El alta es una acción de esta misma página, no una ruta aparte: la lista
+     * canónica de rutas no declara ninguna para crear usuarios, y el contrato
+     * expone `POST /usuarios` como operación, no como pantalla.
+     */
+    public bool $creando = false;
+
+    public array $nuevo = ['nombre' => '', 'email' => '', 'password' => '', 'rol' => 'operador'];
+
     public function mount(ServicioUsuarios $usuarios): void
     {
         $this->cargar($usuarios);
+    }
+
+    public function abrirAlta(): void
+    {
+        $this->creando = true;
+        $this->error = null;
+        $this->aviso = null;
+    }
+
+    public function cancelarAlta(): void
+    {
+        $this->creando = false;
+        $this->nuevo = ['nombre' => '', 'email' => '', 'password' => '', 'rol' => 'operador'];
+    }
+
+    public function crear(ServicioUsuarios $usuarios): void
+    {
+        $this->error = null;
+
+        try {
+            $creado = $usuarios->crear($this->nuevo);
+        } catch (ErrorDeAplicacion $e) {
+            $this->error = $e->getCodigo() === 'VALIDACION_ENTRADA'
+                ? 'Revisa los datos del usuario nuevo.'
+                : 'No se pudo crear el usuario.';
+
+            return;
+        }
+
+        $this->usuarios[] = $creado;
+        $this->estado = 'exito';
+        $this->cancelarAlta();
+        $this->aviso = 'Usuario creado.';
     }
 
     public function cambiarRol(int $usuarioId, string $rol, ServicioUsuarios $usuarios): void

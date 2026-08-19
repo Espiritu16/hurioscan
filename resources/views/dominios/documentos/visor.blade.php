@@ -5,7 +5,7 @@
         <p role="status" class="font-mono text-xs tracking-wide text-tinta-suave uppercase">Cargando…</p>
     @elseif ($estado === 'error')
         <x-estado-vacio titulo="No encontramos ese documento" :descripcion="$error">
-            <x-boton variante="secundario">Volver a la búsqueda</x-boton>
+            <x-boton ruta="buscar" variante="secundario">Volver a la búsqueda</x-boton>
         </x-estado-vacio>
     @else
         <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
