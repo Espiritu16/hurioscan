@@ -29,7 +29,9 @@ Autoridad: Arquitectura. Estado: **aprobado** — Arquitectura, 2026-08-19.
 
 ## Nombres de ruta canónicos
 
-El menú y los enlaces consumen rutas **por nombre**, nunca por URL literal. El nombre canónico de cada ruta es su path con puntos por segmento estático, sin parámetros: `acceder`, `salir`, `avance`, `pacientes`, `pacientes.detalle` (`/pacientes/{id}`), `sesiones.pendientes`, `sesiones.detalle` (`/sesiones/{id}`), `sesiones.revision`, `sesiones.cierre`, `buscar`, `documentos.detalle` (`/documentos/{id}`), `ilegibles`, `usuarios`, `auditoria`, `componentes` (solo local). El backend debe declarar exactamente estos nombres al implementar las rutas reales. — Fijado por Arquitectura, 2026-08-19.
+El menú y los enlaces consumen rutas **por nombre**, nunca por URL literal. El nombre canónico de cada ruta es su path con puntos por segmento estático, sin parámetros: `acceder`, `salir`, `avance`, `pacientes`, `pacientes.alta`, `pacientes.detalle` (`/pacientes/{id}`), `sesiones.apertura`, `sesiones.pendientes`, `sesiones.detalle` (`/sesiones/{id}`), `sesiones.revision`, `sesiones.cierre`, `buscar`, `documentos.detalle` (`/documentos/{id}`), `ilegibles`, `usuarios`, `auditoria`, `componentes` (solo local). El backend debe declarar exactamente estos nombres al implementar las rutas reales. — Fijado por Arquitectura, 2026-08-19.
+
+**Corrección del 2026-08-19 (posterior):** la lista original omitía `pacientes.alta` (`/pacientes/nuevo`, componente `FormularioPaciente`, F02-UT-03) y `sesiones.apertura` (`/sesiones/nueva`, componente `AperturaSesion`, F03-UT-02). Ambas unidades de trabajo fijaban esas rutas como su interfaz, pero la lista canónica no las recogía, así que el montaje —correcto contra la lista— dejó los dos componentes inalcanzables desde la aplicación servida. Lo detectó QA (hallazgo QA-F-01). Es un error de Arquitectura al derivar la lista de los RFC, no de la línea frontend ni del montaje: **al declarar nombres canónicos hay que recorrer las unidades de trabajo de cada RFC, no solo los flujos de `experiencia.md`.**
 
 ## Interfaces de servicio
 
