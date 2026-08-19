@@ -43,7 +43,7 @@ El proyecto no expone API HTTP pública: cada operación es una ruta web servida
 - Ruta real: `POST /pacientes`
 - Path params: ninguno
 - Query params: ninguno
-- Request: `{ numeroHistoria: string (requerido), dni?: string (opcional), apellidos: string (requerido), nombres: string (requerido), fechaNacimiento?: string (opcional) }`
+- Request: `{ numeroHistoria: string (requerido), dni?: string (opcional), apellidos: string (requerido), nombres: string (requerido), fechaNacimiento?: string (opcional), origenDatos?: string (opcional, default `manual`) }`
 
 ### Validaciones de entrada
 | Campo/ubicación | Tipo semántico | Presencia/default | Formato/caracteres | Límites | Normalización/coerción | Regla cruzada/negocio | Error | Fuente/estado |
@@ -53,13 +53,41 @@ El proyecto no expone API HTTP pública: cada operación es una ruta web servida
 | `apellidos` (body) | string (texto humano) | requerido, no null, no vacío tras trim | Unicode; se aceptan tildes, apóstrofes, guiones y espacios; no se restringe a `[A-Za-z]` | 2–120 caracteres | trim exterior; colapso de espacios internos | ninguna | `VALIDACION_ENTRADA` | RF-001; límite propuesto |
 | `nombres` (body) | string (texto humano) | requerido, no null, no vacío tras trim | igual que `apellidos` | 2–120 caracteres | igual que `apellidos` | ninguna | `VALIDACION_ENTRADA` | RF-001; límite propuesto |
 | `fechaNacimiento` (body) | fecha local sin hora | opcional; null permitido — un folder antiguo puede no tenerla | `YYYY-MM-DD`, calendario válido | no anterior a 1900-01-01; no posterior a hoy | ninguna — no se convierte a instante ni se le aplica zona | no puede ser futura | `VALIDACION_ENTRADA` | RF-001; rango propuesto |
+| `origenDatos` (body) | enum | opcional, default `manual` | uno de `manual`, `proveedor` | conjunto cerrado | ninguna | el valor `proveedor` solo se acepta si los apellidos y nombres coinciden con los devueltos por la consulta previa de esa sesión; si el operador los editó, se guarda `manual` | `VALIDACION_ENTRADA` | RF-015: trazabilidad del origen |
 
-- Response 201: `{ id: number, numeroHistoria: string, dni: string|null, apellidos: string, nombres: string, fechaNacimiento: string|null, creadoEn: string (ISO-8601 con offset UTC explícito, ej. 2026-08-18T14:30:00Z) }`
+- Response 201: `{ id: number, numeroHistoria: string, dni: string|null, apellidos: string, nombres: string, fechaNacimiento: string|null, origenDatos: string, creadoEn: string (ISO-8601 con offset UTC explícito, ej. 2026-08-18T14:30:00Z) }`
 - Campos generados por servidor, nunca enlazados por asignación masiva aunque el cliente los envíe: `id`, `creadoEn`, `actualizadoEn`, `eliminadoEn`
 - Idempotencia: **deduplicación (unique)** — la restricción `UNIQUE` sobre `numero_historia` impide crear el mismo paciente dos veces; un reintento devuelve `PACIENTE_HC_DUPLICADO`, no un duplicado silencioso. No reproduce la respuesta original, por lo que no es `requerida`.
 - Concurrencia: no aplica — es una creación, no una edición de un recurso existente
 - Errores: `VALIDACION_ENTRADA`, `PACIENTE_HC_DUPLICADO`, `PACIENTE_DNI_DUPLICADO`, `NO_AUTENTICADO`, `NO_AUTORIZADO`
+- `PACIENTE_DNI_DUPLICADO` sigue existiendo aunque la consulta previa avise del duplicado: dos operadores pueden registrar el mismo DNI a la vez, y el aviso de la consulta es una comodidad de interfaz, no la garantía. La garantía es la restricción `UNIQUE` de la base.
 - Autenticación: requerida — roles `operador`, `administrador`. El rol `consulta` está denegado en la matriz.
+- Versión del contrato: v1
+
+---
+
+## POST /pacientes/consultar-dni
+- Ruta real: `POST /pacientes/consultar-dni` — trae los datos del titular desde el proveedor de identidad para precargar el formulario (RF-015)
+- Path params: ninguno
+- Query params: ninguno
+- Request: `{ dni: string (requerido) }`
+- **No persiste nada.** Devuelve datos para precargar el formulario; el alta sigue siendo `POST /pacientes`.
+
+### Validaciones de entrada
+| Campo/ubicación | Tipo semántico | Presencia/default | Formato/caracteres | Límites | Normalización/coerción | Regla cruzada/negocio | Error | Fuente/estado |
+|---|---|---|---|---|---|---|---|---|
+| `dni` (body) | string — **no número**: admite ceros iniciales | requerido, no null, no vacío | exactamente 8 dígitos (`^[0-9]{8}$`) | 8 caracteres | trim exterior | ninguna | `VALIDACION_ENTRADA` | RF-015; mismo formato que el campo `dni` del alta |
+
+- **Orden de resolución**: la operación busca primero en el archivo propio y solo consulta al proveedor si el DNI no está registrado. Un paciente ya digitalizado no gasta un crédito.
+- Response 200 · el paciente ya existe: `{ pacienteExistente: { id: number, numeroHistoria: string, apellidos: string, nombres: string }, datos: null }` — **no se consultó al proveedor**. La interfaz ofrece abrir su folder o su línea de tiempo en vez de continuar con el alta.
+- Response 200 · el paciente no existe: `{ pacienteExistente: null, datos: { dni: string, apellidos: string, nombres: string, origen: "proveedor" } }` — solo estos campos. La dirección y el ubigeo que el proveedor incluye **no se solicitan ni se devuelven**: ningún requisito los necesita y traerlos sería recolección innecesaria de datos personales (ver `docs/integraciones/json-pe.md`).
+- Response 404 con `IDENTIDAD_NO_ENCONTRADA`: el DNI no existe en la fuente. **No es un error del sistema**: la interfaz deja el formulario editable para carga manual.
+- Response 503 con `IDENTIDAD_PROVEEDOR_NO_DISPONIBLE`: el proveedor no respondió, la credencial es inválida o se agotaron los créditos. Al operador se le informa lo mismo en los tres casos, porque ninguno puede resolverlo; la distinción real queda en `LogError` con el token enmascarado.
+- **En ningún caso esta operación impide registrar al paciente.** Es una ayuda de carga (RF-015).
+- Idempotencia: **deduplicación** — cada llamada al proveedor consume un crédito, así que una consulta repetida del mismo DNI dentro de la misma sesión de registro devuelve el resultado ya obtenido en vez de volver a llamar. La deduplicación es por sesión de usuario y no se comparte entre usuarios: una caché compartida de datos de identidad sería almacenamiento de datos personales que ningún requisito pide.
+- Concurrencia: no aplica — no modifica ningún recurso
+- Errores: `VALIDACION_ENTRADA`, `IDENTIDAD_NO_ENCONTRADA`, `IDENTIDAD_PROVEEDOR_NO_DISPONIBLE`, `NO_AUTENTICADO`, `NO_AUTORIZADO`
+- Autenticación: requerida — roles `operador`, `administrador`. El rol `consulta` está denegado: no registra pacientes, así que no tiene motivo para consultar identidades.
 - Versión del contrato: v1
 
 ---

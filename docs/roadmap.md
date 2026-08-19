@@ -1,6 +1,6 @@
 # Roadmap — HuriosCan
 
-Horizonte: los RF-001 a RF-014 aprobados en `docs/requisitos/rf.md`. No incluye la fase 2 (extracción de campos estructurados) ni ninguna capacidad marcada fuera del horizonte.
+Horizonte: los RF-001 a RF-015 aprobados en `docs/requisitos/rf.md`. No incluye la fase 2 (extracción de campos estructurados) ni ninguna capacidad marcada fuera del horizonte.
 
 Estado de la planificación: **BLOQUEADA** — ningún sprint puede pasar a `Planificación: LISTO` mientras `AGENTS.md` siga en `BORRADOR` y los RF, contratos, schema, taxonomía de errores y permisos sigan en `propuesto`. Esas aprobaciones son del usuario real y de Arquitectura; el Coordinador no puede emitirlas.
 
@@ -22,6 +22,7 @@ Estado de la planificación: **BLOQUEADA** — ningún sprint puede pasar a `Pla
 | RF-012 auditoría de accesos | S07 |
 | RF-013 reanudación de sesiones pendientes | S03 |
 | RF-014 cola de hojas ilegibles | S05 |
+| RF-015 autocompletado del paciente por DNI | S02 |
 | RNF-001 rendimiento de búsqueda | S06 — medición con seeder de 30 000 documentos |
 | RNF-002 captura no bloqueante | S04 — test con motor de OCR demorado |
 | RNF-003 imagen original inmutable | S03 — test de hash antes y después del ciclo completo |
@@ -36,6 +37,7 @@ Estado de la planificación: **BLOQUEADA** — ningún sprint puede pasar a `Pla
 | MIG-001 a MIG-008 | S01 a S05, según la entidad que introducen |
 | MIG-009 permisos de base sobre auditoría | S07 |
 | Integración con motor de OCR | S04 |
+| Integración con JSON.pe (consulta de DNI) | S02 |
 
 Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente que lo justifique.
 
@@ -44,7 +46,7 @@ Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente 
 | ID | Rol | Resultado observable | Fuentes | Depende de | Paralelizable con | RFC | Planificación | Ejecución |
 |---|---|---|---|---|---|---|---|---|
 | S01 | implementation | Se puede acceder al sistema con usuario y rol; las tablas base existen y el mecanismo de permisos rechaza por defecto | RF-011, RNF-005, RNF-013, MIG-001 | ninguna | ninguna | `docs/rfcs/S01.md` | BORRADOR | PLANIFICADO |
-| S02 | implementation | Se registra un paciente y se lo encuentra por historia clínica, DNI o nombre | RF-001, MIG-002, `docs/contratos/pacientes.md` | S01 | ninguna | `docs/rfcs/S02.md` | BORRADOR | PLANIFICADO |
+| S02 | implementation | Se registra un paciente —a mano o autocompletando desde el DNI— y se lo encuentra por historia clínica, DNI o nombre | RF-001, RF-015, MIG-002, `docs/contratos/pacientes.md`, `docs/integraciones/json-pe.md` | S01 | ninguna | `docs/rfcs/S02.md` | BORRADOR | PLANIFICADO |
 | S03 | implementation | Se abre la sesión de un folder, se capturan hojas por las tres vías y se retoma una sesión pendiente | RF-002, RF-003, RF-013, RNF-003, MIG-003, MIG-004, `docs/contratos/digitalizacion.md` | S02 | ninguna | `docs/rfcs/S03.md` | BORRADOR | PLANIFICADO |
 | S04 | implementation | Una hoja capturada produce texto en segundo plano mediante el motor configurado, y un fallo se puede reintentar | RF-004, RNF-002, RNF-014, `docs/integraciones/ocr.md` | S03 | ninguna | `docs/rfcs/S04.md` | BORRADOR | PLANIFICADO |
 | S05 | implementation | Se corrige el texto, se marca cada hoja y se cierra el folder con su resumen | RF-005, RF-006, RF-014, RNF-012, `docs/contratos/documentos.md` | S04 | ninguna | `docs/rfcs/S05.md` | BORRADOR | PLANIFICADO |

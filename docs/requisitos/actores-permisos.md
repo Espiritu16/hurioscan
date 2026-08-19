@@ -39,6 +39,9 @@ El proyecto no expone una API HTTP pública: las operaciones son rutas web y acc
 | Operador | operador | `POST /pacientes` · registrar paciente | crear | — | Sí | RF-001 |
 | Consulta | consulta | `POST /pacientes` · registrar paciente | crear | — | No | RF-001 |
 | Administrador | administrador | `POST /pacientes` · registrar paciente | crear | — | Sí | RF-001 |
+| Operador | operador | `POST /pacientes/consultar-dni` · consultar identidad | crear | — | Sí | RF-015 |
+| Administrador | administrador | `POST /pacientes/consultar-dni` · consultar identidad | crear | — | Sí | RF-015 |
+| Consulta | consulta | `POST /pacientes/consultar-dni` · consultar identidad | crear | — | No | RF-015 |
 | Operador | operador | `POST /sesiones` · abrir sesión de digitalización | crear | — | Sí | RF-002 |
 | Consulta | consulta | `POST /sesiones` · abrir sesión de digitalización | crear | — | No | RF-002, RF-011 |
 | Administrador | administrador | `POST /sesiones` · abrir sesión de digitalización | crear | — | No | RF-011 |
