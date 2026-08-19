@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Compartido\Dobles\Pacientes\ServicioPacientesDoble;
 use App\Compartido\Dobles\Usuarios\ServicioUsuariosDoble;
+use App\Dominios\Pacientes\Contratos\ServicioPacientes;
 use App\Dominios\Usuarios\Contratos\ServicioUsuarios;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +28,7 @@ class DoblesServiceProvider extends ServiceProvider
      */
     private const DOBLES = [
         'usuarios' => [ServicioUsuarios::class, ServicioUsuariosDoble::class],
+        'pacientes' => [ServicioPacientes::class, ServicioPacientesDoble::class],
     ];
 
     public function register(): void
