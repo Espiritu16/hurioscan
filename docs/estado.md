@@ -237,6 +237,37 @@ Decisiones tomadas mientras Kevin no estaba disponible, consolidadas a su regres
 | 2 | D01 | Aceptar como cumplido el criterio del rojo provocado con la evidencia del paso Tests, dejando Lint y Build por inferencia estructural | Provocar además un fallo de lint y uno de build | Los tres pasos comparten shell, sin `continue-on-error` ni `if:`; el costo de dos corridas más no aportaba certeza proporcional | Sí — se puede provocar en cualquier momento | `docs/handoffs/D01.md` § Observaciones |
 | 3 | F06 | Adoptar `pacientes.detalle` como nombre canónico de `/pacientes/{id}` | Dejarlo sin nombre hasta que backend lo declarara | Faltaba en la lista canónica y sigue exactamente el patrón de `sesiones.detalle` y `documentos.detalle`; ratificado por Arquitectura | Sí — es solo un nombre de ruta | `docs/frontend/integracion.md` |
 
+## Aviso por pérdida silenciosa — APROBADO, y QA-F-04 abierto
+
+Validado por QA sobre `develop @ 8c15081` con archivos reales inyectados en el navegador, de modo que el evento dispara el puente en JavaScript que la suite no puede ejercer.
+
+**Unidad APROBADA.** Con el tope bajo y 25 archivos, el aviso nombra las tres cifras y dice qué hacer: «Elegiste 25 hojas y solo se procesaron 10. El equipo descartó 15 sin avisar… Vuelve a agregar las que faltan en tandas más pequeñas.» En el caso inverso —rechazos con motivo por peso y por formato— **no** aparece aviso, que es lo correcto: lo ya explicado no es pérdida. Y en el caso cruzado, que es donde esta aritmética suele romperse —25 elegidas con tope 10 y la primera de 16 MB—, los dos mecanismos conviven sin contarse dos veces: 9 capturadas más 1 rechazada con motivo son 10 resueltas, y el aviso informa 25/10/15.
+
+Con la regresión de captura verificada sobre ese SHA, **el veredicto de F03 traslada limpio** desde `f5ca21e`.
+
+Las dos correcciones de `LimiteDeSubidaTest` quedaron verificadas por mutación en ambas direcciones: la guarda se autodetecta si el framework cambia su redacción, y la frase que niega es la que de verdad aparece al revertir el techo — o sea que ya no es vacua.
+
+### QA-F-04 — un aviso de PHP rompe la subida entera
+
+**Severidad media-alta. Abierto.** Propietario: DevOps la parte accionable, Arquitectura la de fondo.
+
+Con `max_file_uploads` bajo **y `display_errors=On`** —el valor por defecto de la máquina— superar el tope no produce «10 hojas y un aviso», produce **nada**: cero hojas, cero rechazos, ningún aviso, y solo un error de parseo en la consola del navegador. PHP trunca los archivos correctamente e imprime además su advertencia **dentro del cuerpo de la respuesta**, antes del JSON; el parseo de Livewire revienta y la subida se pierde completa. QA lo confirmó por contraste: con `display_errors=Off` el aviso funciona perfecto.
+
+**Deja al operador peor que antes de que existiera el aviso:** antes veía menos hojas de las que eligió; ahora no ve ninguna y tampoco un error. Es la misma pérdida silenciosa que la unidad vino a eliminar, un escalón más arriba. Y encadena con la deuda del arranque ya registrada: quien use `composer dev` directo corre con `max_file_uploads=20` **y** `display_errors=On` a la vez, de modo que un lote de 25 hojas —normal en un folder clínico— produce silencio absoluto.
+
+**El aviso no introdujo este defecto, y conviene leerlo bien:** QA-F-04 nace de cómo conviven un aviso de PHP y el parseo de Livewire, y estaba ahí desde antes de que el aviso existiera — el mismo lote ya rompía igual, solo que nadie lo había ejercido. Lo que hizo el aviso fue dar una razón para ejercer ese caso. Se deja dicho explícitamente porque dentro de unas semanas es fácil leer «defecto encontrado al validar el aviso» y concluir que el aviso lo causó. Tampoco **incumple** el criterio de cierre de esa unidad, que se cumple y está demostrado. Resolución en dos partes, con el mismo patrón que la deuda anterior:
+
+- **Despachado a DevOps:** fijar en `scripts/php/hurioscan.ini` que ningún aviso de PHP pueda contaminar el cuerpo de una respuesta, sin cambiar una pérdida silenciosa por otra —los avisos deberían quedar registrados en algún lado, no simplemente apagados—.
+- **Deuda técnica para B01:** que un aviso del motor pueda romper una respuesta JSON en cualquier punto de la aplicación es un problema de fondo, no de esta configuración.
+
+### Revisión de cobertura ficticia — aprobada por Kevin, pendiente de despacho
+
+Kevin aprobó revisar las 135 pruebas buscando aserciones que no puedan fallar nunca, como unidad propia de QA. Criterio de QA que sustentó la decisión: los tres casos conocidos fallaron **de la misma manera** —la prueba comprobaba una cadena de texto en vez del hecho—, y esa firma reconocible hace la búsqueda barata: se va directo a las aserciones sobre literales y se pregunta de cada una si puede fallar alguna vez. El foco, por rendimiento esperado, va a las aserciones sobre texto de terceros (obsolescencia silenciosa), a las que niegan cadenas que quizá nunca existan (no fallan por definición) y a las pruebas cuya premisa dependa del entorno en vez de fabricarla.
+
+**Encuentra cobertura ficticia, no defectos**, y así se declaró antes de aprobarla: puede terminar en «cuarenta aserciones revisadas, tres no servían» sin ningún fallo de producto nuevo. Se aprobó igual porque cada aserción vacua es una alarma apagada de la que alguien se fía, y porque el precio se paga entero cuando el backend se apoye en esa suite. **Condición de alcance, puesta por QA:** cada aserción declarada vacua se demuestra mutándola; declararla por lectura sería cometer el mismo error que se busca. Si al mutarla el test falla por **otra** aserción, eso ni la salva ni la condena: hay que aislarla, como se hizo con la del `may`/`must`.
+
+**El alcance no es releer las 135 pruebas.** Es ir a las aserciones sobre literales de texto y preguntarse de cada una si puede fallar alguna vez. La corrección que hizo la línea frontend —derivar la frase de la traducción real del framework en vez de copiarla a mano— es el patrón de solución para el primero de los tres focos, y conviene tenerla como referencia al despachar.
+
 ## Cierre de la línea frontend — 2026-08-19
 
 La cadena `F00`→`F07` está construida, integrada en `develop` y validada. **Ningún sprint pasa a `COMPLETADO`**, y no por un trámite pendiente: el roadmap declara que un sprint de frontend terminado contra su doble llega hasta `EN_VALIDACION`, y que cerrarlo exige el punto de integración con su sprint `B` —reemplazar el doble por el servicio real y verificar el flujo completo—. Esos puntos no existen porque la línea backend no ha empezado.
@@ -262,7 +293,7 @@ El patrón común está en «Lección de método» más abajo. Los remedios que 
 
 ### Lo único que falta del lado frontend
 
-La validación de la unidad del aviso por pérdida silenciosa, despachada a QA sobre `develop @ 8c15081`. Incluye un caso que ninguna prueba automática puede cubrir —seleccionar más de veinte archivos reales en un navegador— porque el dato de cuántos eligió la persona solo existe en el cliente.
+Nada de construcción. Queda **QA-F-04 abierto**, cuya parte accionable está despachada a DevOps, y la revisión de cobertura ficticia aprobada y pendiente de despacho a QA. Ver arriba.
 
 ## Lección de método — cobertura ficticia, 2026-08-19
 
