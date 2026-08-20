@@ -1,6 +1,6 @@
 # ADR-0005: el texto extraído es un índice de búsqueda, nunca reemplaza al documento original
-- Estado: propuesta
-- Aprobado por (Arquitectura): pendiente — fecha: pendiente
+- Estado: **aprobada**
+- Aprobado por (Arquitectura): sesión Coordinación+Arquitectura, con aprobación de Kevin — fecha: 2026-08-19
 - Contexto: ninguna herramienta de OCR disponible alcanza precisión perfecta sobre escritura a mano, y buena parte del acervo clínico está manuscrito. Un sistema que tratara el texto extraído como la versión válida del documento produciría, por diseño, registros clínicos con errores silenciosos —un "0" por una "o" en el nombre de un medicamento— sin ninguna forma de detectarlos.
 - Decisión: la imagen escaneada es la fuente válida y es inmutable: se guarda una vez, se verifica por hash y ninguna operación posterior la modifica. El texto existe únicamente para que el documento pueda encontrarse, y toda vista que muestre texto muestra también la imagen original. Se conservan por separado el texto crudo del OCR y el corregido por la persona, de modo que la precisión real del motor pueda medirse.
 - Consecuencias: el sistema no puede ofrecer funciones que dependan de tratar el texto como dato confiable —extracción automática de diagnósticos o medicamentos queda fuera del alcance y pasa a una fase posterior. El paso de revisión humana se vuelve obligatorio y es el más costoso en tiempo del operador. A cambio, el sistema nunca afirma algo sobre un paciente que no esté respaldado por la imagen que cualquiera puede mirar, y la limitación del OCR deja de ser un riesgo oculto para convertirse en una parte declarada del diseño.

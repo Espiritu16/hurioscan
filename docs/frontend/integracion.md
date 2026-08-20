@@ -1,6 +1,6 @@
 # Integración frontend — HuriosCan
 
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Arquitectura, 2026-08-19.
 
 **Este proyecto no tiene un cliente HTTP separado.** La UI son componentes Livewire que llaman directamente a los servicios de dominio en el mismo proceso PHP. Por eso "integración" aquí mapea cada flujo de la interfaz a la operación del contrato que ejecuta, no a una llamada de red. Varias filas de la plantilla genérica (base URL, tipos generados, renovación de token, mocks) no aplican y se declaran como tales en vez de omitirse.
 
@@ -27,5 +27,15 @@ Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
 - **Caché/invalidation**: tras cerrar una sesión se recalculan los agregados del avance; tras marcar una hoja se refresca el resumen de la sesión. Livewire vuelve a renderizar el componente afectado, no toda la página.
 - **Mocks**: en desarrollo y en tests se configuran dos sustituciones por entorno — el motor de OCR como `nulo` (`OCR_MOTOR=nulo`), que devuelve texto vacío, y el proveedor de identidad como `simulado` (`IDENTIDAD_PROVEEDOR=simulado`), que responde desde una tabla fija de DNIs de ejemplo. Ambas viven en la configuración, nunca en una rama de código dentro del flujo productivo. El proveedor simulado no es opcional: los DNI ficticios no existen en RENIEC, así que sin él las pruebas no tendrían contra qué correr.
 
-Estado: propuesto
-Aprobado por (Arquitectura): pendiente — fecha: pendiente
+## Nombres de ruta canónicos
+
+El menú y los enlaces consumen rutas **por nombre**, nunca por URL literal. El nombre canónico de cada ruta es su path con puntos por segmento estático, sin parámetros: `acceder`, `salir`, `avance`, `pacientes`, `pacientes.alta`, `pacientes.detalle` (`/pacientes/{id}`), `sesiones.apertura`, `sesiones.pendientes`, `sesiones.detalle` (`/sesiones/{id}`), `sesiones.revision`, `sesiones.cierre`, `buscar`, `documentos.detalle` (`/documentos/{id}`), `ilegibles`, `usuarios`, `auditoria`, `componentes` (solo local). El backend debe declarar exactamente estos nombres al implementar las rutas reales. — Fijado por Arquitectura, 2026-08-19.
+
+**Corrección del 2026-08-19 (posterior):** la lista original omitía `pacientes.alta` (`/pacientes/nuevo`, componente `FormularioPaciente`, F02-UT-03) y `sesiones.apertura` (`/sesiones/nueva`, componente `AperturaSesion`, F03-UT-02). Ambas unidades de trabajo fijaban esas rutas como su interfaz, pero la lista canónica no las recogía, así que el montaje —correcto contra la lista— dejó los dos componentes inalcanzables desde la aplicación servida. Lo detectó QA (hallazgo QA-F-01). Es un error de Arquitectura al derivar la lista de los RFC, no de la línea frontend ni del montaje: **al declarar nombres canónicos hay que recorrer las unidades de trabajo de cada RFC, no solo los flujos de `experiencia.md`.**
+
+## Interfaces de servicio
+
+Los componentes Livewire dependen de las interfaces fijadas en `docs/contratos/servicios-aplicacion.md`, nunca de una implementación concreta ni del namespace `Dobles`. Ese documento define también cómo se selecciona el doble por entorno, extendiendo el mecanismo que ADR-0002 estableció para `MotorOcr`.
+
+Estado: aprobado
+Aprobado por (Arquitectura): sesión Coordinación+Arquitectura — fecha: 2026-08-19

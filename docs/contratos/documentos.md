@@ -1,6 +1,6 @@
 # Contrato — dominio Documentos
 
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Kevin (usuario) y Arquitectura, 2026-08-19.
 Operaciones servidas por componentes Livewire sobre rutas web; no hay API HTTP pública.
 
 **Paginación:** mismo criterio offset del resto del proyecto.
@@ -125,6 +125,19 @@ Operaciones servidas por componentes Livewire sobre rutas web; no hay API HTTP p
 - Errores: `RECURSO_NO_ENCONTRADO`, `NO_AUTENTICADO`, `NO_AUTORIZADO`
 - Autenticación: requerida — mismas condiciones que ver el documento
 - Versión del contrato: v1
+
+---
+
+## GET /sesiones/{id}/hojas
+- Ruta real: `GET /sesiones/{id}/hojas` — hojas de una sesión, en su orden de captura, para revisarlas una por una (RF-005)
+- **Por qué vive en este contrato y no en el de Digitalización:** lo que devuelve son documentos con su texto extraído y su estado de revisión, igual que `GET /ilegibles`; que la ruta cuelgue de la sesión es solo su ubicación natural en el árbol de rutas. Las otras dos operaciones sobre hojas (`POST` y `DELETE`) sí viven en Digitalización porque modifican la composición de la sesión, no el contenido de un documento.
+- Alcance: rol `operador` solo si la sesión es suya; `administrador` cualquiera.
+- Response 200: `{ datos: [{ id, orden, tipo, fechaDocumento, estadoRevision, textoExtraido: string|null, textoCorregido: string|null, version: number, urlImagen: string }] }` — sin paginar: una sesión es un folder y se revisa completa.
+- Idempotencia / Concurrencia: no aplica — solo lectura. `version` viaja en cada hoja porque la corrección posterior con `PATCH /documentos/{id}/texto` la exige.
+- Errores: `RECURSO_NO_ENCONTRADO`, `NO_AUTENTICADO`, `NO_AUTORIZADO`
+- Autenticación: requerida
+- Versión del contrato: v1
+- **Origen:** operación faltante detectada el 2026-08-19 en la auditoría de F05. La pantalla de revisión la necesitaba y ningún contrato la declaraba; la línea frontend la había resuelto de hecho contra su doble, fuera de la interfaz. Declarada por Arquitectura para cerrar la divergencia antes de que B05 la encontrara en runtime.
 
 ---
 

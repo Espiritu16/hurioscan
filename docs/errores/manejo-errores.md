@@ -1,6 +1,6 @@
 # Manejo de errores — HuriosCan
 
-Autoridad: Arquitectura. Estado: `propuesto` hasta aprobación.
+Autoridad: Arquitectura. Estado: **aprobado** — Kevin (usuario) y Arquitectura, 2026-08-19.
 
 El sistema no expone una API JSON pública: las operaciones son rutas web y acciones Livewire. El **código** es la identidad estable del error y lo que las pruebas verifican; el **resultado HTTP** es cómo se representa en este mecanismo. La UI decide por código, nunca comparando el texto del mensaje.
 

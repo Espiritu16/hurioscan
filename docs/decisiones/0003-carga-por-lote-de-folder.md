@@ -1,6 +1,6 @@
 # ADR-0003: la digitalización se organiza por lote de folder, no por hoja suelta
-- Estado: propuesta
-- Aprobado por (Arquitectura): pendiente — fecha: pendiente
+- Estado: **aprobada**
+- Aprobado por (Arquitectura): sesión Coordinación+Arquitectura, con aprobación de Kevin — fecha: 2026-08-19
 - Contexto: el problema es un acervo histórico completo en papel, no la captura de documentos que llegan de a uno. En el archivo físico los documentos ya están agrupados en folders por número de historia clínica. Un flujo que exija identificar al paciente por cada hoja convierte esa identificación en el cuello de botella de una campaña de miles de folders, y multiplica la probabilidad de asignar una hoja al paciente equivocado, que es un error clínico grave.
 - Decisión: la unidad de trabajo es la sesión de digitalización, asociada a un único paciente y a un único operador. El paciente se selecciona una vez por sesión y queda fijado para todas sus hojas. Un paciente no puede tener dos sesiones sin cerrar a la vez, y esa regla se garantiza con un índice único parcial en la base de datos, no solo con una comprobación en la aplicación.
 - Consecuencias: digitalizar hojas sueltas que aparecieron después exige abrir una sesión nueva para ese paciente, lo que agrega un paso en un caso que se espera poco frecuente. La sesión introduce estados y transiciones que hay que implementar y probar. A cambio, la vinculación hoja–paciente deja de depender de la atención del operador en cada hoja y pasa a estar garantizada por la estructura del flujo.

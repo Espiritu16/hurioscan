@@ -1,0 +1,131 @@
+# Verificación de PRs hacia main — declarada en AGENTS.md § CI por rama.
+# Sprint D01 (docs/rfcs/D01.md): los checks de develop más la suite Feature
+# sobre PostgreSQL. El disparador workflow_dispatch permite la corrida real
+# de verificación sin esperar un PR develop→main (aprobado por el Coordinador).
+name: verificacion-main
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verificacion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_sqlite, sqlite3
+          # Mismos valores que scripts/php/hurioscan.ini — ahí está por qué
+          # son un techo de recursos, no el límite de 15 MB del producto.
+          ini-values: upload_max_filesize=50M, post_max_size=60M, max_file_uploads=200
+          coverage: none
+
+      - name: Resolver directorio de caché de Composer
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Caché de Composer
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Instalar dependencias PHP
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Preparar entorno de la aplicación
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Lint
+        run: ./vendor/bin/pint --test
+
+      - name: Tests
+        run: php artisan test
+
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Instalar dependencias de assets
+        run: pnpm install --frozen-lockfile
+
+      - name: Build de assets
+        run: pnpm build
+
+  integracion-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: hurioscan_test
+          POSTGRES_USER: hurioscan
+          # Credencial efímera del servicio del runner; no es un secreto real.
+          POSTGRES_PASSWORD: hurioscan_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hurioscan"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # El entorno real del job prevalece sobre los <env> de phpunit.xml
+      # (force=false), así que la suite Feature corre contra PostgreSQL.
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: hurioscan_test
+      DB_USERNAME: hurioscan
+      DB_PASSWORD: hurioscan_ci
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, pgsql
+          # Mismos valores que scripts/php/hurioscan.ini.
+          ini-values: upload_max_filesize=50M, post_max_size=60M, max_file_uploads=200
+          coverage: none
+
+      - name: Resolver directorio de caché de Composer
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Caché de Composer
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Instalar dependencias PHP
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Preparar entorno de la aplicación
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Migraciones desde base limpia
+        run: php artisan migrate --force
+
+      - name: Suite Feature sobre PostgreSQL
+        run: php artisan test --testsuite=Feature

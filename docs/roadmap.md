@@ -60,7 +60,7 @@ Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente 
 
 | ID | Rol | Resultado observable | Depende de | Paralelizable con | RFC | Planificación | Ejecución |
 |---|---|---|---|---|---|---|---|
-| D01 | devops | Flujos de verificación en cada pull request hacia `develop` y `main` | ninguna | F00, B01 | `docs/rfcs/D01.md` | BORRADOR | PLANIFICADO |
+| D01 | devops | Flujos de verificación en cada pull request hacia `develop` y `main` | ninguna | F00, B01 | `docs/rfcs/D01.md` | **LISTO** | **LISTO** |
 | F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01, D01 | `docs/rfcs/F00.md` | **LISTO** | **LISTO** |
 | B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | BORRADOR | PLANIFICADO |
 | F01 | implementation | Pantalla de acceso, layout y menú por rol | F00 | B01, B02 | `docs/rfcs/F01.md` | BORRADOR | PLANIFICADO |
