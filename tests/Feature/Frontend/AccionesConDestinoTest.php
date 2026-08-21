@@ -11,6 +11,7 @@ use App\Dominios\Documentos\Contratos\ServicioDocumentos;
 use App\Dominios\Pacientes\Componentes\BuscadorPacientes;
 use App\Dominios\Pacientes\Contratos\ServicioPacientes;
 use App\Dominios\Usuarios\Contratos\ServicioUsuarios;
+use App\Dominios\Usuarios\Usuario;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -44,42 +45,57 @@ class AccionesConDestinoTest extends TestCase
 
     /**
      * Páginas de la aplicación por nombre de ruta real, con los parámetros
-     * mínimos para servirlas. El catálogo de componentes queda fuera a
-     * propósito: es una vitrina de desarrollo y sus botones son muestras, no
-     * acciones.
+     * mínimos para servirlas y el rol con el que se sirven. El catálogo de
+     * componentes queda fuera a propósito: es una vitrina de desarrollo y sus
+     * botones son muestras, no acciones.
+     *
+     * El rol se agregó al integrar B01: desde que existe la autenticación, una
+     * página de la aplicación **no se sirve sin credencial** —esa es justamente
+     * la propiedad que B01 aporta—, así que probarla exige entrar. `null` es el
+     * formulario de acceso, la única pantalla que alcanza el anónimo.
+     *
+     * El rol elegido es el que la matriz de permisos concede a esa operación;
+     * que una página exija administrador y otra operador no es un detalle de la
+     * prueba, es el contenido de `docs/requisitos/actores-permisos.md`.
      */
     public static function paginasDeLaAplicacion(): array
     {
         return [
-            'acceder' => ['acceder', []],
-            'pacientes' => ['pacientes', []],
-            'pacientes.alta' => ['pacientes.alta', []],
-            'pacientes.detalle' => ['pacientes.detalle', ['pacienteId' => 1]],
+            'acceder' => ['acceder', [], null],
+            'pacientes' => ['pacientes', [], 'operador'],
+            'pacientes.alta' => ['pacientes.alta', [], 'operador'],
+            'pacientes.detalle' => ['pacientes.detalle', ['pacienteId' => 1], 'operador'],
             // La apertura cuelga del paciente: su ruta lleva `pacienteId`,
             // que es la propiedad que espera el componente.
-            'sesiones.apertura' => ['sesiones.apertura', ['pacienteId' => 1]],
-            'sesiones.pendientes' => ['sesiones.pendientes', []],
-            'sesiones.detalle' => ['sesiones.detalle', ['sesionId' => 77]],
-            'sesiones.revision' => ['sesiones.revision', ['sesionId' => 77]],
-            'sesiones.cierre' => ['sesiones.cierre', ['sesionId' => 77]],
-            'ilegibles' => ['ilegibles', []],
-            'buscar (sin término)' => ['buscar', []],
+            'sesiones.apertura' => ['sesiones.apertura', ['pacienteId' => 1], 'operador'],
+            'sesiones.pendientes' => ['sesiones.pendientes', [], 'operador'],
+            'sesiones.detalle' => ['sesiones.detalle', ['sesionId' => 77], 'operador'],
+            'sesiones.revision' => ['sesiones.revision', ['sesionId' => 77], 'operador'],
+            'sesiones.cierre' => ['sesiones.cierre', ['sesionId' => 77], 'operador'],
+            'ilegibles' => ['ilegibles', [], 'operador'],
+            'buscar (sin término)' => ['buscar', [], 'operador'],
             // Con resultados aparecen controles que el estado inicial no
             // muestra; sin esto la página se probaría vacía.
-            'buscar (con resultados)' => ['buscar', ['q' => 'hipertensión']],
-            'pacientes.detalle (filtrado)' => ['pacientes.detalle', ['pacienteId' => 1, 'tipo' => 'receta']],
-            'documentos.detalle' => ['documentos.detalle', ['documentoId' => 8142]],
-            'documentos.detalle (ilegible)' => ['documentos.detalle', ['documentoId' => 8144]],
-            'avance' => ['avance', []],
-            'usuarios' => ['usuarios', []],
-            'auditoria' => ['auditoria', []],
-            'auditoria (filtrada)' => ['auditoria', ['entidad' => 'Paciente']],
+            'buscar (con resultados)' => ['buscar', ['q' => 'hipertensión'], 'operador'],
+            'pacientes.detalle (filtrado)' => ['pacientes.detalle', ['pacienteId' => 1, 'tipo' => 'receta'], 'operador'],
+            'documentos.detalle' => ['documentos.detalle', ['documentoId' => 8142], 'operador'],
+            'documentos.detalle (ilegible)' => ['documentos.detalle', ['documentoId' => 8144], 'operador'],
+            'avance' => ['avance', [], 'operador'],
+            'usuarios' => ['usuarios', [], 'administrador'],
+            'auditoria' => ['auditoria', [], 'administrador'],
+            'auditoria (filtrada)' => ['auditoria', ['entidad' => 'Paciente'], 'administrador'],
         ];
     }
 
     #[DataProvider('paginasDeLaAplicacion')]
-    public function test_ninguna_accion_de_la_pagina_queda_sin_destino(string $nombre, array $parametros): void
+    public function test_ninguna_accion_de_la_pagina_queda_sin_destino(string $nombre, array $parametros, ?string $rol): void
     {
+        if ($rol !== null) {
+            // Sin persistir: al middleware le basta el rol y el estado de la
+            // cuenta, y así esta prueba sigue sin necesitar base de datos.
+            $this->actingAs(Usuario::factory()->conRol($rol)->make());
+        }
+
         // Antes esto era un `markTestSkipped`, escrito cuando las rutas aún no
         // existían para no romper el CI. Cumplió su función y quedó, pero
         // saltarse la prueba cuando la ruta falta apaga la guarda justo en el
