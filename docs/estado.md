@@ -333,6 +333,62 @@ QA confirmó además que las dos decisiones de perímetro del implementador **no
 4. Una justificación en la migración afirma que «la validación de aplicación rechaza igual un rol fuera del conjunto», y esa validación **no existe en este SHA** — es de B07. La decisión sigue siendo correcta; la justificación describe algo que aún no está.
 
 
+
+## QA-B01-03 — la contraseña viaja al cliente en el snapshot de Livewire
+
+**No conformidad abierta, severidad media. Detectada y reproducida por Coordinación el
+2026-08-21**, al cerrar un hueco del criterio de parámetros sensibles que la línea
+backend había señalado. **No la encontró QA** — apareció mirando por dónde más viaja el
+mismo dato, que es justamente la pregunta que el criterio no se había hecho.
+
+### El defecto
+
+`FormularioAcceso::$password` es una **propiedad pública** de un componente Livewire, y
+Livewire serializa las propiedades públicas en el snapshot que viaja al cliente y vuelve
+en cada petición. Medido, no leído:
+
+| Dónde | ¿Aparece la contraseña? |
+|---|---|
+| HTML renderizado | no |
+| **Snapshot de Livewire** | **sí — viaja al cliente** |
+
+Y hay un segundo filo: el componente hace `$this->password = ''` **solo en el camino de
+error**. En el acceso **exitoso** (`FormularioAcceso::acceder()`, tras autenticar) la
+propiedad conserva la contraseña hasta la redirección.
+
+### Por qué es de la misma familia que QA-B01-01 y QA-B01-02, y por qué no la vieron
+
+Los tres son «la contraseña sale por un canal que nadie estaba mirando». Los dos
+primeros eran stack traces; éste es el transporte del componente. **Las correcciones
+anteriores no lo tocan ni podían tocarlo:** `#[\SensitiveParameter]` protege parámetros
+y esto es una propiedad; `zend.exception_ignore_args` protege trazas y esto no es una
+traza.
+
+Tampoco lo habrían visto las pruebas existentes: `PantallaAccesoTest` verifica que tras
+un error la propiedad queda vacía —y eso pasa— pero nunca preguntó qué contiene el
+snapshot mientras la persona escribe.
+
+### Severidad, sin inflarla ni suavizarla
+
+**Media.** El snapshot va al navegador de quien escribió la contraseña, así que no es
+una fuga hacia un tercero por sí sola. Lo que la hace real es la superficie que abre:
+queda en el DOM y en el historial de red del navegador, alcanzable por cualquier
+extensión y por cualquier XSS en la aplicación. Roza **RNF-014** —«ningún log, mensaje
+de error o respuesta expone credenciales»— porque el snapshot forma parte de la
+respuesta.
+
+### Quién la resuelve, y por qué no la corrigió Coordinación al encontrarla
+
+`app/Dominios/Usuarios/Componentes/` es ruta de la **línea frontend**, y el arreglo no
+es de una línea: limpiar la propiedad en el camino exitoso corrige el segundo filo pero
+**no el primero**, porque la contraseña ya viajó al cliente cuando la persona la
+escribió. Cerrarlo de verdad exige decidir cómo se compone la pantalla, y eso es
+**Arquitectura junto con la línea frontend**, no una corrección al vuelo del Coordinador.
+
+**No bloquea nada hoy** y no reabre B01, que QA aprobó sobre lo que se le pidió validar.
+Se registra con dueño en lugar de aceptarse como deuda, igual que se hizo con
+`QA-B01-02`.
+
 ## QA-B01-02 — cerrado el 2026-08-21 en la capa de entorno
 
 `zend.exception_ignore_args=1` en `scripts/php/hurioscan.ini`, con su comentario.
