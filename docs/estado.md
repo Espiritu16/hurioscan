@@ -155,7 +155,7 @@ pisó una vez (ver «Punto de retomada — 2026-08-21»).
 2. **Aprobar el RFC de B02** —lo aprueba Kevin, sobre el documento completo— para habilitar el siguiente sprint. Todas sus fuentes ya están aprobadas; solo falta su firma.
 3. Los pares `B`/`F` se integran de a uno: B01 con F01, B02 con F02, y así. Recién ahí cada sprint `F` pasa a `COMPLETADO`.
 
-**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02 y los siguientes; los dos huecos de `AGENTS.md` descritos más abajo, porque tocar permisos es cambio material; qué hacer con el despliegue de Vercel; y el límite de intentos de acceso. Todo está detallado en sus secciones.
+**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02 y los siguientes; qué hacer con el despliegue de Vercel de `~/hurioscan-deploy`; y si el límite de intentos de acceso entra al alcance (exige un RF o RNF nuevo). Todo está detallado en sus secciones. **Los dos huecos de `AGENTS.md` ya no están en esta lista:** se cerraron el 2026-08-20 con su aprobación, aunque el documento siguió pidiéndosela un día más.
 
 
 
@@ -285,9 +285,22 @@ Directorio **sin Git** en el disco de Kevin, del 2026-08-18. Inspeccionado el 20
 
 **Recomendación de Coordinación, pendiente de decisión de Kevin.** `.vercel/` **no debe versionarse** —es la convención de la propia herramienta y el `.gitignore` local ya lo excluye—. Sobre los otros dos, la pregunta de fondo no es si versionarlos sino **si ese despliegue sigue teniendo sentido**: publica el diseño de referencia, y la interfaz real ya está construida. Dos caminos limpios: declararlo **descartable** —el diseño vive en el repositorio y el despliegue es una vitrina reemplazable—, o **absorberlo** al repositorio con su `vercel.json` versionado y el despliegue tomando el HTML desde `docs/frontend/diseno/`, en vez de una copia suelta. Lo que conviene evitar es el estado actual: una copia del diseño fuera de Git que puede divergir del original sin que nadie lo note. Los 235 MB del directorio son `node_modules`.
 
-### Dos huecos de `AGENTS.md` detectados al auditar B01 — requieren aprobación de Kevin
+### Dos huecos de `AGENTS.md` detectados al auditar B01 — **CERRADOS el 2026-08-20**
 
-Tocar permisos es **cambio material**: devolvería el archivo a `BORRADOR`, así que no se corrigen sin su firma. Ninguno bloquea nada hoy.
+> **Ya no esperan nada.** Kevin aprobó la corrección de ambos el 2026-08-20 y
+> `AGENTS.md` la incorpora: el reparto de `tests/Feature/` por línea con su zona de
+> corrección cruzada (§ Pruebas — reparto por línea) y la declaración de que el
+> proyecto no usa `app/Models/` (§ `app/Models/` — el proyecto no la usa). Verificado
+> el 2026-08-21 contra el archivo real, que registra ambos como su «última revisión
+> material» con aprobación de Kevin en esa fecha.
+>
+> Figuraron como «requieren aprobación de Kevin» durante un día después de tenerla.
+> Se conserva el texto porque explica qué se corrigió y por qué; **lo que ya no es
+> cierto es que estén pendientes.**
+
+Cuando se detectaron, el razonamiento fue: tocar permisos es **cambio material**, y
+devolvería el archivo a `BORRADOR`, así que no se corregían sin su firma. Ninguno
+bloqueaba nada mientras tanto.
 
 1. **`tests/Feature/` se solapa entre las dos líneas.** La línea backend puede escribir `tests/Feature/` sin exclusión, y eso engloba `tests/Feature/Frontend/`, que es de la línea frontend. `AGENTS.md` afirma que las dos líneas tienen «rutas escribibles disjuntas» y **en este punto no lo son**. Salió a la luz porque B01 modificó legítimamente una prueba de frontend que su propio cambio rompía. Corrección propuesta: excluir `tests/Feature/Frontend/` de las rutas de backend, o declarar explícitamente ese directorio como zona compartida con dueño, igual que se hizo con `routes/web.php`.
 2. **`app/Models/` no tiene dueño.** No figura ni entre las rutas permitidas ni entre las prohibidas de ninguna línea. B01 eliminó allí un modelo huérfano que apuntaba a una tabla renombrada —QA confirmó que no dejó residuos— pero lo hizo sobre una carpeta que la gobernanza no asigna a nadie. Corrección propuesta: asignarla a la línea backend, o declarar que el proyecto no la usa por su estructura domain-first y por tanto debe permanecer vacía.
@@ -451,7 +464,16 @@ También evaluó encaminar los avisos a un archivo y decidió no hacerlo: con `l
 
 Que `composer dev` delegue en `scripts/servir-desarrollo.sh` cerraría el agujero del arranque directo en el punto de entrada más usado. Hoy la única defensa es el encabezado que advierte, **y una advertencia depende de que alguien la lea**. `composer.json` es ruta de la línea backend, así que la decisión es suya, no de DevOps.
 
-### Revisión de cobertura ficticia — aprobada por Kevin, pendiente de despacho
+### Revisión de cobertura ficticia — **DESPACHADA Y CERRADA**
+
+> **Ya no está pendiente de despacho.** QA la ejecutó y encontró las tres alarmas
+> apagadas (informe más arriba); las tres correcciones se hicieron y están fusionadas
+> en `develop` — ramas `fix/guardas-apagadas`, `fix/asercion-vacua` y
+> `fix/menu-sin-ruta`, verificadas como ancestros de `develop` el 2026-08-21. Se
+> conserva el texto porque el criterio que la sustentó sigue siendo el del proyecto.
+>
+> **Y no agotó el patrón:** el cuarto caso apareció después, en B01, sobre una guarda
+> de seguridad — es `QA-B01-01`.
 
 Kevin aprobó revisar las 135 pruebas buscando aserciones que no puedan fallar nunca, como unidad propia de QA. Criterio de QA que sustentó la decisión: los tres casos conocidos fallaron **de la misma manera** —la prueba comprobaba una cadena de texto en vez del hecho—, y esa firma reconocible hace la búsqueda barata: se va directo a las aserciones sobre literales y se pregunta de cada una si puede fallar alguna vez. El foco, por rendimiento esperado, va a las aserciones sobre texto de terceros (obsolescencia silenciosa), a las que niegan cadenas que quizá nunca existan (no fallan por definición) y a las pruebas cuya premisa dependa del entorno en vez de fabricarla.
 
