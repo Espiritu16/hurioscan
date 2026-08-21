@@ -8,6 +8,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -30,6 +31,37 @@ return Application::configure(basePath: dirname(__DIR__))
         // La contraseña no se reenvía a la sesión al fallar una validación
         // (RNF-014): de ahí saldría a un log o a un volcado de depuración.
         $exceptions->dontFlash(['password', 'password_confirmation', 'current_password']);
+
+        // Un `ErrorDeAplicacion` no se reporta por el camino por defecto de
+        // Laravel, porque ese camino escribe el **stack trace** y el trace de
+        // PHP lleva los argumentos de cada frame. El frame de
+        // `autenticar($email, $password, $recordar)` deja ahí la contraseña en
+        // claro: PHP recorta las cadenas a 15 caracteres y el validador exige
+        // 8 como mínimo, así que toda contraseña de 8 a 15 caracteres quedaba
+        // escrita entera (QA-B01-01, RNF-014, `docs/contratos/usuarios.md`).
+        //
+        // No se cambia una pérdida silenciosa por otra: en lugar del trace se
+        // escribe una línea estructurada con la identidad del error —su
+        // `codigo`— y el punto exacto donde se lanzó. Lo único que se pierde es
+        // la cadena de llamadas, que es justo lo que transporta los secretos.
+        // El nivel se deriva del status ya aprobado en
+        // `docs/errores/manejo-errores.md`, sin inventar una segunda tabla que
+        // mantener: un 4xx lo causa quien llama y es tráfico normal —un
+        // `NO_AUTENTICADO` rutinario no es un incidente—; un 5xx es el sistema
+        // fallando y sí lo es.
+        $exceptions->report(function (ErrorDeAplicacion $e): bool {
+            $estado = EstadoHttpDelError::para($e->getCodigo());
+
+            Log::log($estado >= 500 ? 'error' : 'info', $e->getMessage(), [
+                'codigo' => $e->getCodigo(),
+                'estado' => $estado,
+                'origen' => $e->getFile().':'.$e->getLine(),
+            ]);
+
+            // Detiene el reporte por defecto: devolver `false` es lo que
+            // impide que Laravel vuelva a registrar la excepción con su trace.
+            return false;
+        });
 
         // Toda condición de error del dominio sale con el status que le asigna
         // `docs/errores/manejo-errores.md`. El cuerpo conserva el `codigo`, que

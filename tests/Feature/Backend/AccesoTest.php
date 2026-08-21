@@ -9,6 +9,7 @@ use App\Dominios\Usuarios\Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -21,7 +22,19 @@ class AccesoTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const CLAVE = 'clave-de-prueba-77';
+    /**
+     * Contraseña de la fixture general: **8 caracteres**, el mínimo que admite
+     * el validador.
+     *
+     * La longitud no es un detalle cosmético. Los stack traces de PHP recortan
+     * los argumentos de tipo cadena a 15 caracteres, así que una fixture más
+     * larga que eso **no puede** delatar una fuga al log comparando contra la
+     * cadena completa: el trace nunca la contiene entera. Con la anterior, de
+     * 18 caracteres, `test_la_contrasena_no_aparece_en_ningun_log` pasaba
+     * mientras la contraseña se escribía en claro (QA-B01-01). Cualquier
+     * fixture nueva se elige por debajo del recorte, no lejos de él.
+     */
+    private const CLAVE = 'clave-77';
 
     private function usuario(array $atributos = []): Usuario
     {
@@ -198,14 +211,43 @@ class AccesoTest extends TestCase
     }
 
     /**
+     * Longitudes que rodean el recorte de los stack traces de PHP.
+     *
+     * PHP escribe los argumentos de cada frame recortando las cadenas a 15
+     * caracteres. Por eso las tres longitudes se eligen **alrededor** de ese
+     * borde y no lejos de él: 8 es el mínimo que admite el validador y cae
+     * dentro del recorte; 15 es exactamente el borde, la contraseña más larga
+     * que aún se escribe entera; 18 lo cruza, y ahí la fuga es un prefijo, que
+     * sigue siendo una fuga.
+     *
+     * @return array<string, array{string}>
+     */
+    public static function contrasenasAlrededorDelRecorteDelTrace(): array
+    {
+        return [
+            '8 caracteres (mínimo del validador)' => ['clave-08'],
+            '15 caracteres (el borde exacto)' => ['clave-de-15-car'],
+            '18 caracteres (cruza el borde)' => ['clave-de-prueba-18'],
+        ];
+    }
+
+    /**
      * La contraseña no aparece en ningún log (RNF-014, criterio de UT-02).
      *
-     * La comprobación empieza por escribir una marca propia en el archivo y
-     * verificar que llega: sin eso, «la contraseña no está en el log» sería
-     * cierto simplemente porque el log está en otro sitio, y la guarda no
-     * podría fallar nunca.
+     * Dos controles hacen que esta prueba pueda fallar de verdad, y ninguno
+     * sobra:
+     *
+     * 1. La comprobación empieza escribiendo una marca propia en el archivo y
+     *    verificando que llega. Sin eso, «la contraseña no está en el log»
+     *    sería cierto simplemente porque el log está en otro sitio.
+     * 2. Se afirma sobre la contraseña completa **y sobre sus primeros 15
+     *    caracteres**. Solo con la primera aserción, una contraseña más larga
+     *    que el recorte del trace no podría delatar nada: el trace nunca la
+     *    contiene entera. Ése fue el defecto QA-B01-01 — la prueba existía,
+     *    corría en verde y no verificaba nada.
      */
-    public function test_la_contrasena_no_aparece_en_ningun_log(): void
+    #[DataProvider('contrasenasAlrededorDelRecorteDelTrace')]
+    public function test_la_contrasena_no_aparece_en_ningun_log(string $clave): void
     {
         $ruta = storage_path('logs/prueba-acceso-'.uniqid().'.log');
 
@@ -217,21 +259,32 @@ class AccesoTest extends TestCase
         Log::debug('marca-de-canario');
         $this->assertStringContainsString('marca-de-canario', file_get_contents($ruta), 'el log de prueba no es el destino real');
 
-        $this->usuario();
+        $this->usuario(['password' => $clave]);
 
         // Los cuatro caminos que tocan la contraseña: éxito, credencial
-        // inválida, validación fallida y cierre de sesión.
-        $this->post('/acceder', ['email' => 'operador@hurioscan.test', 'password' => self::CLAVE]);
-        $this->post('/acceder', ['email' => 'operador@hurioscan.test', 'password' => self::CLAVE.'-mal']);
-        $this->post('/acceder', ['email' => 'no-es-correo', 'password' => self::CLAVE]);
+        // inválida (401), validación fallida (422) y cierre de sesión.
+        $this->post('/acceder', ['email' => 'operador@hurioscan.test', 'password' => $clave])
+            ->assertRedirect(route('avance'));
+        $this->post('/acceder', ['email' => 'operador@hurioscan.test', 'password' => $clave.'-mal'])
+            ->assertStatus(401);
+        $this->post('/acceder', ['email' => 'no-es-correo', 'password' => $clave])
+            ->assertStatus(422);
         $this->post('/salir');
 
         $contenido = file_get_contents($ruta);
         unlink($ruta);
 
-        $this->assertStringNotContainsString(self::CLAVE, $contenido);
+        // Quitar el trace no puede dejar ciega a la aplicación: la identidad
+        // del error —su `codigo`— se sigue registrando en los dos caminos.
+        // Sin esto, la corrección de QA-B01-01 cambiaría una pérdida
+        // silenciosa por otra y la prueba no lo notaría.
+        $this->assertStringContainsString('NO_AUTENTICADO', $contenido, 'el fallo de credencial dejó de registrarse');
+        $this->assertStringContainsString('VALIDACION_ENTRADA', $contenido, 'el fallo de validación dejó de registrarse');
+
+        $this->assertStringNotContainsString($clave, $contenido);
+        $this->assertStringNotContainsString(mb_substr($clave, 0, 15), $contenido, 'el log conserva el prefijo que el trace deja al recortar');
         // Y tampoco vuelve al navegador como input recordado.
-        $this->assertStringNotContainsString(self::CLAVE, json_encode(session()->all()));
+        $this->assertStringNotContainsString($clave, json_encode(session()->all()));
     }
 
     /** Mensaje del `NO_AUTENTICADO` que lanza el servicio, sin pasar por HTTP. */
