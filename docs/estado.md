@@ -2,11 +2,11 @@
 project: HuriosCan
 source_status: CANONICA
 baseline: línea base completa y aprobada — RF, RNF, contratos, modelo, errores, permisos y los cinco ADR
-active_phase: B01
-active_status: EN_VALIDACION
+active_phase: ninguna — proyecto en reposo deliberado desde 2026-08-21
+active_status: REPOSO
 last_completed_phase: D01
 bootstrap_status: COMPLETO
-planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; B01 habilitado, B02–B07 con RFC en propuesto
+planning_horizon_status: PARCIAL — frontend y B01 en EN_VALIDACION; B02–B07 con RFC en propuesto; puntos de integración sin RFC salvo I01, redactado y sin firmar
 current_rfc_batch: [D01, F00, B01, F01, B02, F02, B03, F03, B04, F05, B05, F06, B06, F07, B07]
 planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014, RF-015]
 updated_at: 2026-08-21
@@ -132,7 +132,7 @@ pisó una vez (ver «Punto de retomada — 2026-08-21»).
 
 **Qué es HuriosCan.** Un sistema para digitalizar el archivo clínico en papel de un establecimiento de salud: se escanean las hojas de cada folder, un OCR extrae su texto, una persona lo revisa, y después el documento se puede buscar por lo que dice adentro. Proyecto de curso universitario, cinco integrantes, doce semanas, dos personas programan. Laravel 13 + Livewire + PostgreSQL, un solo repositorio.
 
-**En qué punto está, en una frase:** toda la interfaz está construida y validada contra datos ficticios, el backend acaba de empezar y su primer sprint está bloqueado por un defecto de seguridad.
+**En qué punto está, en una frase:** toda la interfaz y el primer sprint de backend están construidos, validados por QA e integrados; **el proyecto está detenido a propósito desde el 2026-08-21**, esperando que Kevin firme el siguiente paso. Empieza por «Punto de reposo — 2026-08-21», más abajo: es la sección vigente y las anteriores son historia.
 
 **Qué hay hecho de verdad**
 - **D01 — COMPLETADO.** Integración continua: cada PR hacia `develop` corre lint, pruebas y build; cada PR hacia `main` añade la suite contra PostgreSQL real. Funciona y ya detuvo defectos reales.
@@ -151,11 +151,11 @@ pisó una vez (ver «Punto de retomada — 2026-08-21»).
 **Lo primero que necesitas saber para trabajar:** `main` y `develop` están protegidas en GitHub. Nada entra sin PR y sin CI en verde, ni siquiera siendo administrador. Un sprint se ejecuta en su propio worktree, en una rama `sprint/<id>`, y entra por PR hacia `develop`.
 
 **Qué sigue, en orden**
-1. ~~**Desbloquear B01** corrigiendo QA-B01-01~~ → **corregido el 2026-08-21**; el sprint está en `EN_VALIDACION` y QA lo revalida. Ver la sección de B01 más abajo.
-2. **Aprobar el RFC de B02** —lo aprueba Kevin, sobre el documento completo— para habilitar el siguiente sprint. Todas sus fuentes ya están aprobadas; solo falta su firma.
-3. Los pares `B`/`F` se integran de a uno: B01 con F01, B02 con F02, y así. Recién ahí cada sprint `F` pasa a `COMPLETADO`.
+1. ~~**Desbloquear B01**~~ → hecho: corregido, QA `APROBADO`, integrado en `develop` y en `main` el 2026-08-21.
+2. **Nada está en marcha.** El proyecto está en reposo por decisión de Kevin. Lo que sigue, qué falta para habilitarlo y qué espera por él está en la tabla de «Punto de reposo — 2026-08-21».
+3. Los pares `B`/`F` se integran de a uno: B01 con F01, B02 con F02, y así. Recién ahí cada sprint `F` pasa a `COMPLETADO`. **El RFC del primero está redactado y sin firmar**; los otros cinco no existen.
 
-**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02, el del punto de integración B01 + F01, y el RNF nuevo del límite de intentos de acceso — los tres se le presentan juntos para aprobar. **Ya no esperan nada:** los dos huecos de `AGENTS.md` (cerrados el 2026-08-20) y el despliegue de Vercel (Kevin lo eliminó el 2026-08-21).
+**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02, el del punto de integración B01 + F01 (`I01`) y el RNF-015 del límite de intentos — los tres están redactados, presentados y **sin firmar a propósito** en el PR #64. **Ya no esperan nada:** los dos huecos de `AGENTS.md` (cerrados el 2026-08-20) y el despliegue de Vercel (eliminado el 2026-08-21).
 
 
 
@@ -334,60 +334,81 @@ QA confirmó además que las dos decisiones de perímetro del implementador **no
 
 
 
-## QA-B01-03 — la contraseña viaja al cliente en el snapshot de Livewire
+## La contraseña se ha escapado tres veces por tres canales distintos
 
-**No conformidad abierta, severidad media. Detectada y reproducida por Coordinación el
-2026-08-21**, al cerrar un hueco del criterio de parámetros sensibles que la línea
-backend había señalado. **No la encontró QA** — apareció mirando por dónde más viaja el
-mismo dato, que es justamente la pregunta que el criterio no se había hecho.
+**Léelo como un solo defecto con tres síntomas, no como tres incidencias.** Es la forma
+en que este proyecto lo descubrió —una por una, tapando cada una por separado— y es
+justo la lectura que hay que evitar al retomar.
 
-### El defecto
+| # | Canal por donde salió | Cómo se tapó | Estado |
+|---|---|---|---|
+| `QA-B01-01` | **El log.** `ErrorDeAplicacion` pasaba por el reporte por defecto de Laravel, que escribe el stack trace, y el trace lleva los argumentos de cada frame | Se dejó de emitir el trace; se registra una línea estructurada con `codigo`, `estado` y `origen` | cerrada |
+| `QA-B01-02` | **El trace crudo de una excepción inesperada.** Un `QueryException` dentro de `autenticar()` seguía escribiéndola, con `APP_DEBUG` en cualquier valor | `zend.exception_ignore_args=1` en la capa de entorno, más `#[\SensitiveParameter]` en la firma | cerrada |
+| `QA-B01-03` | **El snapshot de Livewire, que viaja al cliente.** `FormularioAcceso::$password` es una propiedad pública, y Livewire las serializa en el snapshot que va al navegador y vuelve en cada petición | **nada todavía** | **ABIERTA** |
 
-`FormularioAcceso::$password` es una **propiedad pública** de un componente Livewire, y
-Livewire serializa las propiedades públicas en el snapshot que viaja al cliente y vuelve
-en cada petición. Medido, no leído:
+### La causa que las tres comparten, y que sigue viva
+
+**La contraseña viaja como dato suelto por estructuras que se serializan.** Nada más.
+Cada canal es una estructura distinta —un stack trace, un array de argumentos, un
+snapshot de componente— y todas tienen en común que alguien las convierte en texto y las
+escribe o las envía. Mientras el dato circule así, **el siguiente canal que aparezca la
+volverá a llevar**, y no hay razón para creer que el snapshot es el último: quedan por
+delante la auditoría de B07, la cola de trabajos de B04 y cualquier serialización que
+B02–B07 introduzcan.
+
+**Las tres se taparon por separado, y esa es exactamente la señal.** Tres correcciones
+distintas, en tres capas distintas, ninguna de las cuales protegía a las otras dos: el
+atributo protege parámetros y no cubre una propiedad; la directiva protege trazas y no
+cubre un snapshot; la línea estructurada del log no cubre ninguno de los otros dos.
+Tapar el cuarto canal cuando aparezca costará otra corrección igual de aislada.
+
+### Lo que lo cerraría de verdad
+
+El principio que **ya está aprobado** en
+`docs/contratos/servicios-aplicacion.md` § Parámetros sensibles, escrito el 2026-08-21 al
+decidir la firma de `autenticar()`: **un secreto no viaja dentro de una estructura junto
+a datos no sensibles — se saca a un lugar propio, marcado como sensible.** Ese documento
+lo aplica a parámetros y a estructuras de argumentos; extenderlo al **transporte del
+componente** es lo que cierra la clase entera en vez del tercer síntoma.
+
+No es trabajo del Coordinador: `app/Dominios/Usuarios/Componentes/` es de la **línea
+frontend**, y decidir cómo se compone la pantalla de acceso para que la contraseña no
+sea una propiedad pública es **Arquitectura junto con esa línea**. Se registra aquí con
+dueño en vez de aceptarse como deuda.
+
+### QA-B01-03 — el detalle del tercer síntoma
+
+**Severidad media. Abierta. Detectada y reproducida por Coordinación el 2026-08-21**, al
+cerrar un hueco del criterio que la línea backend había señalado. **No la encontró QA**:
+apareció al preguntar por dónde *más* viaja el mismo dato, que es la pregunta que el
+criterio no se había hecho.
+
+Medido, no leído:
 
 | Dónde | ¿Aparece la contraseña? |
 |---|---|
 | HTML renderizado | no |
 | **Snapshot de Livewire** | **sí — viaja al cliente** |
 
-Y hay un segundo filo: el componente hace `$this->password = ''` **solo en el camino de
-error**. En el acceso **exitoso** (`FormularioAcceso::acceder()`, tras autenticar) la
-propiedad conserva la contraseña hasta la redirección.
+Y un segundo filo: `FormularioAcceso::acceder()` hace `$this->password = ''` **solo en el
+camino de error**. En el acceso **exitoso** la propiedad conserva la contraseña hasta la
+redirección.
 
-### Por qué es de la misma familia que QA-B01-01 y QA-B01-02, y por qué no la vieron
+**Por qué ninguna prueba lo vio:** `PantallaAccesoTest` verifica que tras un error la
+propiedad queda vacía —y eso pasa— pero nunca preguntó qué contiene el snapshot mientras
+la persona escribe.
 
-Los tres son «la contraseña sale por un canal que nadie estaba mirando». Los dos
-primeros eran stack traces; éste es el transporte del componente. **Las correcciones
-anteriores no lo tocan ni podían tocarlo:** `#[\SensitiveParameter]` protege parámetros
-y esto es una propiedad; `zend.exception_ignore_args` protege trazas y esto no es una
-traza.
+**Severidad, sin inflarla ni suavizarla.** El snapshot va al navegador de quien escribió
+la contraseña, así que no es una fuga hacia un tercero por sí sola. Lo que la hace real
+es la superficie que abre: queda en el DOM y en el historial de red del navegador,
+alcanzable por cualquier extensión y por cualquier XSS en la aplicación. Roza **RNF-014**
+—«ningún log, mensaje de error o respuesta expone credenciales»— porque el snapshot forma
+parte de la respuesta.
 
-Tampoco lo habrían visto las pruebas existentes: `PantallaAccesoTest` verifica que tras
-un error la propiedad queda vacía —y eso pasa— pero nunca preguntó qué contiene el
-snapshot mientras la persona escribe.
-
-### Severidad, sin inflarla ni suavizarla
-
-**Media.** El snapshot va al navegador de quien escribió la contraseña, así que no es
-una fuga hacia un tercero por sí sola. Lo que la hace real es la superficie que abre:
-queda en el DOM y en el historial de red del navegador, alcanzable por cualquier
-extensión y por cualquier XSS en la aplicación. Roza **RNF-014** —«ningún log, mensaje
-de error o respuesta expone credenciales»— porque el snapshot forma parte de la
-respuesta.
-
-### Quién la resuelve, y por qué no la corrigió Coordinación al encontrarla
-
-`app/Dominios/Usuarios/Componentes/` es ruta de la **línea frontend**, y el arreglo no
-es de una línea: limpiar la propiedad en el camino exitoso corrige el segundo filo pero
-**no el primero**, porque la contraseña ya viajó al cliente cuando la persona la
-escribió. Cerrarlo de verdad exige decidir cómo se compone la pantalla, y eso es
-**Arquitectura junto con la línea frontend**, no una corrección al vuelo del Coordinador.
-
-**No bloquea nada hoy** y no reabre B01, que QA aprobó sobre lo que se le pidió validar.
-Se registra con dueño en lugar de aceptarse como deuda, igual que se hizo con
-`QA-B01-02`.
+**No bloquea nada hoy y no reabre B01**, que QA aprobó sobre lo que se le pidió validar.
+Corregirlo no es de una línea: limpiar la propiedad en el camino exitoso arregla el
+segundo filo pero **no el primero**, porque la contraseña ya viajó al cliente cuando la
+persona la escribió.
 
 ## QA-B01-02 — cerrado el 2026-08-21 en la capa de entorno
 
@@ -837,73 +858,124 @@ Sesión pausada por ausencia de Kevin. **Todo el trabajo está persistido en `or
 
 Cualquier sesión que retome reconstruye desde aquí y desde Git, nunca desde la conversación anterior.
 
-## Punto de retomada — 2026-08-21
+## Punto de reposo — 2026-08-21
 
-**Vigente.** Reemplaza en autoridad al del 2026-08-19, que queda como historia.
-El proyecto estuvo detenido desde el 2026-08-19; se retomó el 2026-08-21 y lo
-primero que se hizo fue alinear estos documentos con Git, porque cinco cosas que
-afirmaban habían dejado de ser ciertas.
+**El proyecto se detiene aquí a propósito, por decisión de Kevin.** No es un bloqueo ni
+un problema: es una parada deliberada con el trabajo en un estado consistente. Reemplaza
+en autoridad al «Punto de retomada — 2026-08-21» anterior y a todas las instantáneas
+previas.
 
-### Estado real verificado contra Git
+### Si acabas de llegar y no presenciaste ninguna conversación, esto es todo lo que necesitas
 
-| Qué | Valor | Cómo se comprobó |
+**Qué es HuriosCan.** Un sistema para digitalizar el archivo clínico en papel de un
+establecimiento de salud: se escanean las hojas de cada folder, un OCR extrae su texto,
+una persona lo revisa, y después el documento se puede buscar por lo que dice adentro.
+Proyecto de curso universitario, Laravel 13 + Livewire + PostgreSQL, un solo repositorio.
+
+**En qué punto está, en una frase:** toda la interfaz está construida y validada contra
+datos ficticios, el primer sprint de backend está hecho y validado, y **el proyecto está
+detenido a propósito esperando que Kevin firme el siguiente paso.**
+
+**Qué hay hecho de verdad**
+
+- **D01 — `COMPLETADO`.** Integración continua: cada PR hacia `develop` corre lint,
+  pruebas y build; cada PR hacia `main` añade la suite contra PostgreSQL real.
+- **B01 — `EN_VALIDACION`, QA `APROBADO`, integrado.** Acceso con usuario y contraseña,
+  los tres roles, y el mecanismo de autorización que rechaza por defecto.
+- **F00 a F07 — `EN_VALIDACION`, QA `APROBADO`, integrados.** Las dieciséis pantallas,
+  navegables en sus URLs, verificadas en cuatro anchos y con revisión de accesibilidad.
+- **La línea base documental completa y aprobada:** 15 RF, los RNF, cuatro contratos de
+  dominio, el modelo de persistencia, la taxonomía de errores, la matriz de actores y
+  permisos, y cinco ADR.
+
+**Por qué ningún sprint está `COMPLETADO`, y es correcto.** El roadmap declara que *«un
+par `B`/`F` no está cerrado hasta que se integran de verdad»*. Los sprints `F` funcionan
+contra **dobles de desarrollo** —piezas que devuelven datos fijos en lugar de consultar
+la base— y cada uno se cierra recién cuando su sprint `B` lo reemplaza por el servicio
+real. Ese trabajo, el **punto de integración**, no se ha hecho para ninguno de los seis
+pares.
+
+**Qué NO hay.** No hay sistema funcionando. Sin base de datos poblada, sin OCR, sin
+búsqueda. Si abres la aplicación con los dobles encendidos verás algo que parece el
+producto, pero nada se guarda.
+
+### Qué sigue, qué falta para habilitarlo, y qué espera por Kevin
+
+Nada de esto está en marcha. Todo espera una firma que solo Kevin puede dar.
+
+| Qué sigue | Qué falta para habilitarlo | Quién lo destraba |
 |---|---|---|
-| Rama y SHA | `develop @ 914f633` | `git rev-parse HEAD`; working tree limpio, 0 ahead / 0 behind de `origin/develop` |
-| `main` | `f278b1b`, contiene a `develop` entero | `git merge-base --is-ancestor origin/develop origin/main` |
-| `docs/estado.md` en `main` | idéntico al de `develop` | comparación de blobs; quien clona y cae en `main` lee este mismo texto |
-| Worktrees | solo `../hurioscan-B01` | `git worktree list` |
-| Handoffs | los ocho con frontmatter válido | `verify_project.py --root .` sin hallazgos |
-| PR abiertos | solo el #50 (B01), en borrador, con su aviso de bloqueo | `gh pr list` |
+| **I01 · punto de integración B01 + F01** — reemplazar el doble de Usuarios por el servicio real y comprobar que se accede con los tres roles | Su RFC está **redactado y sin firmar**: `docs/rfcs/I01.md`, en el PR #64. Por el Invariante 8, sin RFC aprobado no se ejecuta | **Kevin**, firmando el RFC |
+| **B02 · Pacientes** — alta, búsqueda y autocompletado por DNI | Su RFC está **completo y sin firmar** (`docs/rfcs/B02.md`). Todas sus fuentes están aprobadas | **Kevin**, firmando el RFC |
+| **RNF-015 · límite de intentos de acceso** | Redactado y sin aprobar, en `docs/requisitos/rnf.md`. Nadie lo implementa hasta que se apruebe | **Kevin**, aprobando el RNF |
+| Los otros cinco puntos de integración | **No tienen RFC** — ver la sección propia más abajo | **Kevin**, decidiendo si se redactan |
 
-### Los cinco desfases que se corrigieron, y qué demostró cada uno
+**Lo primero que necesitas saber para trabajar:** `main` y `develop` están protegidas en
+GitHub. Nada entra sin PR y sin CI en verde, ni siquiera siendo administrador. Un sprint
+se ejecuta en su propio worktree, en una rama `sprint/<id>`, y entra por PR hacia
+`develop`. Todo eso lo declara `AGENTS.md`, que se lee **antes** de tocar nada.
 
-1. **El bloqueo de B01 estaba mal atribuido.** El motivo escrito —falta de
-   aprobación de `modelo.md` y los ADR— **caducó el 2026-08-19**, cuando Kevin los
-   aprobó (commit `cd0f068`, en `develop` y en `main`; los cinco ADR dicen
-   «Estado: aprobada»). Pero B01 **no quedó libre**: se habilitó, se ejecutó y QA
-   lo rechazó el 2026-08-21 por `QA-B01-01`, un motivo distinto y vigente.
-   **Comprobar que un motivo caducó no es comprobar que la cosa se desbloqueó.**
-2. **El SHA del punto de retomada era viejo** (`d6d2f40` frente a `914f633`) y el
-   frontmatter llevaba `current_sha: null`. Corregido y verificado.
-3. **Los worktrees declarados no existían.** `~/hurioscan-F00` y `~/hurioscan-D01`
-   se retiraron el 2026-08-20; el documento seguía declarándolos activos. Un
-   `worktree_path` que apunta a la nada manda a trabajar a la nada.
-4. **La tabla «Chats de rol activos» declaraba cuatro sesiones abiertas** que ya no
-   existían, del modelo anterior al despacho por subagentes. Reemplazada por
-   «Trabajo despachado».
-5. **Los ocho handoffs no tenían frontmatter**, así que su estado solo se leía
-   interpretando prosa y `verify_project.py` no podía validarlos. Añadido,
-   derivando cada campo de lo que el documento y Git ya demostraban.
+### Estado verificado contra Git al declarar el reposo
 
-### Qué sigue, en orden
+| Qué | Valor |
+|---|---|
+| Rama de integración | `develop`, al día con `origin` |
+| Rama por defecto | `main` — es lo que lee quien clona, y sirve el mismo `docs/estado.md` que `develop` |
+| Suite | 234 pruebas, 234 pasando, 1235 aserciones |
+| Coherencia documentos/Git | `verify_project.py --reposo` sin hallazgos |
+| Worktrees | ninguno además del checkout principal |
+| PR abiertos | uno solo, el #64 — ver abajo |
 
-1. ~~**B01 — corregir `QA-B01-01`**~~ → **hecho el 2026-08-21.** Corregido
-   (outcome `terminado`), revalidado por QA (`aprobado` sobre `8b1763c`) e
-   **integrado en `develop`** con el gate cumplido y el CI en verde.
-2. ~~**`QA-B01-02`**~~ → **cerrada el 2026-08-21** en la capa de entorno e integrada
-   en `develop`. Queda una decisión de **Arquitectura** que no urge: la firma de
-   `autenticar()` sigue recibiendo la contraseña como argumento posicional, y conviene
-   resolverlo antes de que B02–B07 repitan el patrón.
-3. **Punto de integración B01 + F01** — es lo que falta para que **ambos** pasen a
-   `COMPLETADO`. Reemplazar el doble de usuarios por el servicio real, comprobar
-   que se accede con los tres roles y que cada uno ve su menú, y confirmar que el
-   build no cae de vuelta al doble. **No tiene RFC ni sprint propio en el roadmap**,
-   y toca rutas de las dos líneas: cómo se ejecuta es una decisión pendiente de
-   Kevin.
-4. **Aprobar el RFC de B02** para habilitar el siguiente sprint de backend. Todas
-   sus fuentes están aprobadas; solo falta la firma de Kevin sobre el documento
-   completo. Sin eso, B02 no pasa de `BORRADOR` (Invariante 8).
+La salida completa de esas comprobaciones se registró al declarar el reposo; no se
+declara un reposo con la conclusión, se declara con la salida.
 
-### Lo que NO hay que rehacer
+## PR #64 — abierto a propósito, y esto es por qué
 
-La línea frontend está terminada: `QA-F-01` y `QA-F-02` **ya se corrigieron y están
-en `develop`** (rutas `pacientes.alta` y `sesiones.apertura` montadas; el rol por
-defecto de `BuscadorPacientes` ya no es privilegiado). QA ya emitió su veredicto
-sobre la cadena completa. La línea backend **no está en cero**: B01 está construido
-—cuatro unidades, 222 pruebas— y solo le falta corregir un defecto.
+**[PR #64](https://github.com/Espiritu16/hurioscan/pull/64) queda abierto y sin
+fusionar.** No está olvidado ni bloqueado por un fallo: contiene `docs/rfcs/I01.md` y
+el RNF-015, y **es el vehículo de la aprobación de Kevin**. Fusionarlo sin su firma
+equivaldría a autoaprobar un RFC, que es exactamente lo que la gobernanza prohíbe.
 
-Cualquier sesión que retome reconstruye desde aquí y desde Git, nunca desde la
-conversación anterior.
+- **Por qué está abierto:** espera la firma de Kevin, con el proyecto **detenido a
+  propósito**. Kevin decidió el 2026-08-21 no avanzar y dejar el proyecto estable; no
+  firmar es parte de esa decisión, no un olvido.
+- **Bajo qué condición se retoma:** cuando Kevin decida reanudar el proyecto y apruebe o
+  rechace su contenido. **Si lo aprueba**, se fusiona y I01 queda habilitado para
+  despacharse. **Si pide cambios**, se enmienda y se vuelve a presentar. **Si decide que
+  el proyecto no continúa**, se cierra el PR sin fusionar y se registra aquí.
+- **Qué lo haría caducar sin que nadie se dé cuenta:** que alguien apruebe I01 o RNF-015
+  por otra vía —en otra conversación, en otro documento— y este PR se quede atrás. Si
+  eso ocurre, **este párrafo deja de ser cierto** y hay que corregirlo antes de seguir.
+
+**Por qué se escribe esto y no solo «PR abierto».** A este equipo ya le pasó lo
+contrario: un PR quedó esperando porque «el entorno bloquea el merge», ese bloqueo
+desapareció, y el PR siguió abierto sin que nada lo sostuviera — no había nada en rojo,
+solo algo verde que nadie volvió a mirar. **Un motivo escrito no caduca solo.** Un PR
+abierto sin motivo ni condición de retoma es exactamente esa trampa.
+
+## Los otros cinco puntos de integración — declarados, sin RFC
+
+Están en la misma situación en que estaba B01 + F01 antes del 2026-08-21: el roadmap los
+declara en su sección «Puntos de integración» y les fija criterio, pero **no son sprints
+de su tabla** — no tienen unidades de trabajo, ni rutas escribibles asignadas, ni
+criterios de cierre verificables. Por el Invariante 8, **ninguno se puede ejecutar tal
+como están**.
+
+| Integración | Verifica | RFC |
+|---|---|---|
+| B02 + F02 | Se registra un paciente real, con y sin autocompletado por DNI | no existe |
+| B03 + F03 | Se capturan hojas reales por las tres vías y se guardan | no existe |
+| B04 + B05 + F05 | Una hoja capturada produce texto, se corrige y se cierra el folder | no existe |
+| B06 + F06 | Se busca una palabra y aparece el documento que la contiene | no existe |
+| B07 + F07 | El panel muestra el avance real de lo digitalizado | no existe |
+
+**No se redactaron a propósito**, por decisión de Kevin del 2026-08-21: redactarlos es
+preparar el avance del proyecto, y el proyecto está detenido. **Cuando se retome,
+`docs/rfcs/I01.md` sirve de plantilla** — se escribió con esa intención, y su estructura
+(unidades de trabajo, rutas escribibles que cruzan las dos líneas, y el criterio literal
+del roadmap como criterio de cierre) se traslada a los cinco cambiando el dominio.
+
+Cada uno depende además de que su sprint `B` exista, y hoy solo existe B01.
 
 ## Trabajo despachado
 
@@ -917,11 +989,15 @@ un despacho muerto es indistinguible de uno que sigue trabajando.
 
 | Rol | Línea | Sprint | Despacho | Depende de | Estado del sprint | Último handoff |
 |---|---|---|---|---|---|---|
-| implementation | backend | B01 | subagente (2026-08-21) — outcome **`terminado`**, verificado contra Git | ninguna | EN_VALIDACION — QA `APROBADO`, integrado en `develop` | `docs/handoffs/B01.md` |
+| implementation | backend | B01 | subagente (2026-08-21) — outcome **`terminado`** | ninguna | EN_VALIDACION — QA `APROBADO`, integrado | `docs/handoffs/B01.md` |
 | implementation | frontend | F00→F07 | cerrado — se ejecutaron en cadena, un commit por sprint | ninguna | los siete `EN_VALIDACION`, integrados en `develop` | uno por sprint en `docs/handoffs/` |
 | devops | — | D01 | cerrado | ninguna | COMPLETADO | `docs/handoffs/D01.md` |
 | qa | — | B01 | subagente (2026-08-21) — outcome **`aprobado`** | `final_sha` `b004970` / head `8b1763c` | EN_VALIDACION — QA `APROBADO` | `docs/handoffs/B01.md` |
-| devops | — | QA-B01-02 | subagente (2026-08-21) — outcome **`terminado`**, verificado por Coordinación | ninguna | **cerrada**, integrada en `develop` | `docs/estado.md` § QA-B01-02 |
+| devops | — | QA-B01-02 | subagente (2026-08-21) — outcome **`terminado`** | ninguna | **cerrada**, integrada | `docs/estado.md` § QA-B01-02 |
+
+**Al 2026-08-21 no hay ningún despacho en vuelo.** Todas las filas tienen outcome y
+todos los worktrees están retirados. Una fila en `EN_PROGRESO` sin outcome sería la señal
+de un despacho que murió; hoy no hay ninguna.
 
 > **Este registro reemplazó el 2026-08-21 a la tabla «Chats de rol activos».**
 > Aquella listaba cuatro sesiones en `ABIERTO` —COORDINADOR, FRONTEND, DEVOP, QA—
@@ -938,15 +1014,13 @@ línea, según la separación declarada en `AGENTS.md`. Si aparece un archivo co
 que la separación no previó, esa línea base resultó incorrecta: se pausa y se corrige
 `AGENTS.md` antes de continuar, en vez de dejar que dos ejecutores se pisen.
 
-**Worktrees activos** (2026-08-21): `../hurioscan-B01` en `sprint/B01`, de la línea
-backend, y `../hurioscan-QA-B01` en HEAD detached sobre `8b1763c`, de QA — **QA valida
-en árbol propio y nunca reutiliza el del implementador**, para no heredar su estado
-oculto (dependencias sin commitear, migraciones aplicadas, caché). Los de F00 y D01 se
-retiraron el 2026-08-20 y su contenido vive en sus ramas (`git show sprint/F00:<ruta>`);
-el campo `worktree_path` de cada handoff lo declara así.
+**Worktrees: ninguno.** En reposo solo queda el checkout principal. Todos los que
+existieron —F00, D01, B01, el de QA, el de DevOps— se retiraron tras integrarse su
+trabajo, y su contenido vive en las ramas (`git show sprint/B01:<ruta>`), sin necesidad
+de montar nada. El campo `worktree_path` de cada handoff lo declara como retirado.
 
-**Ambos se eliminan al cerrar B01**, y hasta entonces no se decide nada sobre ellos
-leyendo su nombre: el nombre de un worktree no es evidencia de lo que contiene.
+Cuando se retome y haya que montar uno, **no se decide nada sobre un worktree leyendo su
+nombre**: conserva el del sprint mucho después de alojar otra rama, y nada avisa.
 
 ## Referencias
 - Roadmap: `docs/roadmap.md`
