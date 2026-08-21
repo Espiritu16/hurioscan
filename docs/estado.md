@@ -155,7 +155,7 @@ pisó una vez (ver «Punto de retomada — 2026-08-21»).
 2. **Aprobar el RFC de B02** —lo aprueba Kevin, sobre el documento completo— para habilitar el siguiente sprint. Todas sus fuentes ya están aprobadas; solo falta su firma.
 3. Los pares `B`/`F` se integran de a uno: B01 con F01, B02 con F02, y así. Recién ahí cada sprint `F` pasa a `COMPLETADO`.
 
-**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02, el del punto de integración B01 + F01, y el RNF nuevo del límite de intentos de acceso — los tres se le presentan juntos para aprobar. **Ya no esperan nada:** los dos huecos de `AGENTS.md` (cerrados el 2026-08-20) y el despliegue de Vercel (Kevin aprobó eliminarlo el 2026-08-21; el borrado del directorio queda de su mano).
+**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02, el del punto de integración B01 + F01, y el RNF nuevo del límite de intentos de acceso — los tres se le presentan juntos para aprobar. **Ya no esperan nada:** los dos huecos de `AGENTS.md` (cerrados el 2026-08-20) y el despliegue de Vercel (Kevin lo eliminó el 2026-08-21).
 
 
 
@@ -447,20 +447,17 @@ repitan el patrón con otros datos sensibles.
 
 ## Cosas que existen fuera del repositorio o esperan decisión
 
-### `~/hurioscan-deploy` — **retirada aprobada, pendiente de ejecutar por Kevin**
+### `~/hurioscan-deploy` — **eliminado el 2026-08-21**
 
-Directorio sin Git en el disco de Kevin, del 2026-08-18, que aloja el despliegue del
-**diseño de pantallas** (no de la aplicación). Kevin aprobó eliminarlo el 2026-08-21:
+Directorio sin Git en el disco de Kevin, del 2026-08-18, que alojaba el despliegue del
+**diseño de pantallas** (no de la aplicación). Kevin decidió eliminarlo el 2026-08-21:
 una copia del diseño fuera de Git que puede divergir sin que nadie lo note no aporta
-nada.
+nada. Lo ejecutó él —el entorno de la sesión del Coordinador bloquea la eliminación
+recursiva— y Coordinación **verificó que el directorio ya no existe** antes de escribir
+esto.
 
-> **Aprobado, no hecho.** El borrado quedó pendiente porque el entorno de la sesión
-> del Coordinador bloquea la eliminación recursiva de directorios, así que lo ejecuta
-> Kevin con `rm -rf ~/hurioscan-deploy`. **El inventario previo sí se completó y todo
-> lo recuperable está registrado abajo**, que era la condición: borrarlo ahora no
-> pierde nada. Esta nota deja de aplicar cuando el directorio ya no exista.
-
-Esto es lo que contiene:
+**El inventario previo se completó, que era la condición, y nada de valor se perdió.**
+Esto es lo que contenía:
 
 | Archivo | ¿Estaba en el repositorio? | Qué se hizo |
 |---|---|---|
@@ -473,8 +470,8 @@ Esto es lo que contiene:
 | `.vercel/README.txt` | No | texto generado por la herramienta |
 | `node_modules/` | No | 235 MB, reinstalables. Eran el peso entero del directorio |
 
-**Nada de valor se perdió**, y esto es lo único que hacía falta conservar para poder
-recrearlo, que es la razón de que se registre aquí en vez de en un directorio suelto:
+Esto es lo único que hacía falta conservar para poder recrearlo, y la razón de que se
+registre aquí en vez de en un directorio suelto:
 
 - Proyecto en Vercel: **`hurioscan-deploy`**, URL `https://hurioscan-deploy.vercel.app`
 - Contenido publicado: el HTML de `docs/frontend/diseno/hurioscan-claude-design.html`,
@@ -489,11 +486,12 @@ recrearlo, que es la razón de que se registre aquí en vez de en un directorio 
 - Para volver a enlazarlo: `vercel link` sobre un directorio nuevo, eligiendo el
   proyecto por su nombre. Los identificadores se recuperan solos.
 
-**El despliegue está vivo, y conviene no confundirlo con el directorio.** Verificado el
-2026-08-21: `https://hurioscan-deploy.vercel.app` responde HTTP 200. Borrar la carpeta
-local **no** da de baja el sitio — solo elimina el vínculo desde este disco. Si además
-se quiere retirar el sitio publicado, eso se hace desde el panel de Vercel y **es una
-acción aparte que Kevin no ha pedido**.
+**El despliegue sigue vivo, y conviene no confundirlo con el directorio.** Verificado
+**después** del borrado, el 2026-08-21: `https://hurioscan-deploy.vercel.app` responde
+HTTP 200. Borrar la carpeta local no dio de baja el sitio, solo eliminó el vínculo desde
+este disco — que es exactamente lo que se esperaba. Si además se quiere retirar el sitio
+publicado, eso se hace desde el panel de Vercel y **es una acción aparte que Kevin no ha
+pedido**.
 
 ### Dos huecos de `AGENTS.md` detectados al auditar B01 — **CERRADOS el 2026-08-20**
 
