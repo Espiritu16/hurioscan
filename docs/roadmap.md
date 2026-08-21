@@ -2,7 +2,9 @@
 
 Horizonte: los RF-001 a RF-015 aprobados en `docs/requisitos/rf.md`. No incluye la fase 2 (extracción de campos estructurados) ni ninguna capacidad marcada fuera del horizonte.
 
-Estado de la planificación: **BLOQUEADA** — ningún sprint puede pasar a `Planificación: LISTO` mientras `AGENTS.md` siga en `BORRADOR` y los RF, contratos, schema, taxonomía de errores y permisos sigan en `propuesto`. **Excepción: F00**, que no consume ningún contrato ni requisito funcional y solo depende del diseño ya producido.
+Estado de la planificación: **línea base completa y aprobada**. `AGENTS.md` está vigente y los RF, RNF, contratos, modelo de persistencia, taxonomía de errores, actores y permisos y los cinco ADR quedaron aprobados el 2026-08-19.
+
+Lo único que impide habilitar los sprints `B` es que **sus RFC siguen en `propuesto`**: por el Invariante 8 ninguno pasa a `Planificación: LISTO` sin su RFC aprobado. No falta ninguna fuente ni ninguna aprobación de Arquitectura — solo la firma de cada RFC, y el orden lo dicta la cadena de dependencias de la tabla de abajo.
 
 ## Estructura del trabajo
 
@@ -60,20 +62,20 @@ Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente 
 
 | ID | Rol | Resultado observable | Depende de | Paralelizable con | RFC | Planificación | Ejecución |
 |---|---|---|---|---|---|---|---|
-| D01 | devops | Flujos de verificación en cada pull request hacia `develop` y `main` | ninguna | F00, B01 | `docs/rfcs/D01.md` | **LISTO** | **LISTO** |
-| F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01, D01 | `docs/rfcs/F00.md` | **LISTO** | **LISTO** |
-| B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | BORRADOR | PLANIFICADO |
-| F01 | implementation | Pantalla de acceso, layout y menú por rol | F00 | B01, B02 | `docs/rfcs/F01.md` | BORRADOR | PLANIFICADO |
+| D01 | devops | Flujos de verificación en cada pull request hacia `develop` y `main` | ninguna | F00, B01 | `docs/rfcs/D01.md` | **LISTO** | **COMPLETADO** |
+| F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01, D01 | `docs/rfcs/F00.md` | **LISTO** | **EN_VALIDACION** |
+| B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | **LISTO** | **BLOQUEADO** |
+| F01 | implementation | Pantalla de acceso, layout y menú por rol | F00 | B01, B02 | `docs/rfcs/F01.md` | **LISTO** | **EN_VALIDACION** |
 | B02 | implementation | Alta y búsqueda de pacientes; consulta de DNI al proveedor | B01 | F01, F02 | `docs/rfcs/B02.md` | BORRADOR | PLANIFICADO |
-| F02 | implementation | Búsqueda de pacientes y alta con autocompletado | F00, F01 | B02, B03 | `docs/rfcs/F02.md` | BORRADOR | PLANIFICADO |
+| F02 | implementation | Búsqueda de pacientes y alta con autocompletado | F00, F01 | B02, B03 | `docs/rfcs/F02.md` | **LISTO** | **EN_VALIDACION** |
 | B03 | implementation | Sesión de lote, captura y almacenamiento de imágenes | B02 | F02, F03 | `docs/rfcs/B03.md` | BORRADOR | PLANIFICADO |
-| F03 | implementation | Pantalla de captura con las tres vías y sesiones pendientes | F00, F01 | B03, B04 | `docs/rfcs/F03.md` | BORRADOR | PLANIFICADO |
+| F03 | implementation | Pantalla de captura con las tres vías y sesiones pendientes | F00, F01 | B03, B04 | `docs/rfcs/F03.md` | **LISTO** | **EN_VALIDACION** |
 | B04 | implementation | OCR en segundo plano con motor intercambiable | B03 | F03, F05 | `docs/rfcs/B04.md` | BORRADOR | PLANIFICADO |
-| F05 | implementation | Pantalla de revisión, marcado y cierre | F00, F01, F03 | B04, B05 | `docs/rfcs/F05.md` | BORRADOR | PLANIFICADO |
+| F05 | implementation | Pantalla de revisión, marcado y cierre | F00, F01, F03 | B04, B05 | `docs/rfcs/F05.md` | **LISTO** | **EN_VALIDACION** |
 | B05 | implementation | Corrección con control de versión, transiciones y cierre | B04 | F05, F06 | `docs/rfcs/B05.md` | BORRADOR | PLANIFICADO |
-| F06 | implementation | Búsqueda por contenido, línea de tiempo y visor | F00, F01 | B05, B06, F07 | `docs/rfcs/F06.md` | BORRADOR | PLANIFICADO |
+| F06 | implementation | Búsqueda por contenido, línea de tiempo y visor | F00, F01 | B05, B06, F07 | `docs/rfcs/F06.md` | **LISTO** | **EN_VALIDACION** |
 | B06 | implementation | Índice de texto completo y entrega controlada de imágenes | B05 | F06, F07 | `docs/rfcs/B06.md` | BORRADOR | PLANIFICADO |
-| F07 | implementation | Panel de avance, usuarios y auditoría | F00, F01 | B06, B07, F06 | `docs/rfcs/F07.md` | BORRADOR | PLANIFICADO |
+| F07 | implementation | Panel de avance, usuarios y auditoría | F00, F01 | B06, B07, F06 | `docs/rfcs/F07.md` | **LISTO** | **EN_VALIDACION** |
 | B07 | implementation | Agregados reales, auditoría append-only y gestión de usuarios | B05 | F07 | `docs/rfcs/B07.md` | BORRADOR | PLANIFICADO |
 
 ## Cuándo entra QA
@@ -109,9 +111,9 @@ Un par `B`/`F` no está cerrado hasta que se integran de verdad. Cada punto exig
 
 ## Qué se puede empezar hoy
 
-**F00 es el único sprint sin ninguna dependencia**, ni de código ni de aprobación: no consume contratos ni requisitos funcionales, solo el diseño ya producido. Puede ejecutarse de inmediato.
+**La línea frontend completa ya se ejecutó** (F00 → F07, entre el 2026-08-18 y el 2026-08-19), igual que D01. Los siete sprints `F` están en `EN_VALIDACION` con veredicto favorable de QA; no pasan a `COMPLETADO` porque cada uno espera su punto de integración con el sprint `B` correspondiente, declarado más abajo.
 
-Los demás sprints de frontend dependen además de que **su contrato esté aprobado** — no de que el backend exista, pero sí de que la definición sea estable. Construir una pantalla contra un contrato que puede cambiar es rehacerla dos veces.
+**B01 se ejecutó y quedó BLOQUEADO** por QA-B01-01, un defecto de seguridad reproducido: la contraseña se escribe en claro en el log. Su rama y su PR están publicados sin fusionar; el detalle y cómo desbloquearlo están en `docs/estado.md`. **No se reintenta**: es un punto de reposo deliberado. Los otros seis RFC de `B` siguen en `propuesto` y se encadenan detrás según la columna «Depende de».
 
 ## Correspondencia con el cronograma de la propuesta
 
