@@ -3,13 +3,13 @@ project: HuriosCan
 source_status: CANONICA
 baseline: línea base completa y aprobada — RF, RNF, contratos, modelo, errores, permisos y los cinco ADR
 active_phase: B01
-active_status: LISTO
+active_status: BLOQUEADO
 last_completed_phase: D01
 bootstrap_status: COMPLETO
 planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; B01 habilitado, B02–B07 con RFC en propuesto
 current_rfc_batch: [D01, F00, B01, F01, B02, F02, B03, F03, B04, F05, B05, F06, B06, F07, B07]
 planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014, RF-015]
-updated_at: 2026-08-20
+updated_at: 2026-08-21
 repositories:
   - name: hurioscan
     path: ~/hurioscan
@@ -31,7 +31,7 @@ sprints:
   - id: B01
     repository: hurioscan
     planning_status: LISTO
-    execution_status: LISTO
+    execution_status: BLOQUEADO
     depends_on: []
     parallelizable_with: [F00]
   - id: F01
@@ -110,6 +110,37 @@ sprints:
 
 # Estado del proyecto
 
+## Si estás retomando esto y no viste nada antes, lee esto primero
+
+**Qué es HuriosCan.** Un sistema para digitalizar el archivo clínico en papel de un establecimiento de salud: se escanean las hojas de cada folder, un OCR extrae su texto, una persona lo revisa, y después el documento se puede buscar por lo que dice adentro. Proyecto de curso universitario, cinco integrantes, doce semanas, dos personas programan. Laravel 13 + Livewire + PostgreSQL, un solo repositorio.
+
+**En qué punto está, en una frase:** toda la interfaz está construida y validada contra datos ficticios, el backend acaba de empezar y su primer sprint está bloqueado por un defecto de seguridad.
+
+**Qué hay hecho de verdad**
+- **D01 — COMPLETADO.** Integración continua: cada PR hacia `develop` corre lint, pruebas y build; cada PR hacia `main` añade la suite contra PostgreSQL real. Funciona y ya detuvo defectos reales.
+- **F00 a F07 — EN_VALIDACION, aprobados por QA.** Las dieciséis pantallas del sistema, navegables en sus URLs, verificadas en cuatro anchos de pantalla y con revisión de accesibilidad. **No están `COMPLETADO` y eso es correcto:** funcionan contra *dobles de desarrollo*, piezas que devuelven datos fijos en lugar de consultar una base. Cada sprint `F` se cierra recién cuando su sprint `B` lo reemplaza por el servicio real.
+- **La línea base documental completa y aprobada:** 15 requisitos funcionales, los no funcionales, cuatro contratos de dominio, el modelo de persistencia con nueve migraciones, la taxonomía de errores, la matriz de actores y permisos, y cinco ADR.
+
+**Qué NO hay.** No hay sistema funcionando. Sin base de datos poblada, sin autenticación real en uso, sin OCR, sin búsqueda. Si abres la aplicación con los dobles encendidos verás algo que parece el producto, pero nada se guarda.
+
+**Dónde está cada cosa**
+- `docs/roadmap.md` — los quince sprints, sus dependencias y qué RF cubre cada uno.
+- `docs/rfcs/<id>.md` — qué construye cada sprint y sus criterios de cierre. **Un sprint no se ejecuta si su RFC no está `aprobado`.**
+- `docs/handoffs/<id>.md` — qué hizo cada sprint ya ejecutado. Los de la cadena `F` viven en `develop`; el de **B01 vive en la rama `sprint/B01`**, sin fusionar.
+- `AGENTS.md` — quién puede escribir qué, la política de ramas y cómo se despacha el trabajo. **Léelo antes de tocar nada.**
+- Este archivo — el estado, las decisiones y los bloqueos.
+
+**Lo primero que necesitas saber para trabajar:** `main` y `develop` están protegidas en GitHub. Nada entra sin PR y sin CI en verde, ni siquiera siendo administrador. Un sprint se ejecuta en su propio worktree, en una rama `sprint/<id>`, y entra por PR hacia `develop`.
+
+**Qué sigue, en orden**
+1. **Desbloquear B01** corrigiendo QA-B01-01 (detallado más abajo): la contraseña se escribe en claro en el log. Es lo único que separa al backend de arrancar.
+2. **Aprobar el RFC de B02** —lo aprueba Kevin, sobre el documento completo— para habilitar el siguiente sprint. Todas sus fuentes ya están aprobadas; solo falta su firma.
+3. Los pares `B`/`F` se integran de a uno: B01 con F01, B02 con F02, y así. Recién ahí cada sprint `F` pasa a `COMPLETADO`.
+
+**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02 y los siguientes; los dos huecos de `AGENTS.md` descritos más abajo, porque tocar permisos es cambio material; qué hacer con el despliegue de Vercel; y el límite de intentos de acceso. Todo está detallado en sus secciones.
+
+
+
 ## Progreso
 - Proyecto Laravel 13.26.1 creado y verificado: lint, tests y build ejecutan correctamente.
 - Estructura domain-first materializada en `app/Dominios/` y `app/Compartido/Ocr/`.
@@ -181,6 +212,67 @@ Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerra
 
 **Qué hereda B01 al arrancar**, ya registrado en su contexto: la deuda de verificar los propios límites de subida al arrancar y fallar de forma visible; la deuda de fondo de QA-F-04 —que un aviso del motor pueda romper una respuesta JSON en cualquier punto—; y la idea de que `composer dev` delegue en el script de arranque, que es ruta suya.
 
+## B01 — BLOQUEADO por QA-B01-01, 2026-08-21
+
+**Estado de reposo deliberado.** El sprint se detiene aquí por decisión de Kevin: QA rechazó, la corrección **no se reintenta**, y el bloqueo documentado cuenta como punto estable. No se despacha nada más.
+
+- Rama `sprint/B01`, `final_sha` **`62702cdf981524849ce009b692e5d4f2211f7b60`**, publicada en `origin`. PR [#50](https://github.com/Espiritu16/hurioscan/pull/50) hacia `develop` **abierto y sin fusionar**, con el check `verificacion` en verde. No se integra: `AGENTS.md` exige QA APROBADO antes de `develop`.
+- El handoff del sprint vive en `docs/handoffs/B01.md` **dentro de la rama `sprint/B01`**, no en `develop`. Se lee con `git show sprint/B01:docs/handoffs/B01.md`.
+
+### QA-B01-01 — la contraseña se escribe en claro en el log en cada intento fallido
+
+Severidad **alta**. Incumple el criterio de cierre de UT-02 («la contraseña no aparece en ningún log»), **RNF-014**, y `docs/contratos/usuarios.md`, que exige que la contraseña nunca aparezca en logs, mensajes de error ni auditoría.
+
+**Causa raíz.** `ErrorDeAplicacion` no está excluido del reporte de excepciones —no hay `dontReport` ni `report()` en `bootstrap/app.php`, verificado por Coordinación—, así que Laravel registra un `NO_AUTENTICADO` rutinario a nivel `ERROR` con su stack trace completo. El trace incluye los argumentos de `autenticar($email, $password, $recordar)`. **PHP trunca los argumentos de tipo cadena a 15 caracteres y el validador exige un mínimo de 8: toda contraseña de entre 8 y 15 caracteres queda escrita entera y en claro.** La del seeder (`hurioscan`, 9 caracteres) cae dentro de ese rango. Ocurre en los dos caminos de error, el 401 y el 422.
+
+**Por qué la guarda no lo atrapó — cuarto caso de cobertura ficticia, y el más grave.** `AccesoTest::test_la_contrasena_no_aparece_en_ningun_log` está bien construida, con marca de canario incluida, pero su fixture `CLAVE = 'clave-de-prueba-77'` mide **18 caracteres**: el trace la trunca a `'clave-de-prueba..'` y la comparación contra la cadena completa nunca falla. **La prueba pasaba por una propiedad accidental del dato de prueba, no porque la propiedad se cumpliera.** Verificado por Coordinación: la fixture es de 18 caracteres. Con cualquier contraseña de 15 o menos, falla.
+
+Los tres casos anteriores están en «Lección de método» más abajo; este es el primero que afecta a una guarda de seguridad, y confirma que el patrón no se agotó con la revisión de cobertura ficticia.
+
+### Para desbloquear cuando se retome
+
+Corregir en la línea backend, entregar un `final_sha` nuevo y revalidar. QA declaró qué repetirá: reproducir el caso con contraseñas de 8, 15 y 18 caracteres, la mutación de canario, y la regresión completa de `AccesoTest`. **La fixture de esa prueba debe dejar de ser una contraseña larga**, porque su longitud era lo que ocultaba el defecto.
+
+### Lo que QA verificó en verde y no hace falta rehacer
+
+Mientras la entrada no cambie: UT-01 y RNF-005 con mutación confirmada en los dos motores (quitar el trait hace fallar la prueba en SQLite y en PostgreSQL); el schema de `usuarios` campo por campo contra el modelo aprobado; UT-03 y RNF-013 con **tres** mutaciones reproducidas —quitar una guarda hace fallar 3 pruebas, abrir la matriz hace fallar 11, anular la comprobación de usuario activo hace fallar 14—; y UT-04 con recorrido real sobre 15 rutas y 5 identidades, coincidiendo fila por fila con la matriz de permisos. Suite: 222/222 en SQLite y 215/215 en PostgreSQL 18.3, ambas reproducidas por QA y la primera también por Coordinación.
+
+QA confirmó además que las dos decisiones de perímetro del implementador **no debilitaron nada**: eliminar el modelo huérfano no dejó residuos, y la prueba de frontend que modificó sigue atrapando lo que atrapaba, verificado inyectándole un control sin destino.
+
+### Observaciones que quedan abiertas y no son de B01
+
+1. **`MatrizDePermisos` perdió una condición de alcance.** `actores-permisos.md` declara para `PATCH /usuarios/{id}` la condición «no puede quitarse a sí mismo el rol administrador»; la transcripción la registra sin condición. Es la única de las 15 filas con condición que se perdió. No bloquea B01 —esa ruta no existe todavía— pero **B07 la necesita resuelta, y la decisión es de Arquitectura**: puede argumentarse que es regla de negocio con código propio y no alcance de autorización.
+2. **`GET /sesiones/{id}/hojas` sigue sin fila en la matriz**, así que deny-by-default lo rechazaría. Afecta a **B05**. Resuelve Arquitectura.
+3. **`POST /acceder` no tiene límite de intentos.** Ninguna fuente aprobada lo exige, así que no es incumplimiento; se anota porque agrava QA-B01-01 y porque B01 es el sprint que fija esa superficie. Decisión de Kevin.
+4. Una justificación en la migración afirma que «la validación de aplicación rechaza igual un rol fuera del conjunto», y esa validación **no existe en este SHA** — es de B07. La decisión sigue siendo correcta; la justificación describe algo que aún no está.
+
+## Cosas que existen fuera del repositorio o esperan decisión
+
+### `~/hurioscan-deploy` — despliegue del diseño en Vercel, **activo**, sin versionar
+
+Directorio **sin Git** en el disco de Kevin, del 2026-08-18. Inspeccionado el 2026-08-21 sin moverlo ni modificarlo.
+
+**Qué es:** el despliegue del **diseño de pantallas**, no de la aplicación. Su `public/index.html` es **byte a byte idéntico** a `docs/frontend/diseno/hurioscan-claude-design.html`, que sí está versionado (mismo SHA-256, verificado). Está **activo**: `https://hurioscan-deploy.vercel.app` responde HTTP 200.
+
+**Qué no está versionado en ningún lado**, y qué vale cada cosa:
+
+| Archivo | Qué es | Valor real |
+|---|---|---|
+| `vercel.json` | dos líneas, solo `cleanUrls: true` | trivial de recrear |
+| `pnpm-workspace.yaml` | contiene literalmente `esbuild: set this to true or false` | **plantilla sin resolver**, no configuración real |
+| `.vercel/project.json` | vincula la carpeta con el proyecto real (`projectId`, `orgId`) | lo único irreemplazable a mano, pero **se regenera con `vercel link`** |
+
+**Lo importante: el contenido publicado no corre riesgo**, porque está en Git. Lo único que se perdería es el vínculo con el proyecto de Vercel, y eso se recupera enlazando de nuevo.
+
+**Recomendación de Coordinación, pendiente de decisión de Kevin.** `.vercel/` **no debe versionarse** —es la convención de la propia herramienta y el `.gitignore` local ya lo excluye—. Sobre los otros dos, la pregunta de fondo no es si versionarlos sino **si ese despliegue sigue teniendo sentido**: publica el diseño de referencia, y la interfaz real ya está construida. Dos caminos limpios: declararlo **descartable** —el diseño vive en el repositorio y el despliegue es una vitrina reemplazable—, o **absorberlo** al repositorio con su `vercel.json` versionado y el despliegue tomando el HTML desde `docs/frontend/diseno/`, en vez de una copia suelta. Lo que conviene evitar es el estado actual: una copia del diseño fuera de Git que puede divergir del original sin que nadie lo note. Los 235 MB del directorio son `node_modules`.
+
+### Dos huecos de `AGENTS.md` detectados al auditar B01 — requieren aprobación de Kevin
+
+Tocar permisos es **cambio material**: devolvería el archivo a `BORRADOR`, así que no se corrigen sin su firma. Ninguno bloquea nada hoy.
+
+1. **`tests/Feature/` se solapa entre las dos líneas.** La línea backend puede escribir `tests/Feature/` sin exclusión, y eso engloba `tests/Feature/Frontend/`, que es de la línea frontend. `AGENTS.md` afirma que las dos líneas tienen «rutas escribibles disjuntas» y **en este punto no lo son**. Salió a la luz porque B01 modificó legítimamente una prueba de frontend que su propio cambio rompía. Corrección propuesta: excluir `tests/Feature/Frontend/` de las rutas de backend, o declarar explícitamente ese directorio como zona compartida con dueño, igual que se hizo con `routes/web.php`.
+2. **`app/Models/` no tiene dueño.** No figura ni entre las rutas permitidas ni entre las prohibidas de ninguna línea. B01 eliminó allí un modelo huérfano que apuntaba a una tabla renombrada —QA confirmó que no dejó residuos— pero lo hizo sobre una carpeta que la gobernanza no asigna a nadie. Corrección propuesta: asignarla a la línea backend, o declarar que el proyecto no la usa por su estructura domain-first y por tanto debe permanecer vacía.
+
 ## Autonomía del Coordinador — permanente, aprobada por Kevin el 2026-08-20
 
 Alcance permanente y no revocado por compactación de contexto: **si esta sesión o cualquier futura no recuerda esta conversación, este bloque es la fuente.** Kevin lo aprobó explícitamente con la instrucción de registrarlo aquí para que no dependa del chat.
@@ -200,6 +292,12 @@ Alcance permanente y no revocado por compactación de contexto: **si esta sesió
 - **Cualquier waiver** de un invariante (Invariante 13).
 - **Un cambio que pueda romper lo que ya funciona.**
 - **Lo que salga hacia usuarios reales.**
+
+### Qué cuenta como punto estable — criterio permanente, Kevin 2026-08-20
+
+1. **Un sprint en `BLOQUEADO` también es reposo.** Un bloqueo documentado con su evidencia es un estado estable; un sprint que se reintenta indefinidamente no lo es. Si QA rechaza y la corrección vuelve a fallar, se detiene ahí con la evidencia de qué falla y por qué.
+2. **Un subagente que no devuelve outcome se cierra como `BLOQUEADO` con causa «despacho sin respuesta».** Nunca se deja figurando `EN_PROGRESO` esperando algo que no va a llegar, y antes de cualquier re-despacho **se inventaría qué dejó en el árbol**.
+3. **El reposo se verifica, no se afirma.** Antes de darlo por cerrado se corren las comprobaciones contra Git —`status`, `worktree list`, los estados del roadmap contra los merges reales— y se entrega **la salida**, no la conclusión. Es el mismo criterio que se aplica a un `final_sha` reportado: vale lo que el árbol demuestra.
 
 ### Lo que esta autonomía no altera
 
