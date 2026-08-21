@@ -218,6 +218,7 @@ Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerra
 
 - Rama `sprint/B01`, `final_sha` **`62702cdf981524849ce009b692e5d4f2211f7b60`**, publicada en `origin`. PR [#50](https://github.com/Espiritu16/hurioscan/pull/50) hacia `develop` **abierto y sin fusionar**, con el check `verificacion` en verde. No se integra: `AGENTS.md` exige QA APROBADO antes de `develop`.
 - El handoff del sprint vive en `docs/handoffs/B01.md` **dentro de la rama `sprint/B01`**, no en `develop`. Se lee con `git show sprint/B01:docs/handoffs/B01.md`.
+- **Su `worktree_path` quedó retirado el 2026-08-21.** El handoff de esa rama todavía apunta a `~/hurioscan-B01`, que ya no existe: no pudo corregirse allí sin commitear en una rama bloqueada, así que se declara aquí. Nada se perdió — la rama está publicada en `origin`. Quien retome el sprint recrea el árbol con `git worktree add ../hurioscan-B01 sprint/B01` y **corrige ese campo en su primer commit**.
 
 ### QA-B01-01 — la contraseña se escribe en claro en el log en cada intento fallido
 
