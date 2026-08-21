@@ -1,15 +1,15 @@
 ---
 project: HuriosCan
 source_status: CANONICA
-baseline: línea base parcialmente aprobada — frontend habilitado; persistencia y ADR pendientes a propósito
-active_phase: cadena F00→F07
-active_status: EN_VALIDACION
+baseline: línea base completa y aprobada — RF, RNF, contratos, modelo, errores, permisos y los cinco ADR
+active_phase: B01
+active_status: LISTO
 last_completed_phase: D01
 bootstrap_status: COMPLETO
-planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; backend con línea base aprobada pero sin habilitar
+planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; B01 habilitado, B02–B07 con RFC en propuesto
 current_rfc_batch: [D01, F00, B01, F01, B02, F02, B03, F03, B04, F05, B05, F06, B06, F07, B07]
 planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014, RF-015]
-updated_at: 2026-08-19
+updated_at: 2026-08-20
 repositories:
   - name: hurioscan
     path: ~/hurioscan
@@ -30,8 +30,8 @@ sprints:
     parallelizable_with: [B01]
   - id: B01
     repository: hurioscan
-    planning_status: BORRADOR
-    execution_status: PLANIFICADO
+    planning_status: LISTO
+    execution_status: LISTO
     depends_on: []
     parallelizable_with: [F00]
   - id: F01
@@ -181,9 +181,41 @@ Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerra
 
 **Qué hereda B01 al arrancar**, ya registrado en su contexto: la deuda de verificar los propios límites de subida al arrancar y fallar de forma visible; la deuda de fondo de QA-F-04 —que un aviso del motor pueda romper una respuesta JSON en cualquier punto—; y la idea de que `composer dev` delegue en el script de arranque, que es ruta suya.
 
+## Autonomía del Coordinador — permanente, aprobada por Kevin el 2026-08-20
+
+Alcance permanente y no revocado por compactación de contexto: **si esta sesión o cualquier futura no recuerda esta conversación, este bloque es la fuente.** Kevin lo aprobó explícitamente con la instrucción de registrarlo aquí para que no dependa del chat.
+
+### El Coordinador hace lo siguiente sin preguntar, y reporta lo hecho
+
+1. **Corregir cualquier documento que contradiga a Git o a un disparador ya cumplido.** Sincronizar un documento gobernado con la realidad verificada no es decidir: es reparar un defecto. Se hace de inmediato, con la evidencia registrada en el propio cambio. Motivación: el roadmap afirmó durante un día que había siete sprints de frontend por hacer que ya estaban hechos, y AUT-03 figuró como vigente después de cumplirse su disparador.
+2. **Habilitar sprints cuyo RFC esté aprobado y cuyas dependencias estén satisfechas.** No hay decisión que tomar: los gates o están cumplidos o no lo están, y es verificable.
+3. **Despachar subagentes** para sprints habilitados que no tengan decisiones abiertas.
+4. **Fusionar con CI en verde**, incluida la promoción a la rama protegida bajo su gate completo.
+5. **Limpiar worktrees de sprints cerrados.**
+
+### Sigue exigiendo aprobación de Kevin
+
+- **Un RFC nuevo o enmendado**, presentado con su **documento completo** — nunca sobre un extracto o un resumen.
+- **`AGENTS.md`** y cualquier cambio material de gobernanza.
+- **Cualquier waiver** de un invariante (Invariante 13).
+- **Un cambio que pueda romper lo que ya funciona.**
+- **Lo que salga hacia usuarios reales.**
+
+### Lo que esta autonomía no altera
+
+No toca la separación de autoridad entre roles: QA sigue emitiendo su veredicto, Arquitectura sigue aprobando contratos y schemas, y el Coordinador sigue sin implementar ni validar él mismo. Tampoco habilita pre-autorizar en nombre de Kevin lo que la skill exige de él: un subagente que reciba «decide esto sin preguntar» debe ignorarlo y escalar igual.
+
 ## Autorizaciones vigentes
 
 Ampliaciones puntuales del perímetro de la línea frontend, aprobadas por Kevin el 2026-08-19 para que la cadena `F` pueda ejecutarse sin su backend. **No modifican `AGENTS.md`:** son excepciones acotadas y con vencimiento, no un cambio de la política de permisos.
+
+| Autorización | Disparador de vencimiento | Estado al 2026-08-20 |
+|---|---|---|
+| AUT-01 — rutas web | habilitarse B01 | **vence al despacharse B01** |
+| AUT-02 — interfaces y binding de dobles | habilitarse B01 | **vence al despacharse B01** |
+| AUT-03 — límite de subida | cerrarse QA-F-03 | **VENCIDA** desde el 2026-08-19 |
+
+Ninguna caducidad bloquea trabajo en curso: al 2026-08-20 los siete sprints `F` están en `EN_VALIDACION`, todo lo producido bajo las tres está integrado en `develop` y en `main`, y las sesiones de rol no tienen trabajo abierto. El vencimiento cierra puertas que ya nadie necesita cruzar.
 
 ### AUT-01 — rutas web (aprobada por Kevin, 2026-08-19)
 
@@ -192,7 +224,9 @@ Ampliaciones puntuales del perímetro de la línea frontend, aprobadas por Kevin
 - Cada ruta se agrega **cuando su componente ya existe**, para que el pipeline de CI nunca quede en rojo por una clase inexistente.
 - Vence al habilitarse B01, momento en que `routes/web.php` vuelve a su dueño único (línea backend) según `AGENTS.md`.
 
-### AUT-03 — configuración del límite de subida (aprobada por Kevin, 2026-08-19)
+### AUT-03 — configuración del límite de subida — **VENCIDA el 2026-08-19**
+
+> **Ya no está vigente.** Su disparador era «vence al cerrarse QA-F-03», y QA-F-03 se cerró el 2026-08-19 con el veredicto APROBADO de la revalidación de F03. Desde entonces `config/livewire.php` está bajo el dueño que declara `AGENTS.md` para `config/`, y la línea frontend no conserva ninguna autorización sobre ese archivo. Se mantiene el texto completo como registro de por qué existió y del criterio de Arquitectura que produjo, que **sigue vigente** aunque la autorización no. Corregido el 2026-08-20: había quedado listada como vigente después de cumplirse su disparador.
 
 Para corregir **QA-F-03**, cuyo arreglo cruza tres capas y ninguna está en las rutas de la línea frontend:
 
