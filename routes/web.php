@@ -12,9 +12,12 @@ use App\Dominios\Documentos\Componentes\VisorDocumento;
 use App\Dominios\Pacientes\Componentes\BuscadorPacientes;
 use App\Dominios\Pacientes\Componentes\FormularioPaciente;
 use App\Dominios\Pacientes\Componentes\LineaDeTiempo;
+use App\Dominios\Usuarios\Acciones\Acceder;
+use App\Dominios\Usuarios\Acciones\Salir;
 use App\Dominios\Usuarios\Componentes\AdministracionUsuarios;
 use App\Dominios\Usuarios\Componentes\ConsultaAuditoria;
 use App\Dominios\Usuarios\Componentes\FormularioAcceso;
+use App\Dominios\Usuarios\DestinoSegunRol;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,11 +35,28 @@ use Illuminate\Support\Facades\Route;
  * restricción, la ruta simplemente no casa y Laravel responde 404.
  */
 
+/*
+ * La raíz no es una pantalla: encamina. Sin sesión lleva al formulario de
+ * acceso; con sesión, al panel que corresponde al rol. Antes servía la página
+ * de bienvenida del scaffold, que no pertenece al producto.
+ */
 Route::get('/', function () {
-    return view('welcome');
+    return auth()->check()
+        ? redirect()->route(DestinoSegunRol::ruta(auth()->user()->rol))
+        : redirect()->route('acceder');
 });
 
+/*
+ * Acceso y salida (RF-011, `docs/contratos/usuarios.md`).
+ *
+ * `GET /acceder` y `POST /acceder` son las dos operaciones que la matriz de
+ * permisos concede al actor `Anónimo`, así que quedan fuera de la autenticación.
+ * `POST /acceder` no lleva nombre: el nombre canónico `acceder` es el de la
+ * pantalla, y `docs/frontend/integracion.md` fija esa lista.
+ */
 Route::get('/acceder', FormularioAcceso::class)->name('acceder');
+Route::post('/acceder', Acceder::class);
+Route::post('/salir', Salir::class)->name('salir')->middleware('auth');
 
 Route::get('/pacientes', BuscadorPacientes::class)->name('pacientes');
 // `/pacientes/nuevo` va antes que el comodín por legibilidad, pero lo que de
@@ -64,9 +84,3 @@ Route::get('/auditoria', ConsultaAuditoria::class)->name('auditoria');
 if (app()->environment('local')) {
     Route::view('/componentes', 'componentes.catalogo')->name('componentes');
 }
-
-/*
- * Pendiente de la línea backend: `salir` (`POST /salir`, RF-011). No se monta
- * aquí porque no tiene componente que la sirva — es una acción de sesión que
- * implementa B01. El menú la muestra deshabilitada mientras no exista.
- */
