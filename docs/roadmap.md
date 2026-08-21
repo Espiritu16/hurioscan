@@ -100,16 +100,36 @@ El gate está declarado en `AGENTS.md`: «QA APROBADO sobre ese `final_sha` cuan
 
 Un par `B`/`F` no está cerrado hasta que se integran de verdad. Cada punto exige: reemplazar el doble por el servicio real, verificar el flujo de punta a punta y confirmar que el build no cae de vuelta al doble.
 
-| Integración | Verifica |
-|---|---|
-| B01 + F01 | Se accede con los tres roles y cada uno ve su menú |
-| B02 + F02 | Se registra un paciente real, con y sin autocompletado por DNI |
-| B03 + F03 | Se capturan hojas reales por las tres vías y se guardan |
-| B04 + B05 + F05 | Una hoja capturada produce texto, se corrige y se cierra el folder |
-| B06 + F06 | Se busca una palabra y aparece el documento que la contiene |
-| B07 + F07 | El panel muestra el avance real de lo digitalizado |
+**Solo el primero tiene RFC.** Los otros cinco están declarados aquí y **no son
+ejecutables tal como están**: sin unidades de trabajo, sin rutas escribibles asignadas y
+sin criterios verificables, el Invariante 8 los deja fuera. `docs/rfcs/I01.md` se escribió
+para servirles de plantilla.
+
+| Integración | Verifica | RFC |
+|---|---|---|
+| B01 + F01 | Se accede con los tres roles y cada uno ve su menú | `docs/rfcs/I01.md` — **redactado, sin firmar** |
+| B02 + F02 | Se registra un paciente real, con y sin autocompletado por DNI | no existe |
+| B03 + F03 | Se capturan hojas reales por las tres vías y se guardan | no existe |
+| B04 + B05 + F05 | Una hoja capturada produce texto, se corrige y se cierra el folder | no existe |
+| B06 + F06 | Se busca una palabra y aparece el documento que la contiene | no existe |
+| B07 + F07 | El panel muestra el avance real de lo digitalizado | no existe |
+
+## Estado del proyecto: **en reposo desde el 2026-08-21**
+
+**Nada está en marcha, y es deliberado.** Kevin decidió detener el avance y dejar el
+proyecto estable. Ningún sprint está despachado, ningún worktree montado, ningún
+subagente en vuelo. Lo que sigue, qué falta para habilitarlo y qué espera por él está en
+`docs/estado.md` § «Punto de reposo — 2026-08-21».
+
+**Lo que este documento declara sigue siendo la fuente para cuando se retome**, incluidos
+los seis puntos de integración de abajo — de los cuales **solo el primero tiene RFC**
+(`docs/rfcs/I01.md`, redactado y sin firmar). Los otros cinco están declarados aquí pero
+no son ejecutables tal como están: por el Invariante 8 necesitan RFC propio, y no se
+redactaron a propósito porque redactarlos es preparar el avance.
 
 ## Qué se puede empezar hoy
+
+**Nada, mientras el proyecto siga en reposo.** Lo que estaría listo para empezar en cuanto Kevin firme:
 
 **La línea frontend completa ya se ejecutó** (F00 → F07, entre el 2026-08-18 y el 2026-08-19), igual que D01. Los siete sprints `F` están en `EN_VALIDACION` con veredicto favorable de QA; no pasan a `COMPLETADO` porque cada uno espera su punto de integración con el sprint `B` correspondiente, declarado más abajo.
 
