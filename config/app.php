@@ -59,13 +59,29 @@ return [
     | Application Timezone
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | Zona horaria interna de la aplicación. **Fija en UTC y sin variable de
+    | entorno a propósito** (RNF-005): todo instante se almacena y se lee como
+    | el mismo momento UTC canónico, y dejar que el entorno la cambiara
+    | desplazaría en silencio lo que se escribe en la base.
+    |
+    | La hora de Perú es una decisión de presentación, no de almacenamiento:
+    | vive en `zona_visualizacion` y se aplica solo al mostrar.
     |
     */
 
     'timezone' => 'UTC',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Zona de visualización
+    |--------------------------------------------------------------------------
+    |
+    | Zona a la que se convierten los instantes al mostrarlos. Nunca se usa
+    | para escribir: la conversión ocurre en el borde de la interfaz.
+    |
+    */
+
+    'zona_visualizacion' => env('APP_ZONA_VISUALIZACION', 'America/Lima'),
 
     /*
     |--------------------------------------------------------------------------
