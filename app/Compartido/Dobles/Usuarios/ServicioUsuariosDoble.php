@@ -28,7 +28,7 @@ class ServicioUsuariosDoble implements ServicioUsuarios
      * mismo `NO_AUTENTICADO` con el mismo mensaje, para no revelar qué correos
      * están registrados (`docs/contratos/usuarios.md`).
      */
-    public function autenticar(string $email, string $password, bool $recordar = false): array
+    public function autenticar(string $email, #[\SensitiveParameter] string $password, bool $recordar = false): array
     {
         $usuario = self::USUARIOS[mb_strtolower(trim($email))] ?? null;
 

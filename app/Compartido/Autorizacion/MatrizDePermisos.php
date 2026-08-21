@@ -39,7 +39,7 @@ final class MatrizDePermisos
             'POST /salir' => ['operador' => null, 'consulta' => null, 'administrador' => null],
             'GET /usuarios' => ['administrador' => null],
             'POST /usuarios' => ['administrador' => null],
-            'PATCH /usuarios/{id}' => ['administrador' => null],
+            'PATCH /usuarios/{id}' => ['administrador' => 'no puede quitarse a sí mismo el rol administrador'],
             'GET /auditoria' => ['administrador' => null],
         ],
         'Pacientes' => [
@@ -75,6 +75,7 @@ final class MatrizDePermisos
                 'consulta' => 'mismo alcance que ver documento',
                 'administrador' => null,
             ],
+            'GET /sesiones/{id}/hojas' => ['operador' => 'sesion.operador_id == actor.id', 'administrador' => null],
             'GET /ilegibles' => ['operador' => 'solo las de sesiones propias', 'administrador' => null],
         ],
     ];

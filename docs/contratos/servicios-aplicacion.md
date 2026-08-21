@@ -73,7 +73,7 @@ Sin esta separación no se pueden cumplir a la vez las dos reglas vigentes: que 
 
 | Método | Operación del contrato |
 |---|---|
-| `autenticar(string $email, string $password, bool $recordar = false): array` | `POST /acceder` |
+| `autenticar(string $email, #[\SensitiveParameter] string $password, bool $recordar = false): array` | `POST /acceder` |
 | `salir(): void` | `POST /salir` |
 | `listar(int $pagina = 1): array` | `GET /usuarios` |
 | `crear(array $datos): array` | `POST /usuarios` |
@@ -121,3 +121,109 @@ Este criterio reemplaza a una comparación anterior por `grep` de métodos invoc
 ## Qué implica para los sprints `B`
 
 B01 a B07 implementan estas interfaces tal como están fijadas aquí: **no las redefinen**. Un cambio de firma es un cambio de contrato y vuelve a Arquitectura. Al existir la implementación real de un dominio, su interruptor de doble queda en `false` y el doble deja de usarse; el punto de integración de cada par `B`/`F` verifica justamente que el build real no cae de vuelta al doble.
+
+
+## Parámetros sensibles en las firmas — criterio del proyecto
+
+**Decisión de Arquitectura, 2026-08-21.** Todo parámetro que transporte una
+credencial o un dato sensible se marca con el atributo nativo
+`#[\SensitiveParameter]` (PHP 8.2+; este proyecto corre 8.5.9). **Forma parte de la
+firma, así que es contrato:** un sprint lo implementa tal cual, no lo redefine ni lo
+omite.
+
+### Por qué, y qué problema cierra
+
+`QA-B01-01` y `QA-B01-02` fueron el mismo defecto a dos profundidades: los stack
+traces de PHP incluyen **los valores de los argumentos de cada frame**, y
+`autenticar()` recibía la contraseña como cadena suelta, así que cualquier excepción
+dentro de esa llamada la escribía en claro en el log. DevOps lo tapó en la capa de
+entorno con `zend.exception_ignore_args=1`, que funciona pero es una manta: **ningún
+trace de la aplicación conserva ya los valores de sus argumentos.**
+
+`#[\SensitiveParameter]` es quirúrgico donde la directiva es global. Medido sobre
+PHP 8.5.9, con la directiva **apagada**:
+
+| | contraseña en `getTrace()` crudo | resto de argumentos |
+|---|---|---|
+| Sin marcar | **fuga** | conservados |
+| `zend.exception_ignore_args=1` | protegida | **perdidos** |
+| `#[\SensitiveParameter]` | protegida | **conservados** |
+
+El frame queda como `autenticar('operador@hurios...', Object(SensitiveParameterValue), false)`:
+el correo sigue ahí para diagnosticar, la contraseña no.
+
+### Las dos capas se conservan, y no es redundancia
+
+La directiva de entorno **no se retira**. Son dos defensas con alcances distintos:
+
+- el **atributo** protege lo que alguien declaró sensible, y conserva el resto del
+  trace — es la capa que documenta la intención en la propia firma;
+- la **directiva** protege también lo que nadie marcó, que es exactamente el modo de
+  falla esperable cuando B02–B07 añadan parámetros nuevos.
+
+Retirar la directiva para recuperar diagnóstico es una conversación legítima, pero
+exige antes que **todo** parámetro sensible esté marcado, y eso no se puede afirmar
+hoy. Mientras tanto rige el mismo criterio de las capas de subida: la capa de abajo
+no confía en que la de arriba haya hecho su trabajo.
+
+### Qué marcar, en B02–B07
+
+Contraseñas y su confirmación; tokens, claves de API y credenciales de proveedores
+externos (`docs/integraciones/json-pe.md`); y cualquier parámetro que un RNF de
+seguridad declare no divulgable. **Ante la duda, marcar**: el coste es perder ese
+argumento en un trace, y el de no marcarlo es escribirlo en el log.
+
+**No** se marca lo que ya es público en el propio sistema —un identificador, un
+correo, un número de historia clínica—: marcarlo de más degrada el diagnóstico sin
+proteger nada.
+
+### Los dos huecos que este criterio tenía, y cómo se cierran
+
+Ambos los detectó la línea backend al implementarlo el 2026-08-21, que es justo para lo
+que sirve implementar algo antes de darlo por bueno. **El atributo protege parámetros, y
+no todo secreto viaja como parámetro.**
+
+**Hueco 1 — el secreto viaja dentro de una estructura.** `ServicioUsuarios::crear(array $datos)`
+llevará una contraseña dentro del array cuando B07 lo implemente. Marcar el array entero
+la protegería, pero ocultaría también `nombre`, `email` y `rol`, que el criterio dice
+explícitamente que no se marcan.
+
+> **Regla: un secreto no viaja dentro de una estructura junto a datos no sensibles.** Se
+> saca a un parámetro propio y ese parámetro se marca. La firma pasa a ser
+> `crear(array $datos, #[\SensitiveParameter] string $password)`. No es una preferencia
+> de estilo: es lo único que permite proteger el secreto **sin** cegar el diagnóstico de
+> todo lo que viaja a su lado.
+>
+> **Se aplica al declararse la firma, no después.** B07 todavía no existe, así que aquí
+> cuesta una línea; hacerlo cuando el sprint esté construido es cambiar un contrato ya
+> implementado. Vale para toda estructura futura: tokens de proveedores, credenciales de
+> integración, cualquier dato que un RNF declare no divulgable.
+
+**Hueco 2 — el secreto es una propiedad de componente, no un parámetro.** Y este además
+destapó un defecto real, que se registra aparte en `docs/estado.md` como `QA-B01-03`.
+
+`FormularioAcceso::$password` es una propiedad pública de Livewire. El atributo no le
+aplica —no es un parámetro— y el riesgo tampoco es el mismo: no son los stack traces,
+es que **Livewire serializa las propiedades públicas en el snapshot que viaja al cliente
+y vuelve en cada petición**.
+
+> **Regla: un secreto no vive en una propiedad pública de componente.** Si el componente
+> necesita recibirlo del formulario, se retiene el mínimo tiempo posible y se limpia en
+> **todos** los caminos de salida, no solo en el de error. La forma correcta de
+> cumplirlo la fija la línea frontend junto con Arquitectura al corregir `QA-B01-03`,
+> porque toca cómo se compone la pantalla y no solo la firma.
+
+**Lo que ambos huecos tienen en común, y es la lección que conviene conservar:** el
+criterio se redactó mirando una sola superficie —los stack traces— porque es la que
+había fallado. Un secreto se escapa por donde no se está mirando, así que al marcar un
+parámetro conviene preguntar además **por dónde más viaja ese mismo dato**: log, traza,
+sesión, snapshot del componente, cuerpo de la respuesta, y auditoría.
+
+### Cómo se verifica
+
+Como todo en este proyecto: **provocándolo, no leyéndolo**. Una prueba que marque el
+defecto de vuelta —quitar el atributo— y confirme que la contraseña reaparece en el
+trace. Con la directiva de entorno activa esa prueba **no puede fallar**, porque la
+manta la tapa igual, así que debe ejercerse con `zend.exception_ignore_args` apagado
+explícitamente. Es el quinto caso del patrón de cobertura ficticia del proyecto, y
+esta vez se anticipa en lugar de descubrirse.
