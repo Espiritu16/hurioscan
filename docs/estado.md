@@ -3,7 +3,7 @@ project: HuriosCan
 source_status: CANONICA
 baseline: línea base completa y aprobada — RF, RNF, contratos, modelo, errores, permisos y los cinco ADR
 active_phase: B01
-active_status: EN_PROGRESO
+active_status: EN_VALIDACION
 last_completed_phase: D01
 bootstrap_status: COMPLETO
 planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; B01 habilitado, B02–B07 con RFC en propuesto
@@ -31,7 +31,7 @@ sprints:
   - id: B01
     repository: hurioscan
     planning_status: LISTO
-    execution_status: BLOQUEADO
+    execution_status: EN_VALIDACION
     depends_on: []
     parallelizable_with: [F00]
   - id: F01
@@ -151,7 +151,7 @@ pisó una vez (ver «Punto de retomada — 2026-08-21»).
 **Lo primero que necesitas saber para trabajar:** `main` y `develop` están protegidas en GitHub. Nada entra sin PR y sin CI en verde, ni siquiera siendo administrador. Un sprint se ejecuta en su propio worktree, en una rama `sprint/<id>`, y entra por PR hacia `develop`.
 
 **Qué sigue, en orden**
-1. **Desbloquear B01** corrigiendo QA-B01-01 (detallado más abajo): la contraseña se escribe en claro en el log. Es lo único que separa al backend de arrancar.
+1. ~~**Desbloquear B01** corrigiendo QA-B01-01~~ → **corregido el 2026-08-21**; el sprint está en `EN_VALIDACION` y QA lo revalida. Ver la sección de B01 más abajo.
 2. **Aprobar el RFC de B02** —lo aprueba Kevin, sobre el documento completo— para habilitar el siguiente sprint. Todas sus fuentes ya están aprobadas; solo falta su firma.
 3. Los pares `B`/`F` se integran de a uno: B01 con F01, B02 con F02, y así. Recién ahí cada sprint `F` pasa a `COMPLETADO`.
 
@@ -230,9 +230,64 @@ Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerra
 
 **Qué hereda B01 al arrancar**, ya registrado en su contexto: la deuda de verificar los propios límites de subida al arrancar y fallar de forma visible; la deuda de fondo de QA-F-04 —que un aviso del motor pueda romper una respuesta JSON en cualquier punto—; y la idea de que `composer dev` delegue en el script de arranque, que es ruta suya.
 
-## B01 — BLOQUEADO por QA-B01-01, 2026-08-21
+## B01 — QA-B01-01 corregido, en revalidación desde el 2026-08-21
 
-**Estado de reposo deliberado.** El sprint se detiene aquí por decisión de Kevin: QA rechazó, la corrección **no se reintenta**, y el bloqueo documentado cuenta como punto estable. No se despacha nada más.
+> **El reposo terminó.** Kevin retomó el proyecto el 2026-08-21 y ordenó arrancar
+> la línea backend. La decisión de «no se reintenta» era el criterio de un punto de
+> reposo, no una prohibición permanente: se aplicaba mientras el proyecto estuviera
+> detenido. El sprint volvió a despacharse.
+
+**Estado actual: `EN_VALIDACION`.** La línea backend corrigió el defecto y entregó un
+`final_sha` nuevo; QA lo está revalidando. **El sprint no está cerrado ni fusionado:**
+el gate de `AGENTS.md` sigue exigiendo QA `APROBADO` sobre ese SHA antes de `develop`,
+y ese veredicto no lo emite ni la implementación ni el Coordinador.
+
+| Qué | Valor |
+|---|---|
+| Rama | `sprint/B01`, publicada en `origin` |
+| `final_sha` **vigente** | `b0049709ee588ba989be6368249feca0ea07dcc5` (código); head con el handoff: `8b1763cd28643b9df2c073985936227a4fa713fb` |
+| `final_sha` **rechazado** (histórico) | `17f3162a3bee3f7a1d1daa906006de06b03cf41d` — el que QA rechazó. Ya **no** es el SHA a validar |
+| PR | [#50](https://github.com/Espiritu16/hurioscan/pull/50), abierto en borrador con su aviso de bloqueo. **Su cuerpo describe el defecto ya corregido y hay que actualizarlo cuando QA se pronuncie** |
+| Worktrees | `../hurioscan-B01` (implementación) y `../hurioscan-QA-B01` (validación, HEAD detached) |
+
+### La corrección, verificada por Coordinación contra el árbol real
+
+Dos archivos, ambos dentro del área autorizada de la línea backend: `bootstrap/app.php`
+y `tests/Feature/Backend/AccesoTest.php`.
+
+- `ErrorDeAplicacion` deja de pasar por el reporte por defecto de Laravel —el camino
+  que escribe el stack trace, y con él los argumentos de cada frame—. En su lugar se
+  registra una línea estructurada con `codigo`, `estado` y `origen`. **No se cambió una
+  pérdida silenciosa por otra:** se pierde solo la cadena de llamadas, que es justo lo
+  que transportaba el secreto. El nivel se deriva del status ya aprobado en
+  `manejo-errores.md` (4xx → `info`, 5xx → `error`), sin inventar una segunda tabla.
+- La fixture bajó de **18 a 8 caracteres** y el test pasa a proveedor de datos con 8,
+  15 y 18, sobre los dos caminos de error. Para el caso de 18 se afirma además sobre
+  los **primeros 15 caracteres**, porque el trace filtra un prefijo y sin eso ese juego
+  de datos volvería a ser incapaz de fallar — el mismo error que ocultó el defecto.
+
+**Mutación reproducida por Coordinación**, no solo reportada: revertida la corrección,
+los tres juegos de datos fallan y el log contiene literalmente
+`autenticar('operador@hurios..', 'clave-08-mal', false)`. Restaurada, vuelven a verde y
+la contraseña no aparece en `storage/logs/`. La prueba ya puede fallar por lo que dice
+vigilar.
+
+### Riesgo residual — escalado, no resuelto, y no es de la línea backend
+
+La causa de fondo no es `ErrorDeAplicacion`: es que **los traces de PHP llevan los
+argumentos** y `autenticar()` recibe la contraseña como cadena suelta. Una excepción
+*inesperada* dentro de esa llamada —un `QueryException` durante el acceso— seguiría
+escribiéndola. Cerrarlo del todo exige una de dos cosas, y ninguna es de esa línea:
+
+- `zend.exception_ignore_args=1` en `scripts/php/hurioscan.ini` → **DevOps**;
+- cambiar la firma de `autenticar` en `docs/contratos/servicios-aplicacion.md` →
+  **Arquitectura** (un cambio de firma es un cambio de contrato).
+
+Queda declarado en vez de decidido por cuenta propia. **Si afecta o no al veredicto lo
+juzga QA**, que lo recibió explícitamente en su despacho.
+
+### El diagnóstico original, que conserva su valor
+
 
 - Rama `sprint/B01`, `final_sha` **`62702cdf981524849ce009b692e5d4f2211f7b60`**, publicada en `origin`. PR [#50](https://github.com/Espiritu16/hurioscan/pull/50) hacia `develop` **abierto y sin fusionar**, con el check `verificacion` en verde. No se integra: `AGENTS.md` exige QA APROBADO antes de `develop`.
 - El handoff del sprint vive en `docs/handoffs/B01.md` **dentro de la rama `sprint/B01`**, no en `develop`. Se lee con `git show sprint/B01:docs/handoffs/B01.md`.
@@ -661,12 +716,14 @@ afirmaban habían dejado de ser ciertas.
 
 ### Qué sigue, en orden
 
-1. **B01 — corrección de `QA-B01-01` en curso.** Despachada a un subagente de la
-   línea backend el 2026-08-21, en `../hurioscan-B01` sobre `sprint/B01 @ 62702cd`.
-   Al terminar entrega un `final_sha` nuevo y **vuelve a QA**, que revalidará con
-   contraseñas de 8, 15 y 18 caracteres, la mutación de canario y la regresión
-   completa de `AccesoTest`. El gate de `AGENTS.md` sigue en pie: nada entra a
-   `develop` sin QA `APROBADO`.
+1. **B01 — corregido, en revalidación por QA.** La línea backend cerró
+   `QA-B01-01` el 2026-08-21 (outcome `terminado`) y entregó
+   `final_sha b0049709`; QA lo está validando en `../hurioscan-QA-B01`. El gate de
+   `AGENTS.md` sigue en pie: **nada entra a `develop` sin QA `APROBADO`**, y ese
+   veredicto no lo emite ni la implementación ni el Coordinador. Si sale
+   `RECHAZADO` por la misma causa una segunda vez, se escala a Kevin en vez de
+   re-despachar: dos ciclos fallando por lo mismo indican que el problema está río
+   arriba, en el criterio o en el RFC, no en la implementación.
 2. **Con B01 aprobado, el punto de integración B01 + F01**, que es lo que permite a
    F01 pasar de `EN_VALIDACION` a `COMPLETADO`.
 3. **Aprobar el RFC de B02** para habilitar el siguiente sprint de backend. Todas
@@ -696,10 +753,10 @@ un despacho muerto es indistinguible de uno que sigue trabajando.
 
 | Rol | Línea | Sprint | Despacho | Depende de | Estado del sprint | Último handoff |
 |---|---|---|---|---|---|---|
-| implementation | backend | B01 | subagente (2026-08-21, corrección de `QA-B01-01`) | ninguna | EN_PROGRESO | `docs/handoffs/B01.md` (en rama `sprint/B01`) |
+| implementation | backend | B01 | subagente (2026-08-21) — outcome **`terminado`**, verificado contra Git | ninguna | EN_VALIDACION | `docs/handoffs/B01.md` (en rama `sprint/B01`) |
 | implementation | frontend | F00→F07 | cerrado — se ejecutaron en cadena, un commit por sprint | ninguna | los siete `EN_VALIDACION`, integrados en `develop` | uno por sprint en `docs/handoffs/` |
 | devops | — | D01 | cerrado | ninguna | COMPLETADO | `docs/handoffs/D01.md` |
-| qa | — | B01 | **por despachar** — espera el `final_sha` nuevo de la corrección | `final_sha` de B01 | (valida cuando B01 vuelva a `EN_VALIDACION`) | `docs/handoffs/B01.md` |
+| qa | — | B01 | subagente (2026-08-21) — **sin outcome todavía** | `final_sha` `b004970` / head `8b1763c` | EN_VALIDACION | `docs/handoffs/B01.md` |
 
 > **Este registro reemplazó el 2026-08-21 a la tabla «Chats de rol activos».**
 > Aquella listaba cuatro sesiones en `ABIERTO` —COORDINADOR, FRONTEND, DEVOP, QA—
@@ -716,10 +773,15 @@ línea, según la separación declarada en `AGENTS.md`. Si aparece un archivo co
 que la separación no previó, esa línea base resultó incorrecta: se pausa y se corrige
 `AGENTS.md` antes de continuar, en vez de dejar que dos ejecutores se pisen.
 
-**Worktrees.** El único activo es `../hurioscan-B01` (rama `sprint/B01`), recreado el
-2026-08-21 para la corrección. Los de F00 y D01 se retiraron el 2026-08-20 y su
-contenido vive en sus ramas (`git show sprint/F00:<ruta>`); el campo `worktree_path`
-de cada handoff lo declara así.
+**Worktrees activos** (2026-08-21): `../hurioscan-B01` en `sprint/B01`, de la línea
+backend, y `../hurioscan-QA-B01` en HEAD detached sobre `8b1763c`, de QA — **QA valida
+en árbol propio y nunca reutiliza el del implementador**, para no heredar su estado
+oculto (dependencias sin commitear, migraciones aplicadas, caché). Los de F00 y D01 se
+retiraron el 2026-08-20 y su contenido vive en sus ramas (`git show sprint/F00:<ruta>`);
+el campo `worktree_path` de cada handoff lo declara así.
+
+**Ambos se eliminan al cerrar B01**, y hasta entonces no se decide nada sobre ellos
+leyendo su nombre: el nombre de un worktree no es evidencia de lo que contiene.
 
 ## Referencias
 - Roadmap: `docs/roadmap.md`
