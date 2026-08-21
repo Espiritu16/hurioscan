@@ -64,7 +64,7 @@ Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente 
 |---|---|---|---|---|---|---|---|
 | D01 | devops | Flujos de verificación en cada pull request hacia `develop` y `main` | ninguna | F00, B01 | `docs/rfcs/D01.md` | **LISTO** | **COMPLETADO** |
 | F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01, D01 | `docs/rfcs/F00.md` | **LISTO** | **EN_VALIDACION** |
-| B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | **LISTO** | **EN_PROGRESO** — corrigiendo `QA-B01-01` |
+| B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | **LISTO** | **EN_VALIDACION** |
 | F01 | implementation | Pantalla de acceso, layout y menú por rol | F00 | B01, B02 | `docs/rfcs/F01.md` | **LISTO** | **EN_VALIDACION** |
 | B02 | implementation | Alta y búsqueda de pacientes; consulta de DNI al proveedor | B01 | F01, F02 | `docs/rfcs/B02.md` | BORRADOR | PLANIFICADO |
 | F02 | implementation | Búsqueda de pacientes y alta con autocompletado | F00, F01 | B02, B03 | `docs/rfcs/F02.md` | **LISTO** | **EN_VALIDACION** |
@@ -113,7 +113,7 @@ Un par `B`/`F` no está cerrado hasta que se integran de verdad. Cada punto exig
 
 **La línea frontend completa ya se ejecutó** (F00 → F07, entre el 2026-08-18 y el 2026-08-19), igual que D01. Los siete sprints `F` están en `EN_VALIDACION` con veredicto favorable de QA; no pasan a `COMPLETADO` porque cada uno espera su punto de integración con el sprint `B` correspondiente, declarado más abajo.
 
-**B01 se ejecutó, quedó BLOQUEADO** por QA-B01-01 —un defecto de seguridad reproducido: la contraseña se escribe en claro en el log— y **desde el 2026-08-21 se está corrigiendo**, tras retomarse el proyecto. Su rama y su PR siguen publicados sin fusionar; el detalle está en `docs/estado.md`. Al terminar entrega un `final_sha` nuevo y vuelve a QA: el gate de `AGENTS.md` exige `APROBADO` antes de `develop`. Los otros seis RFC de `B` siguen en `propuesto` y se encadenan detrás según la columna «Depende de».
+**B01 se ejecutó, quedó BLOQUEADO** por QA-B01-01 —un defecto de seguridad reproducido: la contraseña se escribe en claro en el log—, **se corrigió el 2026-08-21** al retomarse el proyecto, QA lo revalidó con veredicto `APROBADO` y **está integrado en `develop`**. Sigue en `EN_VALIDACION` y no en `COMPLETADO` porque le falta su punto de integración con F01, igual que a los siete sprints `F`. Queda abierta la no conformidad `QA-B01-02` (severidad media, despachada a DevOps), a cerrar antes de `main`. Los otros seis RFC de `B` siguen en `propuesto` y se encadenan detrás según la columna «Depende de».
 
 ## Correspondencia con el cronograma de la propuesta
 
