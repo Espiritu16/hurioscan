@@ -51,6 +51,11 @@ class AutorizacionTest extends TestCase
      * `null` en el rol denegado significa que las tres filas existen y no hay a
      * quién denegar, no que la prueba se salte nada.
      *
+     * Las cuatro pruebas que consumen este proveedor declaran los cuatro
+     * parámetros aunque alguna no use todos: PHPUnit avisa cuando el proveedor
+     * entrega más argumentos de los que el método acepta, y ese aviso hace
+     * fallar la corrida.
+     *
      * @return array<string, array{0: string, 1: array, 2: string, 3: string|null}>
      */
     public static function rutasProtegidas(): array
@@ -77,7 +82,7 @@ class AutorizacionTest extends TestCase
 
     /** Prueba mínima 1 de RNF-013: sin autenticar. */
     #[DataProvider('rutasProtegidas')]
-    public function test_sin_autenticar_la_ruta_rechaza(string $nombre, array $parametros): void
+    public function test_sin_autenticar_la_ruta_rechaza(string $nombre, array $parametros, string $rolPermitido, ?string $rolDenegado): void
     {
         $this->assertTrue(Route::has($nombre), "la ruta {$nombre} no está montada");
 
@@ -92,7 +97,7 @@ class AutorizacionTest extends TestCase
 
     /** Prueba mínima 2 de RNF-013: con credencial válida. */
     #[DataProvider('rutasProtegidas')]
-    public function test_con_credencial_valida_la_ruta_responde(string $nombre, array $parametros, string $rolPermitido): void
+    public function test_con_credencial_valida_la_ruta_responde(string $nombre, array $parametros, string $rolPermitido, ?string $rolDenegado): void
     {
         $this->actingAs($this->usuarioConRol($rolPermitido))
             ->get(route($nombre, $parametros))
@@ -107,7 +112,7 @@ class AutorizacionTest extends TestCase
      * sistema hasta que su sesión caducara sola.
      */
     #[DataProvider('rutasProtegidas')]
-    public function test_con_credencial_que_dejo_de_valer_la_ruta_rechaza(string $nombre, array $parametros, string $rolPermitido): void
+    public function test_con_credencial_que_dejo_de_valer_la_ruta_rechaza(string $nombre, array $parametros, string $rolPermitido, ?string $rolDenegado): void
     {
         $desactivado = $this->usuarioConRol($rolPermitido);
         $desactivado->update(['activo' => false]);
