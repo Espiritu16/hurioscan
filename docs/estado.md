@@ -155,7 +155,7 @@ pisó una vez (ver «Punto de retomada — 2026-08-21»).
 2. **Aprobar el RFC de B02** —lo aprueba Kevin, sobre el documento completo— para habilitar el siguiente sprint. Todas sus fuentes ya están aprobadas; solo falta su firma.
 3. Los pares `B`/`F` se integran de a uno: B01 con F01, B02 con F02, y así. Recién ahí cada sprint `F` pasa a `COMPLETADO`.
 
-**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02 y los siguientes; qué hacer con el despliegue de Vercel de `~/hurioscan-deploy`; y si el límite de intentos de acceso entra al alcance (exige un RF o RNF nuevo). Todo está detallado en sus secciones. **Los dos huecos de `AGENTS.md` ya no están en esta lista:** se cerraron el 2026-08-20 con su aprobación, aunque el documento siguió pidiéndosela un día más.
+**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02, el del punto de integración B01 + F01, y el RNF nuevo del límite de intentos de acceso — los tres se le presentan juntos para aprobar. **Ya no esperan nada:** los dos huecos de `AGENTS.md` (cerrados el 2026-08-20) y el despliegue de Vercel (Kevin aprobó eliminarlo el 2026-08-21; el borrado del directorio queda de su mano).
 
 
 
@@ -333,6 +333,62 @@ QA confirmó además que las dos decisiones de perímetro del implementador **no
 4. Una justificación en la migración afirma que «la validación de aplicación rechaza igual un rol fuera del conjunto», y esa validación **no existe en este SHA** — es de B07. La decisión sigue siendo correcta; la justificación describe algo que aún no está.
 
 
+
+## QA-B01-03 — la contraseña viaja al cliente en el snapshot de Livewire
+
+**No conformidad abierta, severidad media. Detectada y reproducida por Coordinación el
+2026-08-21**, al cerrar un hueco del criterio de parámetros sensibles que la línea
+backend había señalado. **No la encontró QA** — apareció mirando por dónde más viaja el
+mismo dato, que es justamente la pregunta que el criterio no se había hecho.
+
+### El defecto
+
+`FormularioAcceso::$password` es una **propiedad pública** de un componente Livewire, y
+Livewire serializa las propiedades públicas en el snapshot que viaja al cliente y vuelve
+en cada petición. Medido, no leído:
+
+| Dónde | ¿Aparece la contraseña? |
+|---|---|
+| HTML renderizado | no |
+| **Snapshot de Livewire** | **sí — viaja al cliente** |
+
+Y hay un segundo filo: el componente hace `$this->password = ''` **solo en el camino de
+error**. En el acceso **exitoso** (`FormularioAcceso::acceder()`, tras autenticar) la
+propiedad conserva la contraseña hasta la redirección.
+
+### Por qué es de la misma familia que QA-B01-01 y QA-B01-02, y por qué no la vieron
+
+Los tres son «la contraseña sale por un canal que nadie estaba mirando». Los dos
+primeros eran stack traces; éste es el transporte del componente. **Las correcciones
+anteriores no lo tocan ni podían tocarlo:** `#[\SensitiveParameter]` protege parámetros
+y esto es una propiedad; `zend.exception_ignore_args` protege trazas y esto no es una
+traza.
+
+Tampoco lo habrían visto las pruebas existentes: `PantallaAccesoTest` verifica que tras
+un error la propiedad queda vacía —y eso pasa— pero nunca preguntó qué contiene el
+snapshot mientras la persona escribe.
+
+### Severidad, sin inflarla ni suavizarla
+
+**Media.** El snapshot va al navegador de quien escribió la contraseña, así que no es
+una fuga hacia un tercero por sí sola. Lo que la hace real es la superficie que abre:
+queda en el DOM y en el historial de red del navegador, alcanzable por cualquier
+extensión y por cualquier XSS en la aplicación. Roza **RNF-014** —«ningún log, mensaje
+de error o respuesta expone credenciales»— porque el snapshot forma parte de la
+respuesta.
+
+### Quién la resuelve, y por qué no la corrigió Coordinación al encontrarla
+
+`app/Dominios/Usuarios/Componentes/` es ruta de la **línea frontend**, y el arreglo no
+es de una línea: limpiar la propiedad en el camino exitoso corrige el segundo filo pero
+**no el primero**, porque la contraseña ya viajó al cliente cuando la persona la
+escribió. Cerrarlo de verdad exige decidir cómo se compone la pantalla, y eso es
+**Arquitectura junto con la línea frontend**, no una corrección al vuelo del Coordinador.
+
+**No bloquea nada hoy** y no reabre B01, que QA aprobó sobre lo que se le pidió validar.
+Se registra con dueño en lugar de aceptarse como deuda, igual que se hizo con
+`QA-B01-02`.
+
 ## QA-B01-02 — cerrado el 2026-08-21 en la capa de entorno
 
 `zend.exception_ignore_args=1` en `scripts/php/hurioscan.ini`, con su comentario.
@@ -391,23 +447,53 @@ repitan el patrón con otros datos sensibles.
 
 ## Cosas que existen fuera del repositorio o esperan decisión
 
-### `~/hurioscan-deploy` — despliegue del diseño en Vercel, **activo**, sin versionar
+### `~/hurioscan-deploy` — **retirada aprobada, pendiente de ejecutar por Kevin**
 
-Directorio **sin Git** en el disco de Kevin, del 2026-08-18. Inspeccionado el 2026-08-21 sin moverlo ni modificarlo.
+Directorio sin Git en el disco de Kevin, del 2026-08-18, que aloja el despliegue del
+**diseño de pantallas** (no de la aplicación). Kevin aprobó eliminarlo el 2026-08-21:
+una copia del diseño fuera de Git que puede divergir sin que nadie lo note no aporta
+nada.
 
-**Qué es:** el despliegue del **diseño de pantallas**, no de la aplicación. Su `public/index.html` es **byte a byte idéntico** a `docs/frontend/diseno/hurioscan-claude-design.html`, que sí está versionado (mismo SHA-256, verificado). Está **activo**: `https://hurioscan-deploy.vercel.app` responde HTTP 200.
+> **Aprobado, no hecho.** El borrado quedó pendiente porque el entorno de la sesión
+> del Coordinador bloquea la eliminación recursiva de directorios, así que lo ejecuta
+> Kevin con `rm -rf ~/hurioscan-deploy`. **El inventario previo sí se completó y todo
+> lo recuperable está registrado abajo**, que era la condición: borrarlo ahora no
+> pierde nada. Esta nota deja de aplicar cuando el directorio ya no exista.
 
-**Qué no está versionado en ningún lado**, y qué vale cada cosa:
+Esto es lo que contiene:
 
-| Archivo | Qué es | Valor real |
+| Archivo | ¿Estaba en el repositorio? | Qué se hizo |
 |---|---|---|
-| `vercel.json` | dos líneas, solo `cleanUrls: true` | trivial de recrear |
-| `pnpm-workspace.yaml` | contiene literalmente `esbuild: set this to true or false` | **plantilla sin resolver**, no configuración real |
-| `.vercel/project.json` | vincula la carpeta con el proyecto real (`projectId`, `orgId`) | lo único irreemplazable a mano, pero **se regenera con `vercel link`** |
+| `public/index.html` | **Sí** — byte a byte idéntico a `docs/frontend/diseno/hurioscan-claude-design.html`, mismo SHA-256 `911c4b33…e6c`, verificado antes de borrar | nada que traer |
+| `vercel.json` | No | se transcribe abajo; son tres líneas |
+| `package.json` | No | solo declaraba la dependencia `vercel`; nada propio |
+| `pnpm-workspace.yaml` | No | **plantilla sin resolver** (`esbuild: set this to true or false`); no era configuración real |
+| `.gitignore` | No | una línea: `.vercel` |
+| `.vercel/project.json` | No | identificadores del vínculo. **No se versiona** — es la convención de la propia herramienta y su README lo dice explícitamente. Se regenera con `vercel link` |
+| `.vercel/README.txt` | No | texto generado por la herramienta |
+| `node_modules/` | No | 235 MB, reinstalables. Eran el peso entero del directorio |
 
-**Lo importante: el contenido publicado no corre riesgo**, porque está en Git. Lo único que se perdería es el vínculo con el proyecto de Vercel, y eso se recupera enlazando de nuevo.
+**Nada de valor se perdió**, y esto es lo único que hacía falta conservar para poder
+recrearlo, que es la razón de que se registre aquí en vez de en un directorio suelto:
 
-**Recomendación de Coordinación, pendiente de decisión de Kevin.** `.vercel/` **no debe versionarse** —es la convención de la propia herramienta y el `.gitignore` local ya lo excluye—. Sobre los otros dos, la pregunta de fondo no es si versionarlos sino **si ese despliegue sigue teniendo sentido**: publica el diseño de referencia, y la interfaz real ya está construida. Dos caminos limpios: declararlo **descartable** —el diseño vive en el repositorio y el despliegue es una vitrina reemplazable—, o **absorberlo** al repositorio con su `vercel.json` versionado y el despliegue tomando el HTML desde `docs/frontend/diseno/`, en vez de una copia suelta. Lo que conviene evitar es el estado actual: una copia del diseño fuera de Git que puede divergir del original sin que nadie lo note. Los 235 MB del directorio son `node_modules`.
+- Proyecto en Vercel: **`hurioscan-deploy`**, URL `https://hurioscan-deploy.vercel.app`
+- Contenido publicado: el HTML de `docs/frontend/diseno/hurioscan-claude-design.html`,
+  que sí está versionado
+- `vercel.json`, literal:
+  ```json
+  {
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "cleanUrls": true
+  }
+  ```
+- Para volver a enlazarlo: `vercel link` sobre un directorio nuevo, eligiendo el
+  proyecto por su nombre. Los identificadores se recuperan solos.
+
+**El despliegue está vivo, y conviene no confundirlo con el directorio.** Verificado el
+2026-08-21: `https://hurioscan-deploy.vercel.app` responde HTTP 200. Borrar la carpeta
+local **no** da de baja el sitio — solo elimina el vínculo desde este disco. Si además
+se quiere retirar el sitio publicado, eso se hace desde el panel de Vercel y **es una
+acción aparte que Kevin no ha pedido**.
 
 ### Dos huecos de `AGENTS.md` detectados al auditar B01 — **CERRADOS el 2026-08-20**
 
