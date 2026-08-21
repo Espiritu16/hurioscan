@@ -97,6 +97,11 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // La sesión de PostgreSQL también trabaja en UTC (RNF-005): sin
+            // esto hereda la zona del servidor y un `timestamptz` leído en
+            // crudo saldría desplazado, aunque el instante guardado sea el
+            // correcto.
+            'timezone' => 'UTC',
         ],
 
         'sqlsrv' => [
