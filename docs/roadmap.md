@@ -113,7 +113,7 @@ Un par `B`/`F` no está cerrado hasta que se integran de verdad. Cada punto exig
 
 **La línea frontend completa ya se ejecutó** (F00 → F07, entre el 2026-08-18 y el 2026-08-19), igual que D01. Los siete sprints `F` están en `EN_VALIDACION` con veredicto favorable de QA; no pasan a `COMPLETADO` porque cada uno espera su punto de integración con el sprint `B` correspondiente, declarado más abajo.
 
-**B01 se ejecutó, quedó BLOQUEADO** por QA-B01-01 —un defecto de seguridad reproducido: la contraseña se escribe en claro en el log— **se corrigió el 2026-08-21** al retomarse el proyecto, y está en `EN_VALIDACION` con un `final_sha` nuevo mientras QA lo revalida. Su rama y su PR siguen publicados sin fusionar: el gate de `AGENTS.md` exige `APROBADO` antes de `develop`. Los otros seis RFC de `B` siguen en `propuesto` y se encadenan detrás según la columna «Depende de».
+**B01 se ejecutó, quedó BLOQUEADO** por QA-B01-01 —un defecto de seguridad reproducido: la contraseña se escribe en claro en el log—, **se corrigió el 2026-08-21** al retomarse el proyecto, QA lo revalidó con veredicto `APROBADO` y **está integrado en `develop`**. Sigue en `EN_VALIDACION` y no en `COMPLETADO` porque le falta su punto de integración con F01, igual que a los siete sprints `F`. Queda abierta la no conformidad `QA-B01-02` (severidad media, despachada a DevOps), a cerrar antes de `main`. Los otros seis RFC de `B` siguen en `propuesto` y se encadenan detrás según la columna «Depende de».
 
 ## Correspondencia con el cronograma de la propuesta
 

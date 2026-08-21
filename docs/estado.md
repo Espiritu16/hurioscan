@@ -237,18 +237,27 @@ Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerra
 > reposo, no una prohibición permanente: se aplicaba mientras el proyecto estuviera
 > detenido. El sprint volvió a despacharse.
 
-**Estado actual: `EN_VALIDACION`.** La línea backend corrigió el defecto y entregó un
-`final_sha` nuevo; QA lo está revalidando. **El sprint no está cerrado ni fusionado:**
-el gate de `AGENTS.md` sigue exigiendo QA `APROBADO` sobre ese SHA antes de `develop`,
-y ese veredicto no lo emite ni la implementación ni el Coordinador.
+**Estado actual: `EN_VALIDACION`, con QA `APROBADO` e integrado en `develop`.**
+La línea backend corrigió el defecto, QA lo revalidó y emitió **APROBADO** sobre
+`8b1763c` el 2026-08-21, y el PR [#50](https://github.com/Espiritu16/hurioscan/pull/50)
+se fusionó a `develop` con el gate cumplido y el CI en verde.
+
+**Sigue sin pasar a `COMPLETADO`, y es correcto.** El roadmap declara que *«un par
+`B`/`F` no está cerrado hasta que se integran de verdad»*, y el punto de integración
+**B01 + F01** —reemplazar el doble de usuarios por el servicio real, comprobar que se
+accede con los tres roles y que cada uno ve su menú, y confirmar que el build no cae
+de vuelta al doble— **todavía no se ha hecho**. Es trabajo real, no un trámite.
+
+Detalle completo del veredicto, las tres mutaciones y lo que QA reutilizó:
+`docs/handoffs/B01.md` § Validación QA.
 
 | Qué | Valor |
 |---|---|
 | Rama | `sprint/B01`, publicada en `origin` |
 | `final_sha` **vigente** | `b0049709ee588ba989be6368249feca0ea07dcc5` (código); head con el handoff: `8b1763cd28643b9df2c073985936227a4fa713fb` |
 | `final_sha` **rechazado** (histórico) | `17f3162a3bee3f7a1d1daa906006de06b03cf41d` — el que QA rechazó. Ya **no** es el SHA a validar |
-| PR | [#50](https://github.com/Espiritu16/hurioscan/pull/50), abierto en borrador con su aviso de bloqueo. **Su cuerpo describe el defecto ya corregido y hay que actualizarlo cuando QA se pronuncie** |
-| Worktrees | `../hurioscan-B01` (implementación) y `../hurioscan-QA-B01` (validación, HEAD detached) |
+| PR | [#50](https://github.com/Espiritu16/hurioscan/pull/50) — **fusionado a `develop` el 2026-08-21**. Su cuerpo se reescribió con el veredicto antes de fusionar: el aviso «BLOQUEADO — NO FUSIONAR» describía un defecto ya corregido, y un cartel así engaña tanto como un verde sobre trabajo rechazado |
+| Worktrees | se retiran tras la integración; el contenido vive en `develop` y en la rama `sprint/B01` |
 
 ### La corrección, verificada por Coordinación contra el árbol real
 
@@ -394,11 +403,19 @@ No toca la separación de autoridad entre roles: QA sigue emitiendo su veredicto
 
 Ampliaciones puntuales del perímetro de la línea frontend, aprobadas por Kevin el 2026-08-19 para que la cadena `F` pueda ejecutarse sin su backend. **No modifican `AGENTS.md`:** son excepciones acotadas y con vencimiento, no un cambio de la política de permisos.
 
-| Autorización | Disparador de vencimiento | Estado al 2026-08-20 |
+| Autorización | Disparador de vencimiento | Estado al 2026-08-21 |
 |---|---|---|
-| AUT-01 — rutas web | habilitarse B01 | **vence al despacharse B01** |
-| AUT-02 — interfaces y binding de dobles | habilitarse B01 | **vence al despacharse B01** |
+| AUT-01 — rutas web | habilitarse B01 | **VENCIDA** — B01 se despachó el 2026-08-20 y se integró a `develop` el 2026-08-21 |
+| AUT-02 — interfaces y binding de dobles | habilitarse B01 | **VENCIDA** — mismo disparador |
 | AUT-03 — límite de subida | cerrarse QA-F-03 | **VENCIDA** desde el 2026-08-19 |
+
+> **Las tres están vencidas al 2026-08-21.** AUT-01 y AUT-02 figuraron como «vence al
+> despacharse B01» **después** de que B01 se despachara: un disparador cumplido que
+> nadie fue a marcar, el mismo modo de falla que ya le había pasado a AUT-03 y al
+> bloqueo de B01. `routes/web.php`, las interfaces de dominio y `config/livewire.php`
+> vuelven a los dueños que declara `AGENTS.md`. Ninguna caducidad bloquea trabajo en
+> curso: todo lo producido bajo las tres está integrado en `develop`, y la línea
+> frontend no tiene sprints abiertos.
 
 Ninguna caducidad bloquea trabajo en curso: al 2026-08-20 los siete sprints `F` están en `EN_VALIDACION`, todo lo producido bajo las tres está integrado en `develop` y en `main`, y las sesiones de rol no tienen trabajo abierto. El vencimiento cierra puertas que ya nadie necesita cruzar.
 
@@ -716,17 +733,20 @@ afirmaban habían dejado de ser ciertas.
 
 ### Qué sigue, en orden
 
-1. **B01 — corregido, en revalidación por QA.** La línea backend cerró
-   `QA-B01-01` el 2026-08-21 (outcome `terminado`) y entregó
-   `final_sha b0049709`; QA lo está validando en `../hurioscan-QA-B01`. El gate de
-   `AGENTS.md` sigue en pie: **nada entra a `develop` sin QA `APROBADO`**, y ese
-   veredicto no lo emite ni la implementación ni el Coordinador. Si sale
-   `RECHAZADO` por la misma causa una segunda vez, se escala a Kevin en vez de
-   re-despachar: dos ciclos fallando por lo mismo indican que el problema está río
-   arriba, en el criterio o en el RFC, no en la implementación.
-2. **Con B01 aprobado, el punto de integración B01 + F01**, que es lo que permite a
-   F01 pasar de `EN_VALIDACION` a `COMPLETADO`.
-3. **Aprobar el RFC de B02** para habilitar el siguiente sprint de backend. Todas
+1. ~~**B01 — corregir `QA-B01-01`**~~ → **hecho el 2026-08-21.** Corregido
+   (outcome `terminado`), revalidado por QA (`aprobado` sobre `8b1763c`) e
+   **integrado en `develop`** con el gate cumplido y el CI en verde.
+2. **`QA-B01-02` — no conformidad abierta, severidad media.** Despachada a DevOps
+   el 2026-08-21. Recomendación de QA: cerrarla **antes de `main`**, no antes de
+   `develop`. Si DevOps concluye que su remedio no compensa, el otro camino es
+   Arquitectura, y ahí sí hay una decisión que tomar.
+3. **Punto de integración B01 + F01** — es lo que falta para que **ambos** pasen a
+   `COMPLETADO`. Reemplazar el doble de usuarios por el servicio real, comprobar
+   que se accede con los tres roles y que cada uno ve su menú, y confirmar que el
+   build no cae de vuelta al doble. **No tiene RFC ni sprint propio en el roadmap**,
+   y toca rutas de las dos líneas: cómo se ejecuta es una decisión pendiente de
+   Kevin.
+4. **Aprobar el RFC de B02** para habilitar el siguiente sprint de backend. Todas
    sus fuentes están aprobadas; solo falta la firma de Kevin sobre el documento
    completo. Sin eso, B02 no pasa de `BORRADOR` (Invariante 8).
 
@@ -753,10 +773,11 @@ un despacho muerto es indistinguible de uno que sigue trabajando.
 
 | Rol | Línea | Sprint | Despacho | Depende de | Estado del sprint | Último handoff |
 |---|---|---|---|---|---|---|
-| implementation | backend | B01 | subagente (2026-08-21) — outcome **`terminado`**, verificado contra Git | ninguna | EN_VALIDACION | `docs/handoffs/B01.md` (en rama `sprint/B01`) |
+| implementation | backend | B01 | subagente (2026-08-21) — outcome **`terminado`**, verificado contra Git | ninguna | EN_VALIDACION — QA `APROBADO`, integrado en `develop` | `docs/handoffs/B01.md` |
 | implementation | frontend | F00→F07 | cerrado — se ejecutaron en cadena, un commit por sprint | ninguna | los siete `EN_VALIDACION`, integrados en `develop` | uno por sprint en `docs/handoffs/` |
 | devops | — | D01 | cerrado | ninguna | COMPLETADO | `docs/handoffs/D01.md` |
-| qa | — | B01 | subagente (2026-08-21) — **sin outcome todavía** | `final_sha` `b004970` / head `8b1763c` | EN_VALIDACION | `docs/handoffs/B01.md` |
+| qa | — | B01 | subagente (2026-08-21) — outcome **`aprobado`** | `final_sha` `b004970` / head `8b1763c` | EN_VALIDACION — QA `APROBADO` | `docs/handoffs/B01.md` |
+| devops | — | QA-B01-02 | subagente (2026-08-21) — **sin outcome todavía** | ninguna | no conformidad abierta, fuera de sprint | (se registrará al recibir el outcome) |
 
 > **Este registro reemplazó el 2026-08-21 a la tabla «Chats de rol activos».**
 > Aquella listaba cuatro sesiones en `ABIERTO` —COORDINADOR, FRONTEND, DEVOP, QA—
