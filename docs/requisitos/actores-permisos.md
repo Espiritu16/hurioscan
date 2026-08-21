@@ -51,6 +51,8 @@ El proyecto no expone una API HTTP pública: las operaciones son rutas web y acc
 | Administrador | administrador | `GET /sesiones/{id}` · ver sesión | ver | — | Sí | RF-010 |
 | Operador | operador | `POST /sesiones/{id}/hojas` · capturar hoja | crear | sesión propia y en estado `ABIERTA` | Sí | RF-003 |
 | Operador | operador | `DELETE /sesiones/{id}/hojas/{hoja}` · quitar hoja | eliminar | sesión propia y en estado `ABIERTA` | Sí | RF-003 |
+| Operador | operador | `GET /sesiones/{id}/hojas` · ver hojas de la sesión | ver | solo las propias (`sesion.operador_id == actor.id`) | Sí | RF-005 |
+| Administrador | administrador | `GET /sesiones/{id}/hojas` · ver hojas de la sesión | ver | — | Sí | RF-005 |
 | Operador | operador | `POST /sesiones/{id}/enviar-a-revision` · transición | actualizar | sesión propia, estado `ABIERTA`, con al menos una hoja | Sí | RF-002 |
 | Operador | operador | `POST /sesiones/{id}/volver-a-captura` · transición | actualizar | sesión propia y en estado `EN_REVISION` | Sí | RF-002 |
 | Operador | operador | `POST /sesiones/{id}/cerrar` · cerrar folder | actualizar | sesión propia, estado `EN_REVISION`, sin hojas en `PENDIENTE_OCR` ni `EN_REVISION` | Sí | RF-006 |
@@ -92,3 +94,22 @@ El proyecto no expone una API HTTP pública: las operaciones son rutas web y acc
 **Nota sobre roles múltiples:** un usuario puede tener más de un rol técnico (por ejemplo `administrador` y `operador`). En ese caso se evalúan juntas todas las filas que aplican a esa identidad y se aplica la precedencia sobre el conjunto, nunca el resultado de un rol aislado.
 
 Aprobado por (Arquitectura): pendiente — fecha: pendiente
+
+
+## Fila añadida el 2026-08-21 — `GET /sesiones/{id}/hojas`
+
+La operación existía en `docs/contratos/documentos.md` desde el 2026-08-19, con su
+alcance ya declarado allí —«rol `operador` solo si la sesión es suya; `administrador`
+cualquiera»— pero **nunca llegó a esta matriz**. Como el mecanismo de autorización
+rechaza por defecto (RNF-013), una operación sin fila aquí se rechaza para todos:
+`B05` habría chocado con un `NO_AUTORIZADO` imposible de explicar leyendo el contrato,
+que sí la autoriza.
+
+**No hubo decisión que tomar**: las dos filas se transcriben del alcance que el
+contrato ya fijaba. Lo que faltaba era la transcripción, no el criterio.
+
+La causa de fondo es que **nada comparaba esta matriz con su implementación en
+código**, así que una fila podía faltar en un lado durante días sin que nada se
+pusiera en rojo. Se cierra con una prueba que compara ambas y falla ante cualquier
+divergencia — ver `docs/contratos/servicios-aplicacion.md` § Parámetros sensibles
+para el criterio general de «provocarlo, no leerlo» que la sostiene.
