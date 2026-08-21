@@ -177,6 +177,48 @@ argumento en un trace, y el de no marcarlo es escribirlo en el log.
 correo, un número de historia clínica—: marcarlo de más degrada el diagnóstico sin
 proteger nada.
 
+### Los dos huecos que este criterio tenía, y cómo se cierran
+
+Ambos los detectó la línea backend al implementarlo el 2026-08-21, que es justo para lo
+que sirve implementar algo antes de darlo por bueno. **El atributo protege parámetros, y
+no todo secreto viaja como parámetro.**
+
+**Hueco 1 — el secreto viaja dentro de una estructura.** `ServicioUsuarios::crear(array $datos)`
+llevará una contraseña dentro del array cuando B07 lo implemente. Marcar el array entero
+la protegería, pero ocultaría también `nombre`, `email` y `rol`, que el criterio dice
+explícitamente que no se marcan.
+
+> **Regla: un secreto no viaja dentro de una estructura junto a datos no sensibles.** Se
+> saca a un parámetro propio y ese parámetro se marca. La firma pasa a ser
+> `crear(array $datos, #[\SensitiveParameter] string $password)`. No es una preferencia
+> de estilo: es lo único que permite proteger el secreto **sin** cegar el diagnóstico de
+> todo lo que viaja a su lado.
+>
+> **Se aplica al declararse la firma, no después.** B07 todavía no existe, así que aquí
+> cuesta una línea; hacerlo cuando el sprint esté construido es cambiar un contrato ya
+> implementado. Vale para toda estructura futura: tokens de proveedores, credenciales de
+> integración, cualquier dato que un RNF declare no divulgable.
+
+**Hueco 2 — el secreto es una propiedad de componente, no un parámetro.** Y este además
+destapó un defecto real, que se registra aparte en `docs/estado.md` como `QA-B01-03`.
+
+`FormularioAcceso::$password` es una propiedad pública de Livewire. El atributo no le
+aplica —no es un parámetro— y el riesgo tampoco es el mismo: no son los stack traces,
+es que **Livewire serializa las propiedades públicas en el snapshot que viaja al cliente
+y vuelve en cada petición**.
+
+> **Regla: un secreto no vive en una propiedad pública de componente.** Si el componente
+> necesita recibirlo del formulario, se retiene el mínimo tiempo posible y se limpia en
+> **todos** los caminos de salida, no solo en el de error. La forma correcta de
+> cumplirlo la fija la línea frontend junto con Arquitectura al corregir `QA-B01-03`,
+> porque toca cómo se compone la pantalla y no solo la firma.
+
+**Lo que ambos huecos tienen en común, y es la lección que conviene conservar:** el
+criterio se redactó mirando una sola superficie —los stack traces— porque es la que
+había fallado. Un secreto se escapa por donde no se está mirando, así que al marcar un
+parámetro conviene preguntar además **por dónde más viaja ese mismo dato**: log, traza,
+sesión, snapshot del componente, cuerpo de la respuesta, y auditoría.
+
 ### Cómo se verifica
 
 Como todo en este proyecto: **provocándolo, no leyéndolo**. Una prueba que marque el
