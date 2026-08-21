@@ -288,12 +288,15 @@ argumentos** y `autenticar()` recibe la contraseña como cadena suelta. Una exce
 *inesperada* dentro de esa llamada —un `QueryException` durante el acceso— seguiría
 escribiéndola. Cerrarlo del todo exige una de dos cosas, y ninguna es de esa línea:
 
-- `zend.exception_ignore_args=1` en `scripts/php/hurioscan.ini` → **DevOps**;
+- `zend.exception_ignore_args=1` en `scripts/php/hurioscan.ini` → **DevOps**.
+  **HECHO el 2026-08-21** — ver «QA-B01-02 — cerrado» más abajo;
 - cambiar la firma de `autenticar` en `docs/contratos/servicios-aplicacion.md` →
-  **Arquitectura** (un cambio de firma es un cambio de contrato).
+  **Arquitectura** (un cambio de firma es un cambio de contrato). **Sigue abierta**, y
+  no urge: la directiva impide que los traces escriban la contraseña, pero no elimina
+  la causa.
 
-Queda declarado en vez de decidido por cuenta propia. **Si afecta o no al veredicto lo
-juzga QA**, que lo recibió explícitamente en su despacho.
+Quedó declarado en vez de decidido por cuenta propia, y QA lo juzgó explícitamente al
+revalidar: no bloqueaba el veredicto, pero tampoco lo aceptó como deuda.
 
 ### El diagnóstico original, que conserva su valor
 
@@ -328,6 +331,63 @@ QA confirmó además que las dos decisiones de perímetro del implementador **no
 2. **`GET /sesiones/{id}/hojas` sigue sin fila en la matriz**, así que deny-by-default lo rechazaría. Afecta a **B05**. Resuelve Arquitectura.
 3. **`POST /acceder` no tiene límite de intentos — riesgo conocido, alcance de producto.** QA verificó 12 intentos fallidos consecutivos sin ningún rechazo por frecuencia. **No es incumplimiento**: ninguna fuente aprobada lo exige — ni los RF, ni los RNF de seguridad (RNF-010 a RNF-014), ni el contrato de `POST /acceder`. Se registra como riesgo conocido por dos razones concretas: **agrava QA-B01-01**, porque cada intento fallido escribe una contraseña en el log, de modo que un atacante puede llenar el log con credenciales ajenas; y **B01 es el sprint que fija la superficie de autenticación**, así que si se decide añadirlo después será modificar algo ya construido en vez de diseñarlo. **No se resuelve por iniciativa del Coordinador: exige un RF o un RNF nuevo, y eso es alcance de producto que decide Kevin.** Si se aprueba, el sprint que lo implemente será el que corresponda a ese requisito, no B01.
 4. Una justificación en la migración afirma que «la validación de aplicación rechaza igual un rol fuera del conjunto», y esa validación **no existe en este SHA** — es de B07. La decisión sigue siendo correcta; la justificación describe algo que aún no está.
+
+
+## QA-B01-02 — cerrado el 2026-08-21 en la capa de entorno
+
+`zend.exception_ignore_args=1` en `scripts/php/hurioscan.ini`, con su comentario.
+Ningún código de aplicación cambió. Integrado en `develop` por el PR
+[#61](https://github.com/Espiritu16/hurioscan/pull/61).
+
+### Por qué la directiva amplia y no la estrecha — la parte que vale conservar
+
+DevOps evaluó `zend.exception_string_param_max_len=0`, que a primera vista parece mejor
+porque solo vacía los argumentos de tipo cadena en vez de todos. **Medida, deja la fuga
+viva.** Reproducido de forma independiente por Coordinación:
+
+| Configuración | `getTrace()` crudo | `getTraceAsString()` |
+|---|---|---|
+| Estado anterior | **FUGA** | **FUGA** |
+| `zend.exception_string_param_max_len=0` | **FUGA** | limpio |
+| `zend.exception_ignore_args=1` | limpio | limpio |
+
+La estrecha solo protege la representación **en texto**. El array crudo sigue trayendo
+la contraseña completa, y ése es el que consumen la página de error de depuración, un
+formateador JSON o un rastreador de errores. **Habría sido una corrección aparente** —
+el mismo patrón de cobertura ficticia que el proyecto ya encontró cuatro veces, esta vez
+en una directiva de configuración en lugar de en una prueba. Y con la misma defensa:
+provocarlo en vez de leerlo.
+
+### El coste, sin suavizarlo
+
+La directiva es **global**: ningún trace de la aplicación conserva ya los *valores* de
+sus argumentos, solo el nombre de la función y el conteo de frames. Es pérdida real de
+capacidad de diagnóstico para cualquier depuración futura. Se aceptó porque es el único
+mecanismo verificado que protege el array crudo, y porque es el valor que la propia
+documentación de PHP recomienda para producción. Queda escrito en el archivo, no
+enterrado en un PR.
+
+### Que la directiva llegue de verdad, que no es lo mismo que estar escrita
+
+Verificado por el camino real: sin `PHP_INI_SCAN_DIR` el valor es `Off`; con él —o sea
+arrancando por `scripts/servir-desarrollo.sh`— es `1`. **Arrancar con `composer dev` o
+`php artisan serve` directos no la carga**, que es la deuda ya registrada del proyecto
+con dueño y sprint, y que este cambio no toca.
+
+### No se extendió a CI, y fue deliberado
+
+Los workflows mirroran solo las directivas de las que depende una prueba real
+ejecutándose allí. No hay prueba en CI que ejerza este escenario, y las contraseñas de
+CI son fixtures, no credenciales. Añadirla habría restado diagnóstico en los traces de
+PHPUnit sin proteger ningún secreto.
+
+### Lo que sigue abierto, y de quién es
+
+La firma de `autenticar()` **sigue recibiendo la contraseña como argumento posicional**
+(`docs/contratos/servicios-aplicacion.md`). La directiva impide que los traces la
+escriban, pero no elimina la causa. Cambiar la firma es **autoridad de Arquitectura** y
+sigue sin decidirse. No bloquea nada hoy; conviene resolverlo antes de que B02–B07
+repitan el patrón con otros datos sensibles.
 
 ## Cosas que existen fuera del repositorio o esperan decisión
 
@@ -736,10 +796,10 @@ afirmaban habían dejado de ser ciertas.
 1. ~~**B01 — corregir `QA-B01-01`**~~ → **hecho el 2026-08-21.** Corregido
    (outcome `terminado`), revalidado por QA (`aprobado` sobre `8b1763c`) e
    **integrado en `develop`** con el gate cumplido y el CI en verde.
-2. **`QA-B01-02` — no conformidad abierta, severidad media.** Despachada a DevOps
-   el 2026-08-21. Recomendación de QA: cerrarla **antes de `main`**, no antes de
-   `develop`. Si DevOps concluye que su remedio no compensa, el otro camino es
-   Arquitectura, y ahí sí hay una decisión que tomar.
+2. ~~**`QA-B01-02`**~~ → **cerrada el 2026-08-21** en la capa de entorno e integrada
+   en `develop`. Queda una decisión de **Arquitectura** que no urge: la firma de
+   `autenticar()` sigue recibiendo la contraseña como argumento posicional, y conviene
+   resolverlo antes de que B02–B07 repitan el patrón.
 3. **Punto de integración B01 + F01** — es lo que falta para que **ambos** pasen a
    `COMPLETADO`. Reemplazar el doble de usuarios por el servicio real, comprobar
    que se accede con los tres roles y que cada uno ve su menú, y confirmar que el
@@ -777,7 +837,7 @@ un despacho muerto es indistinguible de uno que sigue trabajando.
 | implementation | frontend | F00→F07 | cerrado — se ejecutaron en cadena, un commit por sprint | ninguna | los siete `EN_VALIDACION`, integrados en `develop` | uno por sprint en `docs/handoffs/` |
 | devops | — | D01 | cerrado | ninguna | COMPLETADO | `docs/handoffs/D01.md` |
 | qa | — | B01 | subagente (2026-08-21) — outcome **`aprobado`** | `final_sha` `b004970` / head `8b1763c` | EN_VALIDACION — QA `APROBADO` | `docs/handoffs/B01.md` |
-| devops | — | QA-B01-02 | subagente (2026-08-21) — **sin outcome todavía** | ninguna | no conformidad abierta, fuera de sprint | (se registrará al recibir el outcome) |
+| devops | — | QA-B01-02 | subagente (2026-08-21) — outcome **`terminado`**, verificado por Coordinación | ninguna | **cerrada**, integrada en `develop` | `docs/estado.md` § QA-B01-02 |
 
 > **Este registro reemplazó el 2026-08-21 a la tabla «Chats de rol activos».**
 > Aquella listaba cuatro sesiones en `ABIERTO` —COORDINADOR, FRONTEND, DEVOP, QA—
