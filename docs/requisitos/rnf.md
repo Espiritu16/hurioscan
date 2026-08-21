@@ -67,3 +67,19 @@ Todos **aprobados** — Kevin, 2026-08-18.
 - Cómo se mide/verifica: revisión de los registros de `LogError` y de las respuestas de error en la auditoría de cierre de cada sprint que toque OCR o documentos.
 - Aplica a: todo el sistema.
 - Aprobado por: Kevin — fecha: 2026-08-18
+
+## RNF-015 — seguridad: límite de intentos de acceso
+- Requisito: `POST /acceder` limita los intentos fallidos consecutivos y rechaza por frecuencia antes de seguir evaluando credenciales. El rechazo por frecuencia **no revela si el correo existe**: se comporta igual para una cuenta real y para una inventada, igual que ya hacen los cuatro modos de fallo de acceso. Un acceso correcto reinicia el contador.
+- Cómo se mide/verifica: prueba que agota el límite con credenciales inválidas y comprueba que el intento siguiente se rechaza por frecuencia; que el mismo número de intentos contra un correo inexistente produce **el mismo desenlace**, sin diferencia observable en mensaje, estado ni tiempo de respuesta; que un acceso válido antes de agotar el límite reinicia el contador; y que superado el periodo de bloqueo se vuelve a admitir. La prueba controla el reloj en vez de esperar de verdad, y se demuestra capaz de fallar quitando el límite.
+- Aplica a: `POST /acceder`. No aplica al resto de operaciones, que ya están detrás de autenticación.
+- Aprobado por: **pendiente** — fecha: pendiente
+
+> **Por qué se propone.** QA verificó el 2026-08-21, al validar B01, que se pueden hacer **12 intentos fallidos consecutivos sin ningún rechazo por frecuencia**. En ese momento se registró como riesgo conocido y no como incumplimiento, y era la lectura correcta: ninguna fuente aprobada lo exigía —ni los RF, ni RNF-010 a RNF-014, ni el contrato de `POST /acceder`—. Este RNF es lo que faltaba para que deje de ser un hueco y pase a ser exigible.
+>
+> **Dos razones concretas, no una preferencia general.** Primera: agravaba `QA-B01-01` de forma directa, porque cada intento fallido escribía una contraseña en el log, de modo que un atacante podía llenarlo con credenciales ajenas. Ese defecto ya está corregido, así que **esta razón se debilitó** y conviene decirlo en vez de arrastrarla como si siguiera intacta. Segunda, y es la que sigue en pie: **B01 fijó la superficie de autenticación**, así que añadir el límite después es modificar algo ya construido y validado en lugar de diseñarlo.
+>
+> **Qué queda deliberadamente sin fijar aquí, y por qué.** El número de intentos, la ventana de tiempo y la duración del bloqueo **no** se fijan en el requisito: son parámetros de operación que dependen de cómo trabaje el establecimiento —un operador de archivo que teclea mal tres veces seguidas es normal— y clavarlos en un RNF obliga a reabrirlo para afinarlos. El RFC del sprint que lo implemente los propone con su justificación, y quedan como configuración. Lo que **sí** fija este requisito es lo que no puede negociarse: que exista el límite, que no filtre la existencia de cuentas, y que un acceso correcto reinicie el contador.
+>
+> **Qué sprint lo implementa.** No B01, que ya cerró. Al tocar `POST /acceder`, que es superficie del dominio Usuarios, lo natural es **B07** —el sprint de gestión de usuarios y auditoría— o un sprint propio si Kevin prefiere no esperar tanto. La decisión es suya y no la toma este documento.
+>
+> **Aviso de alcance:** el límite por sí solo no protege de un ataque distribuido, y no pretende hacerlo. Cierra el caso de fuerza bruta desde un origen, que es el que QA reprodujo.
