@@ -3,18 +3,18 @@ project: HuriosCan
 source_status: CANONICA
 baseline: línea base completa y aprobada — RF, RNF, contratos, modelo, errores, permisos y los cinco ADR
 active_phase: B01
-active_status: LISTO
+active_status: EN_PROGRESO
 last_completed_phase: D01
 bootstrap_status: COMPLETO
 planning_horizon_status: PARCIAL — frontend en EN_VALIDACION; B01 habilitado, B02–B07 con RFC en propuesto
 current_rfc_batch: [D01, F00, B01, F01, B02, F02, B03, F03, B04, F05, B05, F06, B06, F07, B07]
 planning_scope: [RF-001, RF-002, RF-003, RF-004, RF-005, RF-006, RF-007, RF-008, RF-009, RF-010, RF-011, RF-012, RF-013, RF-014, RF-015]
-updated_at: 2026-08-20
+updated_at: 2026-08-21
 repositories:
   - name: hurioscan
     path: ~/hurioscan
     branch: develop
-    current_sha: null
+    current_sha: 914f633e43e79d56b6f73ec09d96533aee616642
 sprints:
   - id: D01
     repository: hurioscan
@@ -31,7 +31,7 @@ sprints:
   - id: B01
     repository: hurioscan
     planning_status: LISTO
-    execution_status: LISTO
+    execution_status: BLOQUEADO
     depends_on: []
     parallelizable_with: [F00]
   - id: F01
@@ -110,6 +110,55 @@ sprints:
 
 # Estado del proyecto
 
+## Cómo se lee este documento
+
+Mezcla dos clases de sección y conviene distinguirlas antes de creerle a ninguna:
+
+- **Estado vigente** — describe cómo están las cosas *ahora*. Se corrige en cuanto
+  la realidad lo contradice. Son las secciones sin fecha en el título, más el
+  frontmatter.
+- **Instantánea fechada** — «Punto de retomada — pausa del 2026-08-19»,
+  «Validación QA de la cadena `F` — parcial, 2026-08-19», las bitácoras de
+  delegación y las auditorías con fecha. Registran lo que se sabía *ese día*.
+  **No se corrigen aunque hoy sean falsas:** corregirlas falsificaría el registro
+  de lo que se sabía entonces. Se leen como historia, nunca como instrucción.
+
+**Consecuencia práctica:** si una instantánea y una sección vigente se
+contradicen, manda la vigente — y por encima de las dos, manda Git. Una
+instantánea que sigue mandando trabajo ya hecho es la trampa que este proyecto ya
+pisó una vez (ver «Punto de retomada — 2026-08-21»).
+
+## Si estás retomando esto y no viste nada antes, lee esto primero
+
+**Qué es HuriosCan.** Un sistema para digitalizar el archivo clínico en papel de un establecimiento de salud: se escanean las hojas de cada folder, un OCR extrae su texto, una persona lo revisa, y después el documento se puede buscar por lo que dice adentro. Proyecto de curso universitario, cinco integrantes, doce semanas, dos personas programan. Laravel 13 + Livewire + PostgreSQL, un solo repositorio.
+
+**En qué punto está, en una frase:** toda la interfaz está construida y validada contra datos ficticios, el backend acaba de empezar y su primer sprint está bloqueado por un defecto de seguridad.
+
+**Qué hay hecho de verdad**
+- **D01 — COMPLETADO.** Integración continua: cada PR hacia `develop` corre lint, pruebas y build; cada PR hacia `main` añade la suite contra PostgreSQL real. Funciona y ya detuvo defectos reales.
+- **F00 a F07 — EN_VALIDACION, aprobados por QA.** Las dieciséis pantallas del sistema, navegables en sus URLs, verificadas en cuatro anchos de pantalla y con revisión de accesibilidad. **No están `COMPLETADO` y eso es correcto:** funcionan contra *dobles de desarrollo*, piezas que devuelven datos fijos en lugar de consultar una base. Cada sprint `F` se cierra recién cuando su sprint `B` lo reemplaza por el servicio real.
+- **La línea base documental completa y aprobada:** 15 requisitos funcionales, los no funcionales, cuatro contratos de dominio, el modelo de persistencia con nueve migraciones, la taxonomía de errores, la matriz de actores y permisos, y cinco ADR.
+
+**Qué NO hay.** No hay sistema funcionando. Sin base de datos poblada, sin autenticación real en uso, sin OCR, sin búsqueda. Si abres la aplicación con los dobles encendidos verás algo que parece el producto, pero nada se guarda.
+
+**Dónde está cada cosa**
+- `docs/roadmap.md` — los quince sprints, sus dependencias y qué RF cubre cada uno.
+- `docs/rfcs/<id>.md` — qué construye cada sprint y sus criterios de cierre. **Un sprint no se ejecuta si su RFC no está `aprobado`.**
+- `docs/handoffs/<id>.md` — qué hizo cada sprint ya ejecutado. Los de la cadena `F` viven en `develop`; el de **B01 vive en la rama `sprint/B01`**, sin fusionar.
+- `AGENTS.md` — quién puede escribir qué, la política de ramas y cómo se despacha el trabajo. **Léelo antes de tocar nada.**
+- Este archivo — el estado, las decisiones y los bloqueos.
+
+**Lo primero que necesitas saber para trabajar:** `main` y `develop` están protegidas en GitHub. Nada entra sin PR y sin CI en verde, ni siquiera siendo administrador. Un sprint se ejecuta en su propio worktree, en una rama `sprint/<id>`, y entra por PR hacia `develop`.
+
+**Qué sigue, en orden**
+1. **Desbloquear B01** corrigiendo QA-B01-01 (detallado más abajo): la contraseña se escribe en claro en el log. Es lo único que separa al backend de arrancar.
+2. **Aprobar el RFC de B02** —lo aprueba Kevin, sobre el documento completo— para habilitar el siguiente sprint. Todas sus fuentes ya están aprobadas; solo falta su firma.
+3. Los pares `B`/`F` se integran de a uno: B01 con F01, B02 con F02, y así. Recién ahí cada sprint `F` pasa a `COMPLETADO`.
+
+**Qué espera decisión de Kevin, y nadie más puede resolver:** el RFC de B02 y los siguientes; qué hacer con el despliegue de Vercel de `~/hurioscan-deploy`; y si el límite de intentos de acceso entra al alcance (exige un RF o RNF nuevo). Todo está detallado en sus secciones. **Los dos huecos de `AGENTS.md` ya no están en esta lista:** se cerraron el 2026-08-20 con su aprobación, aunque el documento siguió pidiéndosela un día más.
+
+
+
 ## Progreso
 - Proyecto Laravel 13.26.1 creado y verificado: lint, tests y build ejecutan correctamente.
 - Estructura domain-first materializada en `app/Dominios/` y `app/Compartido/Ocr/`.
@@ -148,9 +197,9 @@ Al corregir esos dos aparecieron cuatro más, todos de la misma familia. La list
   - motor de OCR de producción: lo decide el benchmark (B04).
 
 ## Siguiente fase habilitada
-- **Línea frontend en cadena:** F00 (en curso) y F01, F02, F03, F05, F06, F07 (`Planificación: LISTO`), ejecutados secuencialmente en `sprint/F00` por la sesión FRONTEND. Cada sprint cierra con su commit y su handoff antes de pasar al siguiente; la cadena termina en `EN_VALIDACION` y QA la valida después.
+- **Línea frontend:** la cadena F00 → F07 **ya se ejecutó completa** (2026-08-18/19), está integrada en `develop` y los siete sprints tienen veredicto favorable de QA. Todos en `EN_VALIDACION`; ninguno pasa a `COMPLETADO` hasta su punto de integración con el sprint `B` correspondiente. No queda trabajo de construcción de frontend.
 - **D01:** `COMPLETADO` e integrado. Todo PR hacia `develop` ejecuta ahora lint, tests y build automáticamente.
-- **Backend:** bloqueado hasta que Kevin apruebe `docs/persistencia/modelo.md` y los ADR.
+- **Backend:** ~~bloqueado hasta que Kevin apruebe `docs/persistencia/modelo.md` y los ADR~~ → **ese motivo caducó el 2026-08-19**, cuando Kevin los aprobó. B01 se habilitó, se ejecutó y quedó bloqueado por **otro** motivo, vigente y distinto: `QA-B01-01`. Ver la sección propia más abajo. El motivo escrito aquí sobrevivió un día entero a su propia caducidad, que es exactamente el modo de falla que la sección «Cómo se lee este documento» existe para prevenir.
 
 ## Revisión de cobertura ficticia — informe, 2026-08-19
 
@@ -181,6 +230,81 @@ Kevin aprobó `docs/persistencia/modelo.md` y los cinco ADR. Con eso queda cerra
 
 **Qué hereda B01 al arrancar**, ya registrado en su contexto: la deuda de verificar los propios límites de subida al arrancar y fallar de forma visible; la deuda de fondo de QA-F-04 —que un aviso del motor pueda romper una respuesta JSON en cualquier punto—; y la idea de que `composer dev` delegue en el script de arranque, que es ruta suya.
 
+## B01 — BLOQUEADO por QA-B01-01, 2026-08-21
+
+**Estado de reposo deliberado.** El sprint se detiene aquí por decisión de Kevin: QA rechazó, la corrección **no se reintenta**, y el bloqueo documentado cuenta como punto estable. No se despacha nada más.
+
+- Rama `sprint/B01`, `final_sha` **`62702cdf981524849ce009b692e5d4f2211f7b60`**, publicada en `origin`. PR [#50](https://github.com/Espiritu16/hurioscan/pull/50) hacia `develop` **abierto y sin fusionar**, con el check `verificacion` en verde. No se integra: `AGENTS.md` exige QA APROBADO antes de `develop`.
+- El handoff del sprint vive en `docs/handoffs/B01.md` **dentro de la rama `sprint/B01`**, no en `develop`. Se lee con `git show sprint/B01:docs/handoffs/B01.md`.
+- **Su `worktree_path` quedó retirado el 2026-08-21.** El handoff de esa rama todavía apunta a `~/hurioscan-B01`, que ya no existe: no pudo corregirse allí sin commitear en una rama bloqueada, así que se declara aquí. Nada se perdió — la rama está publicada en `origin`. Quien retome el sprint recrea el árbol con `git worktree add ../hurioscan-B01 sprint/B01` y **corrige ese campo en su primer commit**.
+
+### QA-B01-01 — la contraseña se escribe en claro en el log en cada intento fallido
+
+Severidad **alta**. Incumple el criterio de cierre de UT-02 («la contraseña no aparece en ningún log»), **RNF-014**, y `docs/contratos/usuarios.md`, que exige que la contraseña nunca aparezca en logs, mensajes de error ni auditoría.
+
+**Causa raíz.** `ErrorDeAplicacion` no está excluido del reporte de excepciones —no hay `dontReport` ni `report()` en `bootstrap/app.php`, verificado por Coordinación—, así que Laravel registra un `NO_AUTENTICADO` rutinario a nivel `ERROR` con su stack trace completo. El trace incluye los argumentos de `autenticar($email, $password, $recordar)`. **PHP trunca los argumentos de tipo cadena a 15 caracteres y el validador exige un mínimo de 8: toda contraseña de entre 8 y 15 caracteres queda escrita entera y en claro.** La del seeder (`hurioscan`, 9 caracteres) cae dentro de ese rango. Ocurre en los dos caminos de error, el 401 y el 422.
+
+**Por qué la guarda no lo atrapó — cuarto caso de cobertura ficticia, y el más grave.** `AccesoTest::test_la_contrasena_no_aparece_en_ningun_log` está bien construida, con marca de canario incluida, pero su fixture `CLAVE = 'clave-de-prueba-77'` mide **18 caracteres**: el trace la trunca a `'clave-de-prueba..'` y la comparación contra la cadena completa nunca falla. **La prueba pasaba por una propiedad accidental del dato de prueba, no porque la propiedad se cumpliera.** Verificado por Coordinación: la fixture es de 18 caracteres. Con cualquier contraseña de 15 o menos, falla.
+
+Los tres casos anteriores están en «Lección de método» más abajo; este es el primero que afecta a una guarda de seguridad, y confirma que el patrón no se agotó con la revisión de cobertura ficticia.
+
+### Para desbloquear cuando se retome
+
+Corregir en la línea backend, entregar un `final_sha` nuevo y revalidar. QA declaró qué repetirá: reproducir el caso con contraseñas de 8, 15 y 18 caracteres, la mutación de canario, y la regresión completa de `AccesoTest`. **La fixture de esa prueba debe dejar de ser una contraseña larga**, porque su longitud era lo que ocultaba el defecto.
+
+### Lo que QA verificó en verde y no hace falta rehacer
+
+Mientras la entrada no cambie: UT-01 y RNF-005 con mutación confirmada en los dos motores (quitar el trait hace fallar la prueba en SQLite y en PostgreSQL); el schema de `usuarios` campo por campo contra el modelo aprobado; UT-03 y RNF-013 con **tres** mutaciones reproducidas —quitar una guarda hace fallar 3 pruebas, abrir la matriz hace fallar 11, anular la comprobación de usuario activo hace fallar 14—; y UT-04 con recorrido real sobre 15 rutas y 5 identidades, coincidiendo fila por fila con la matriz de permisos. Suite: 222/222 en SQLite y 215/215 en PostgreSQL 18.3, ambas reproducidas por QA y la primera también por Coordinación.
+
+QA confirmó además que las dos decisiones de perímetro del implementador **no debilitaron nada**: eliminar el modelo huérfano no dejó residuos, y la prueba de frontend que modificó sigue atrapando lo que atrapaba, verificado inyectándole un control sin destino.
+
+### Observaciones que quedan abiertas y no son de B01
+
+1. **`MatrizDePermisos` perdió una condición de alcance.** `actores-permisos.md` declara para `PATCH /usuarios/{id}` la condición «no puede quitarse a sí mismo el rol administrador»; la transcripción la registra sin condición. Es la única de las 15 filas con condición que se perdió. No bloquea B01 —esa ruta no existe todavía— pero **B07 la necesita resuelta, y la decisión es de Arquitectura**: puede argumentarse que es regla de negocio con código propio y no alcance de autorización.
+2. **`GET /sesiones/{id}/hojas` sigue sin fila en la matriz**, así que deny-by-default lo rechazaría. Afecta a **B05**. Resuelve Arquitectura.
+3. **`POST /acceder` no tiene límite de intentos — riesgo conocido, alcance de producto.** QA verificó 12 intentos fallidos consecutivos sin ningún rechazo por frecuencia. **No es incumplimiento**: ninguna fuente aprobada lo exige — ni los RF, ni los RNF de seguridad (RNF-010 a RNF-014), ni el contrato de `POST /acceder`. Se registra como riesgo conocido por dos razones concretas: **agrava QA-B01-01**, porque cada intento fallido escribe una contraseña en el log, de modo que un atacante puede llenar el log con credenciales ajenas; y **B01 es el sprint que fija la superficie de autenticación**, así que si se decide añadirlo después será modificar algo ya construido en vez de diseñarlo. **No se resuelve por iniciativa del Coordinador: exige un RF o un RNF nuevo, y eso es alcance de producto que decide Kevin.** Si se aprueba, el sprint que lo implemente será el que corresponda a ese requisito, no B01.
+4. Una justificación en la migración afirma que «la validación de aplicación rechaza igual un rol fuera del conjunto», y esa validación **no existe en este SHA** — es de B07. La decisión sigue siendo correcta; la justificación describe algo que aún no está.
+
+## Cosas que existen fuera del repositorio o esperan decisión
+
+### `~/hurioscan-deploy` — despliegue del diseño en Vercel, **activo**, sin versionar
+
+Directorio **sin Git** en el disco de Kevin, del 2026-08-18. Inspeccionado el 2026-08-21 sin moverlo ni modificarlo.
+
+**Qué es:** el despliegue del **diseño de pantallas**, no de la aplicación. Su `public/index.html` es **byte a byte idéntico** a `docs/frontend/diseno/hurioscan-claude-design.html`, que sí está versionado (mismo SHA-256, verificado). Está **activo**: `https://hurioscan-deploy.vercel.app` responde HTTP 200.
+
+**Qué no está versionado en ningún lado**, y qué vale cada cosa:
+
+| Archivo | Qué es | Valor real |
+|---|---|---|
+| `vercel.json` | dos líneas, solo `cleanUrls: true` | trivial de recrear |
+| `pnpm-workspace.yaml` | contiene literalmente `esbuild: set this to true or false` | **plantilla sin resolver**, no configuración real |
+| `.vercel/project.json` | vincula la carpeta con el proyecto real (`projectId`, `orgId`) | lo único irreemplazable a mano, pero **se regenera con `vercel link`** |
+
+**Lo importante: el contenido publicado no corre riesgo**, porque está en Git. Lo único que se perdería es el vínculo con el proyecto de Vercel, y eso se recupera enlazando de nuevo.
+
+**Recomendación de Coordinación, pendiente de decisión de Kevin.** `.vercel/` **no debe versionarse** —es la convención de la propia herramienta y el `.gitignore` local ya lo excluye—. Sobre los otros dos, la pregunta de fondo no es si versionarlos sino **si ese despliegue sigue teniendo sentido**: publica el diseño de referencia, y la interfaz real ya está construida. Dos caminos limpios: declararlo **descartable** —el diseño vive en el repositorio y el despliegue es una vitrina reemplazable—, o **absorberlo** al repositorio con su `vercel.json` versionado y el despliegue tomando el HTML desde `docs/frontend/diseno/`, en vez de una copia suelta. Lo que conviene evitar es el estado actual: una copia del diseño fuera de Git que puede divergir del original sin que nadie lo note. Los 235 MB del directorio son `node_modules`.
+
+### Dos huecos de `AGENTS.md` detectados al auditar B01 — **CERRADOS el 2026-08-20**
+
+> **Ya no esperan nada.** Kevin aprobó la corrección de ambos el 2026-08-20 y
+> `AGENTS.md` la incorpora: el reparto de `tests/Feature/` por línea con su zona de
+> corrección cruzada (§ Pruebas — reparto por línea) y la declaración de que el
+> proyecto no usa `app/Models/` (§ `app/Models/` — el proyecto no la usa). Verificado
+> el 2026-08-21 contra el archivo real, que registra ambos como su «última revisión
+> material» con aprobación de Kevin en esa fecha.
+>
+> Figuraron como «requieren aprobación de Kevin» durante un día después de tenerla.
+> Se conserva el texto porque explica qué se corrigió y por qué; **lo que ya no es
+> cierto es que estén pendientes.**
+
+Cuando se detectaron, el razonamiento fue: tocar permisos es **cambio material**, y
+devolvería el archivo a `BORRADOR`, así que no se corregían sin su firma. Ninguno
+bloqueaba nada mientras tanto.
+
+1. **`tests/Feature/` se solapa entre las dos líneas.** La línea backend puede escribir `tests/Feature/` sin exclusión, y eso engloba `tests/Feature/Frontend/`, que es de la línea frontend. `AGENTS.md` afirma que las dos líneas tienen «rutas escribibles disjuntas» y **en este punto no lo son**. Salió a la luz porque B01 modificó legítimamente una prueba de frontend que su propio cambio rompía. Corrección propuesta: excluir `tests/Feature/Frontend/` de las rutas de backend, o declarar explícitamente ese directorio como zona compartida con dueño, igual que se hizo con `routes/web.php`.
+2. **`app/Models/` no tiene dueño.** No figura ni entre las rutas permitidas ni entre las prohibidas de ninguna línea. B01 eliminó allí un modelo huérfano que apuntaba a una tabla renombrada —QA confirmó que no dejó residuos— pero lo hizo sobre una carpeta que la gobernanza no asigna a nadie. Corrección propuesta: asignarla a la línea backend, o declarar que el proyecto no la usa por su estructura domain-first y por tanto debe permanecer vacía.
+
 ## Autonomía del Coordinador — permanente, aprobada por Kevin el 2026-08-20
 
 Alcance permanente y no revocado por compactación de contexto: **si esta sesión o cualquier futura no recuerda esta conversación, este bloque es la fuente.** Kevin lo aprobó explícitamente con la instrucción de registrarlo aquí para que no dependa del chat.
@@ -200,6 +324,12 @@ Alcance permanente y no revocado por compactación de contexto: **si esta sesió
 - **Cualquier waiver** de un invariante (Invariante 13).
 - **Un cambio que pueda romper lo que ya funciona.**
 - **Lo que salga hacia usuarios reales.**
+
+### Qué cuenta como punto estable — criterio permanente, Kevin 2026-08-20
+
+1. **Un sprint en `BLOQUEADO` también es reposo.** Un bloqueo documentado con su evidencia es un estado estable; un sprint que se reintenta indefinidamente no lo es. Si QA rechaza y la corrección vuelve a fallar, se detiene ahí con la evidencia de qué falla y por qué.
+2. **Un subagente que no devuelve outcome se cierra como `BLOQUEADO` con causa «despacho sin respuesta».** Nunca se deja figurando `EN_PROGRESO` esperando algo que no va a llegar, y antes de cualquier re-despacho **se inventaría qué dejó en el árbol**.
+3. **El reposo se verifica, no se afirma.** Antes de darlo por cerrado se corren las comprobaciones contra Git —`status`, `worktree list`, los estados del roadmap contra los merges reales— y se entrega **la salida**, no la conclusión. Es el mismo criterio que se aplica a un `final_sha` reportado: vale lo que el árbol demuestra.
 
 ### Lo que esta autonomía no altera
 
@@ -334,7 +464,16 @@ También evaluó encaminar los avisos a un archivo y decidió no hacerlo: con `l
 
 Que `composer dev` delegue en `scripts/servir-desarrollo.sh` cerraría el agujero del arranque directo en el punto de entrada más usado. Hoy la única defensa es el encabezado que advierte, **y una advertencia depende de que alguien la lea**. `composer.json` es ruta de la línea backend, así que la decisión es suya, no de DevOps.
 
-### Revisión de cobertura ficticia — aprobada por Kevin, pendiente de despacho
+### Revisión de cobertura ficticia — **DESPACHADA Y CERRADA**
+
+> **Ya no está pendiente de despacho.** QA la ejecutó y encontró las tres alarmas
+> apagadas (informe más arriba); las tres correcciones se hicieron y están fusionadas
+> en `develop` — ramas `fix/guardas-apagadas`, `fix/asercion-vacua` y
+> `fix/menu-sin-ruta`, verificadas como ancestros de `develop` el 2026-08-21. Se
+> conserva el texto porque el criterio que la sustentó sigue siendo el del proyecto.
+>
+> **Y no agotó el patrón:** el cuarto caso apareció después, en B01, sobre una guarda
+> de seguridad — es `QA-B01-01`.
 
 Kevin aprobó revisar las 135 pruebas buscando aserciones que no puedan fallar nunca, como unidad propia de QA. Criterio de QA que sustentó la decisión: los tres casos conocidos fallaron **de la misma manera** —la prueba comprobaba una cadena de texto en vez del hecho—, y esa firma reconocible hace la búsqueda barata: se va directo a las aserciones sobre literales y se pregunta de cada una si puede fallar alguna vez. El foco, por rendimiento esperado, va a las aserciones sobre texto de terceros (obsolescencia silenciosa), a las que niegan cadenas que quizá nunca existan (no fallan por definición) y a las pruebas cuya premisa dependa del entorno en vez de fabricarla.
 
@@ -457,6 +596,15 @@ Barrido responsive completo de las catorce páginas en los cuatro anchos —midi
 
 ## Punto de retomada — pausa del 2026-08-19
 
+> **INSTANTÁNEA HISTÓRICA — no la sigas.** Sus cinco pasos están todos resueltos o
+> superados; el vigente es «Punto de retomada — 2026-08-21», más abajo. Se conserva
+> sin corregir porque es el registro de lo que se sabía ese día, y corregirla
+> falsificaría ese registro. **Es además el caso que le dio nombre a la regla del
+> proyecto:** su paso 4 declaraba que aprobar `modelo.md` y los ADR era «la decisión
+> que destraba todo lo demás», y siguió diciéndolo dos días después de que Kevin los
+> aprobara — un motivo escrito no caduca solo.
+
+
 Sesión pausada por ausencia de Kevin. **Todo el trabajo está persistido en `origin`**: ningún worktree tenía cambios sin commitear y ninguna rama local commits sin empujar, verificado antes de cortar. Nada quedó vivo solo en la memoria de una sesión.
 
 - **Estado del árbol:** `develop @ d6d2f40`, con `pint` passed, 103/103 tests y las catorce rutas montadas.
@@ -473,23 +621,111 @@ Sesión pausada por ausencia de Kevin. **Todo el trabajo está persistido en `or
 
 Cualquier sesión que retome reconstruye desde aquí y desde Git, nunca desde la conversación anterior.
 
-## Chats de rol activos
+## Punto de retomada — 2026-08-21
 
-Índice de qué sesión trabaja en qué. Lo mantiene el Coordinador: se agrega una fila al despachar un chat y se actualiza al recibir su handoff. No sustituye al handoff versionado de cada sprint — es el mapa de quién está haciendo qué.
+**Vigente.** Reemplaza en autoridad al del 2026-08-19, que queda como historia.
+El proyecto estuvo detenido desde el 2026-08-19; se retomó el 2026-08-21 y lo
+primero que se hizo fue alinear estos documentos con Git, porque cinco cosas que
+afirmaban habían dejado de ser ciertas.
 
-| Rol | Línea | Sesión (chat principal) | Sprint activo | Depende de | Estado del chat | Estado del sprint | Último handoff |
-|---|---|---|---|---|---|---|---|
-| coordinacion | — | COORDINADOR (este chat) | — | — | ABIERTO | — | — |
-| implementation | frontend | FRONTEND | cadena F00→F07 | — | ABIERTO | los siete EN_VALIDACION, integrados en `develop` | `docs/handoffs/F00.md` (ancla) y uno por sprint |
-| implementation | backend | (sin despachar) | B01 | aprobación de persistencia/ADR | — | PLANIFICADO | — |
-| devops | — | DEVOP | D01 | ninguna | ABIERTO | COMPLETADO | `docs/handoffs/D01.md` |
-| qa | — | QA | cadena F00→F07 (por despachar) | ninguna | ABIERTO | — | `docs/handoffs/D01.md` (D01 APROBADO) |
+### Estado real verificado contra Git
 
-> Worktrees activos: `../hurioscan-F00` en `sprint/F00` y `../hurioscan-D01` en `sprint/D01`, ambos desde `develop @ bb7ae5b`. Ver "Aislamiento del trabajo paralelo" en `AGENTS.md`. Los cuatro chats se comunican por mensajería directa entre sesiones (SendMessage); el Coordinador es COORDINADOR.
+| Qué | Valor | Cómo se comprobó |
+|---|---|---|
+| Rama y SHA | `develop @ 914f633` | `git rev-parse HEAD`; working tree limpio, 0 ahead / 0 behind de `origin/develop` |
+| `main` | `f278b1b`, contiene a `develop` entero | `git merge-base --is-ancestor origin/develop origin/main` |
+| `docs/estado.md` en `main` | idéntico al de `develop` | comparación de blobs; quien clona y cae en `main` lee este mismo texto |
+| Worktrees | solo `../hurioscan-B01` | `git worktree list` |
+| Handoffs | los ocho con frontmatter válido | `verify_project.py --root .` sin hallazgos |
+| PR abiertos | solo el #50 (B01), en borrador, con su aviso de bloqueo | `gh pr list` |
 
-**Regla de despacho con dos líneas en paralelo:** antes de abrir un chat, el Coordinador verifica que su sprint no comparta rutas escribibles con el sprint activo de la otra línea, según la separación declarada en `AGENTS.md`. Si aparece un archivo compartido que la separación no previó, esa línea base resultó incorrecta: se pausa y se corrige `AGENTS.md` antes de continuar, en vez de dejar que dos agentes se pisen.
+### Los cinco desfases que se corrigieron, y qué demostró cada uno
+
+1. **El bloqueo de B01 estaba mal atribuido.** El motivo escrito —falta de
+   aprobación de `modelo.md` y los ADR— **caducó el 2026-08-19**, cuando Kevin los
+   aprobó (commit `cd0f068`, en `develop` y en `main`; los cinco ADR dicen
+   «Estado: aprobada»). Pero B01 **no quedó libre**: se habilitó, se ejecutó y QA
+   lo rechazó el 2026-08-21 por `QA-B01-01`, un motivo distinto y vigente.
+   **Comprobar que un motivo caducó no es comprobar que la cosa se desbloqueó.**
+2. **El SHA del punto de retomada era viejo** (`d6d2f40` frente a `914f633`) y el
+   frontmatter llevaba `current_sha: null`. Corregido y verificado.
+3. **Los worktrees declarados no existían.** `~/hurioscan-F00` y `~/hurioscan-D01`
+   se retiraron el 2026-08-20; el documento seguía declarándolos activos. Un
+   `worktree_path` que apunta a la nada manda a trabajar a la nada.
+4. **La tabla «Chats de rol activos» declaraba cuatro sesiones abiertas** que ya no
+   existían, del modelo anterior al despacho por subagentes. Reemplazada por
+   «Trabajo despachado».
+5. **Los ocho handoffs no tenían frontmatter**, así que su estado solo se leía
+   interpretando prosa y `verify_project.py` no podía validarlos. Añadido,
+   derivando cada campo de lo que el documento y Git ya demostraban.
+
+### Qué sigue, en orden
+
+1. **B01 — corrección de `QA-B01-01` en curso.** Despachada a un subagente de la
+   línea backend el 2026-08-21, en `../hurioscan-B01` sobre `sprint/B01 @ 62702cd`.
+   Al terminar entrega un `final_sha` nuevo y **vuelve a QA**, que revalidará con
+   contraseñas de 8, 15 y 18 caracteres, la mutación de canario y la regresión
+   completa de `AccesoTest`. El gate de `AGENTS.md` sigue en pie: nada entra a
+   `develop` sin QA `APROBADO`.
+2. **Con B01 aprobado, el punto de integración B01 + F01**, que es lo que permite a
+   F01 pasar de `EN_VALIDACION` a `COMPLETADO`.
+3. **Aprobar el RFC de B02** para habilitar el siguiente sprint de backend. Todas
+   sus fuentes están aprobadas; solo falta la firma de Kevin sobre el documento
+   completo. Sin eso, B02 no pasa de `BORRADOR` (Invariante 8).
+
+### Lo que NO hay que rehacer
+
+La línea frontend está terminada: `QA-F-01` y `QA-F-02` **ya se corrigieron y están
+en `develop`** (rutas `pacientes.alta` y `sesiones.apertura` montadas; el rol por
+defecto de `BuscadorPacientes` ya no es privilegiado). QA ya emitió su veredicto
+sobre la cadena completa. La línea backend **no está en cero**: B01 está construido
+—cuatro unidades, 222 pruebas— y solo le falta corregir un defecto.
+
+Cualquier sesión que retome reconstruye desde aquí y desde Git, nunca desde la
+conversación anterior.
+
+## Trabajo despachado
+
+Índice de qué sprint está en manos de quién. Lo mantiene el Coordinador: se agrega
+o actualiza una fila al despachar y otra vez al recibir el outcome. No sustituye al
+handoff versionado de cada sprint — es el mapa de a quién le corresponde qué.
+
+**Sirve sobre todo para hacer visible el silencio.** Una fila que lleva tiempo en
+`EN_PROGRESO` sin outcome es la señal de que un despacho murió; sin este registro,
+un despacho muerto es indistinguible de uno que sigue trabajando.
+
+| Rol | Línea | Sprint | Despacho | Depende de | Estado del sprint | Último handoff |
+|---|---|---|---|---|---|---|
+| implementation | backend | B01 | subagente (2026-08-21, corrección de `QA-B01-01`) | ninguna | EN_PROGRESO | `docs/handoffs/B01.md` (en rama `sprint/B01`) |
+| implementation | frontend | F00→F07 | cerrado — se ejecutaron en cadena, un commit por sprint | ninguna | los siete `EN_VALIDACION`, integrados en `develop` | uno por sprint en `docs/handoffs/` |
+| devops | — | D01 | cerrado | ninguna | COMPLETADO | `docs/handoffs/D01.md` |
+| qa | — | B01 | **por despachar** — espera el `final_sha` nuevo de la corrección | `final_sha` de B01 | (valida cuando B01 vuelva a `EN_VALIDACION`) | `docs/handoffs/B01.md` |
+
+> **Este registro reemplazó el 2026-08-21 a la tabla «Chats de rol activos».**
+> Aquella listaba cuatro sesiones en `ABIERTO` —COORDINADOR, FRONTEND, DEVOP, QA—
+> del modelo de chats de rol anterior al despacho por subagentes. Ninguna de las
+> cuatro seguía viva, y el documento las declaraba abiertas: alguien que retomara
+> habría creído que había cuatro sesiones trabajando. Hoy el mecanismo por defecto
+> es el subagente (`AGENTS.md` § Cómo se despacha el trabajo), que nace y muere
+> dentro de su despacho y no tiene ciclo de vida propio que rastrear — por eso la
+> columna es `Despacho` y no «Estado del chat».
+
+**Regla de despacho con dos líneas en paralelo:** antes de despachar, el Coordinador
+verifica que el sprint no comparta rutas escribibles con el sprint activo de la otra
+línea, según la separación declarada en `AGENTS.md`. Si aparece un archivo compartido
+que la separación no previó, esa línea base resultó incorrecta: se pausa y se corrige
+`AGENTS.md` antes de continuar, en vez de dejar que dos ejecutores se pisen.
+
+**Worktrees.** El único activo es `../hurioscan-B01` (rama `sprint/B01`), recreado el
+2026-08-21 para la corrección. Los de F00 y D01 se retiraron el 2026-08-20 y su
+contenido vive en sus ramas (`git show sprint/F00:<ruta>`); el campo `worktree_path`
+de cada handoff lo declara así.
 
 ## Referencias
 - Roadmap: `docs/roadmap.md`
-- Handoff activo: `docs/handoffs/F00.md` (en rama `sprint/F00`)
+- Punto de retomada vigente: «Punto de retomada — 2026-08-21», en este archivo
+- Handoff activo: `docs/handoffs/B01.md` — **vive en la rama `sprint/B01`**, no en
+  `develop`; se lee con `git show sprint/B01:docs/handoffs/B01.md`
+- Handoffs cerrados: `docs/handoffs/` en `develop` (D01 y los siete de la cadena `F`)
 - Decisiones/contratos: `docs/decisiones/`, `docs/contratos/`
+- Gobernanza: `AGENTS.md` — permisos, ramas, gates y despacho

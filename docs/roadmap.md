@@ -4,7 +4,7 @@ Horizonte: los RF-001 a RF-015 aprobados en `docs/requisitos/rf.md`. No incluye 
 
 Estado de la planificación: **línea base completa y aprobada**. `AGENTS.md` está vigente y los RF, RNF, contratos, modelo de persistencia, taxonomía de errores, actores y permisos y los cinco ADR quedaron aprobados el 2026-08-19.
 
-Lo único que impide habilitar los sprints `B` es que **sus RFC siguen en `propuesto`**: por el Invariante 8 ninguno pasa a `Planificación: LISTO` sin su RFC aprobado. No falta ninguna fuente ni ninguna aprobación de Arquitectura — solo la firma de cada RFC, y el orden lo dicta la cadena de dependencias de la tabla de abajo.
+**El RFC de B01 ya está aprobado** (Kevin, 2026-08-20) y su sprint se ejecutó; quedó `BLOQUEADO` por un defecto de seguridad que se está corrigiendo. Lo que impide habilitar **los otros seis** sprints `B` es que **sus RFC siguen en `propuesto`**: por el Invariante 8 ninguno pasa a `Planificación: LISTO` sin su RFC aprobado. No falta ninguna fuente ni ninguna aprobación de Arquitectura — solo la firma de cada RFC, y el orden lo dicta la cadena de dependencias de la tabla de abajo.
 
 ## Estructura del trabajo
 
@@ -64,7 +64,7 @@ Ningún RF del horizonte queda sin sprint; ningún sprint existe sin una fuente 
 |---|---|---|---|---|---|---|---|
 | D01 | devops | Flujos de verificación en cada pull request hacia `develop` y `main` | ninguna | F00, B01 | `docs/rfcs/D01.md` | **LISTO** | **COMPLETADO** |
 | F00 | implementation | Componentes Blade reutilizables con sus variantes y su catálogo | ninguna | B01, D01 | `docs/rfcs/F00.md` | **LISTO** | **EN_VALIDACION** |
-| B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | **LISTO** | **LISTO** |
+| B01 | implementation | Se accede al sistema con usuario y rol; tablas base y deny-by-default | ninguna | F00 | `docs/rfcs/B01.md` | **LISTO** | **EN_PROGRESO** — corrigiendo `QA-B01-01` |
 | F01 | implementation | Pantalla de acceso, layout y menú por rol | F00 | B01, B02 | `docs/rfcs/F01.md` | **LISTO** | **EN_VALIDACION** |
 | B02 | implementation | Alta y búsqueda de pacientes; consulta de DNI al proveedor | B01 | F01, F02 | `docs/rfcs/B02.md` | BORRADOR | PLANIFICADO |
 | F02 | implementation | Búsqueda de pacientes y alta con autocompletado | F00, F01 | B02, B03 | `docs/rfcs/F02.md` | **LISTO** | **EN_VALIDACION** |
@@ -113,7 +113,7 @@ Un par `B`/`F` no está cerrado hasta que se integran de verdad. Cada punto exig
 
 **La línea frontend completa ya se ejecutó** (F00 → F07, entre el 2026-08-18 y el 2026-08-19), igual que D01. Los siete sprints `F` están en `EN_VALIDACION` con veredicto favorable de QA; no pasan a `COMPLETADO` porque cada uno espera su punto de integración con el sprint `B` correspondiente, declarado más abajo.
 
-**B01 está habilitado y despachado** (RFC aprobado por Kevin el 2026-08-20). Los otros seis RFC de `B` siguen en `propuesto` y se encadenan detrás según la columna «Depende de»: B02 espera a B01, B03 a B02, y así sucesivamente, de modo que aprobarlos todos de golpe no adelantaría nada.
+**B01 se ejecutó, quedó BLOQUEADO** por QA-B01-01 —un defecto de seguridad reproducido: la contraseña se escribe en claro en el log— y **desde el 2026-08-21 se está corrigiendo**, tras retomarse el proyecto. Su rama y su PR siguen publicados sin fusionar; el detalle está en `docs/estado.md`. Al terminar entrega un `final_sha` nuevo y vuelve a QA: el gate de `AGENTS.md` exige `APROBADO` antes de `develop`. Los otros seis RFC de `B` siguen en `propuesto` y se encadenan detrás según la columna «Depende de».
 
 ## Correspondencia con el cronograma de la propuesta
 
