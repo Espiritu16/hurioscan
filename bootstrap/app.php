@@ -2,6 +2,7 @@
 
 use App\Compartido\Errores\ErrorDeAplicacion;
 use App\Compartido\Errores\EstadoHttpDelError;
+use App\Http\Middleware\AutorizarOperacion;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sin credencial se vuelve al formulario de acceso. Una petición que
         // espera JSON recibe en cambio `NO_AUTENTICADO` con su 401, más abajo.
         $middleware->redirectGuestsTo(fn () => route('acceder'));
+
+        $middleware->alias(['autorizar' => AutorizarOperacion::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
