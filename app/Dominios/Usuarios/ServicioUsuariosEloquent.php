@@ -32,7 +32,7 @@ class ServicioUsuariosEloquent implements ServicioUsuarios
      */
     private const MENSAJE_NO_AUTENTICADO = 'Correo o contraseña incorrectos.';
 
-    public function autenticar(string $email, string $password, bool $recordar = false): array
+    public function autenticar(string $email, #[\SensitiveParameter] string $password, bool $recordar = false): array
     {
         $datos = $this->validarCredenciales($email, $password);
 
@@ -100,7 +100,7 @@ class ServicioUsuariosEloquent implements ServicioUsuarios
      *
      * @return array{email: string, password: string}
      */
-    private function validarCredenciales(string $email, string $password): array
+    private function validarCredenciales(string $email, #[\SensitiveParameter] string $password): array
     {
         $validador = Validator::make(
             ['email' => trim($email), 'password' => $password],

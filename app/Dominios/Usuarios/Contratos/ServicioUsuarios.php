@@ -14,7 +14,7 @@ namespace App\Dominios\Usuarios\Contratos;
 interface ServicioUsuarios
 {
     /** `POST /acceder` */
-    public function autenticar(string $email, string $password, bool $recordar = false): array;
+    public function autenticar(string $email, #[\SensitiveParameter] string $password, bool $recordar = false): array;
 
     /** `POST /salir` */
     public function salir(): void;
