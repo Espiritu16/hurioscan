@@ -17,10 +17,11 @@
 
 ## Vigencia de gobernanza
 - Estado de gobernanza: APROBADO
-- Última revisión material: separación del rol `implementation` en dos líneas paralelas (backend y frontend) con rutas escribibles disjuntas, para permitir ejecución simultánea.
-- Revisión no material (2026-08-20): se actualizó la descripción del mecanismo de despacho —subagente por defecto en vez de chat de rol— sin tocar roles, permisos, rutas, ramas ni autoridad. No invalida la aprobación.
+- **Última revisión material (2026-08-20):** reparto de `tests/Feature/` por línea con zona de corrección cruzada, y declaración de que el proyecto no usa `app/Models/`. Motivo: el archivo afirmaba que las rutas de las dos líneas eran disjuntas y `tests/Feature/` se solapaba entre ambas — una separación declarada que no existía, en la que dos ejecutores en paralelo habrían confiado. Detectado al auditar B01.
+- Revisión material anterior: separación del rol `implementation` en dos líneas paralelas (backend y frontend) con rutas escribibles disjuntas, para permitir ejecución simultánea. Aprobada por Kevin el 2026-08-18.
+- Revisión no material (2026-08-20): se actualizó la descripción del mecanismo de despacho —subagente por defecto en vez de chat de rol— sin tocar roles, permisos, rutas, ramas ni autoridad. No invalidó la aprobación.
 - Aprobado por: Kevin
-- Fecha de aprobación: 2026-08-18
+- Fecha de aprobación: 2026-08-20
 
 <!-- Un archivo nuevo permanece BORRADOR aunque exista o esté commiteado.
      Cambiar tipo/stack, roles, permisos, ramas, gates, push o autoridad invalida la
@@ -39,7 +40,7 @@
 El rol se ejerce en **dos líneas que pueden trabajar en paralelo** — sprints `B` (backend) y sprints `F` (frontend). Sus rutas escribibles son disjuntas a propósito: es lo que permite ejecutar dos sprints a la vez sin que se pisen, sea quien sea el ejecutor.
 
 #### implementation · línea backend (sprints `B`)
-- Puede escribir código y pruebas: `app/Dominios/*/` **excepto** la subcarpeta `Componentes/` de cada dominio, `app/Compartido/`, `app/Http/Middleware/`, `app/Providers/`, `tests/Feature/`, `tests/Unit/`
+- Puede escribir código y pruebas: `app/Dominios/*/` **excepto** la subcarpeta `Componentes/` de cada dominio, `app/Compartido/`, `app/Http/Middleware/`, `app/Providers/`, `tests/Feature/Backend/`, `tests/Unit/`
 - Puede escribir bootstrap/configuración cuando el RFC lo autoriza: `composer.json`, `composer.lock`, `config/`, `bootstrap/`, `.env.example` (sin secretos), `database/migrations/`, `database/seeders/`, `database/factories/`
 - **Es dueña de `routes/web.php`**: declara las rutas con su nombre. La línea frontend las consume por nombre y no las edita.
 - No puede escribir: `resources/views/`, `resources/css/`, `resources/js/`, `app/Dominios/*/Componentes/`
@@ -48,13 +49,33 @@ El rol se ejerce en **dos líneas que pueden trabajar en paralelo** — sprints 
 - Puede escribir código y pruebas: `app/Dominios/*/Componentes/` (componentes Livewire), `resources/views/`, `resources/css/`, `resources/js/`, `app/Compartido/Dobles/` (dobles de desarrollo), `tests/Feature/Frontend/`
 - Puede escribir bootstrap/configuración cuando el RFC lo autoriza: `package.json`, `pnpm-lock.yaml`, `vite.config.js`, `tailwind.config.js`
 - **Consume las rutas por su nombre**, nunca por su URL literal ni editando `routes/web.php`. Si necesita una ruta que no existe, la pide al Coordinador; no la agrega por su cuenta.
-- No puede escribir: `app/Dominios/*/` fuera de `Componentes/`, `database/`, `app/Compartido/` fuera de `Dobles/`
+- No puede escribir: `app/Dominios/*/` fuera de `Componentes/`, `database/`, `app/Compartido/` fuera de `Dobles/`, `tests/Feature/Backend/`, `tests/Unit/`
 
 #### Reglas comunes a ambas líneas
 - Puede actualizar únicamente este handoff: `docs/handoffs/<sprint-id>.md` correspondiente a su propio sprint; nunca `docs/estado.md` ni handoffs ajenos
 - No puede modificar sin autorización: `docs/contratos/`, `docs/persistencia/modelo.md`, `docs/errores/`, `docs/requisitos/actores-permisos.md`, `docs/decisiones/`, `docs/roadmap.md`
 - **Zona compartida — `routes/web.php`:** la escribe solo backend. Si un sprint de frontend necesita una ruta antes de que su backend exista, el Coordinador la declara apuntando a un componente provisional; nunca dos ejecutores editan ese archivo a la vez.
 - **Los dobles de desarrollo viven en `app/Compartido/Dobles/` y se activan solo por configuración.** Ningún doble se referencia desde código de producción, y el punto de integración de cada par `B`/`F` verifica que el build real no cae de vuelta a ellos.
+
+##### Pruebas — reparto por línea y corrección cruzada
+
+- La línea **backend** escribe `tests/Feature/Backend/` y `tests/Unit/`; la línea **frontend** escribe `tests/Feature/Frontend/`.
+- **Ninguna escribe en la raíz de `tests/Feature/`**: toda prueba nueva va dentro de la subcarpeta de su línea. La raíz queda reservada al scaffold del framework.
+- **Corrección cruzada — zona compartida, mismo criterio que `routes/web.php`.** Cuando un sprint rompe legítimamente una prueba de la otra línea, porque su cambio altera lo que esa prueba daba por cierto, **puede ajustarla**, y debe declararlo en su handoff para que QA lo verifique por mutación.
+
+  **Ajustar una expectativa no es relajarla, y la diferencia importa:**
+
+  | Permitido — ajustar al comportamiento correcto nuevo | Prohibido — debilitar la prueba |
+  |---|---|
+  | Cambiar `assertOk()` por `assertRedirect()` porque esa ruta ahora exige credencial | **Quitar** la aserción |
+  | Añadir el rol o la sesión que el comportamiento nuevo requiere | **Ampliarla** para que acepte más casos de los que aceptaba |
+  | Actualizar el valor esperado cuando el correcto cambió | Marcarla **omitida** o condicionarla para que no corra |
+
+  La regla de fondo: después del ajuste la prueba debe **seguir pudiendo fallar por lo mismo que fallaba antes**. Si la única forma de hacerla pasar es que deje de vigilar algo, eso no es un ajuste: es un bloqueo, y se escala en vez de editar la prueba ajena.
+
+##### `app/Models/` — el proyecto no la usa
+
+Las entidades viven en el dominio que les corresponde (ADR-0001, estructura domain-first). `app/Models/` es residuo del scaffold de Laravel. **Ninguna línea escribe ahí**, y el directorio con su `User.php` se elimina en el primer sprint de backend que toque esa capa —ya viaja dentro de `sprint/B01`, junto con el ajuste de `config/auth.php`, el seeder y la factory que aún lo referencian—. Si alguna línea necesitara escribir ahí, es señal de que la entidad está en el lugar equivocado, no de que falte un permiso.
 
 ### qa
 - Puede leer: todo el repositorio
